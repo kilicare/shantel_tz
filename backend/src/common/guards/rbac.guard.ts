@@ -36,7 +36,12 @@ export class RbacGuard implements CanActivate {
     }
 
     // Get user's permissions from database
-    const userPermissions = await this.getUserPermissions(user.id);
+    const userId = user.id ?? user.sub;
+    if (!userId) {
+      throw new ForbiddenException('Authenticated user identity is missing');
+    }
+
+    const userPermissions = await this.getUserPermissions(userId);
 
     // Check if user has required permissions
     const hasPermission = requiredPermissions.every((perm) =>
@@ -45,7 +50,7 @@ export class RbacGuard implements CanActivate {
 
     if (!hasPermission) {
       this.logger.warn(
-        `User ${user.id} denied access. Required: ${requiredPermissions.join(', ')}`,
+        `User ${userId} denied access. Required: ${requiredPermissions.join(', ')}`,
       );
       throw new ForbiddenException('Insufficient permissions');
     }
