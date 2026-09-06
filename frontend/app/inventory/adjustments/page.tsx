@@ -1,0 +1,21 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AlertCircle, Check, RefreshCw, Upload } from "lucide-react";
+import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
+import { apiClient } from "@/lib/api-client";
+
+type Adjustment = { id: string; adjustmentNumber: string; status: string; reason: string; location?: { name?: string } };
+function unwrap(response: any) { const payload = response?.data?.data ?? response?.data ?? response; return payload?.data ?? payload ?? []; }
+
+export default function AdjustmentsPage() {
+  const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  async function load() { try { setError(""); setAdjustments(unwrap(await apiClient.get("/inventory/adjustments?page=1&limit=50"))); } catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Adjustments could not be loaded."); } }
+  useEffect(() => { try { setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void load(); }, []);
+  async function changeStatus(id: string, action: "approve" | "post") { try { setError(""); const userId = JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.id; const response = await apiClient.patch(`/inventory/adjustments/${id}/${action}`, { userId }); const result = unwrap(response); setMessage(`${result.adjustmentNumber ?? "Adjustment"} is now ${result.status}.`); await load(); } catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || `Adjustment could not be ${action}d.`); } }
+  const canApprove = permissions.includes("inventory.approve_adjust");
+  return <><WorkspaceNavigation /><main className="min-h-screen bg-[#f4f1ec] px-5 py-7 text-[#17221f] sm:px-10 sm:py-10"><div className="mx-auto max-w-5xl"><header className="flex items-end justify-between border-b border-[#17221f]/12 pb-7"><div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#ad6742]">Inventory control</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Stock adjustments</h1><p className="mt-2 text-sm text-[#17221f]/55">Approve and post physical-count corrections with an accountable trail.</p></div><button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"><RefreshCw size={15} /> Refresh</button></header>{error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#ad6742]/30 bg-[#ad6742]/8 px-4 py-3 text-sm text-[#8a4931]"><AlertCircle size={18} /> {error}</div>}{message && <div role="status" className="mt-6 border border-[#567b68]/30 bg-[#567b68]/10 px-4 py-3 text-sm text-[#365b4a]">{message}</div>}<section className="mt-8 bg-white p-6"><div className="divide-y divide-[#17221f]/10">{adjustments.length ? adjustments.map((adjustment) => <div key={adjustment.id} className="flex flex-wrap items-center justify-between gap-4 py-5"><div><p className="text-sm font-semibold">{adjustment.adjustmentNumber}</p><p className="mt-1 text-xs text-[#17221f]/45">{adjustment.location?.name} · {adjustment.reason}</p></div><div className="flex items-center gap-3"><span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#ad6742]">{adjustment.status}</span>{canApprove && adjustment.status === "DRAFT" && <button type="button" onClick={() => void changeStatus(adjustment.id, "approve")} className="flex items-center gap-2 bg-[#17221f] px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={14} /> Approve</button>}{canApprove && adjustment.status === "SUBMITTED" && <button type="button" onClick={() => void changeStatus(adjustment.id, "post")} className="flex items-center gap-2 border border-[#17221f]/20 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"><Upload size={14} /> Post</button>}</div></div>) : <p className="py-10 text-center text-sm text-[#17221f]/50">No adjustments found.</p>}</div></section></div></main></>;
+}

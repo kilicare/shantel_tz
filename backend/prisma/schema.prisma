@@ -498,6 +498,7 @@ model Product {
   stockBalances         StockBalance[]
   stockAdjustmentItems  StockAdjustmentItem[]
   stockAuditItems       StockAuditItem[]
+  stockTransferItems    StockTransferItem[]
   projectItems          ProjectItem[]
   serialNumbers         SerialNumber[]
   assets                Asset[]
@@ -659,6 +660,7 @@ model DocumentSequence {
   prefix        String
   currentNumber BigInt   @default(0)
   padding       Int      @default(6) // 000001
+  year          Int      @default(2026)
   status        String   @default("ACTIVE")
   updatedAt     DateTime @updatedAt
 
@@ -877,6 +879,8 @@ model Payment {
   // Relations
   customer Customer        @relation(fields: [customerId], references: [id])
   invoice  Invoice?        @relation(fields: [invoiceId], references: [id])
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrderId String?     @db.Uuid
   paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   createdBy User           @relation("CreatedBy", fields: [createdById], references: [id])
   receipts Receipt[]
@@ -884,6 +888,7 @@ model Payment {
   @@index([paymentNumber])
   @@index([customerId])
   @@index([invoiceId])
+  @@index([purchaseOrderId])
   @@index([status])
   @@index([paymentDate])
   @@map("payments")
@@ -1049,6 +1054,7 @@ model PurchaseOrder {
   createdBy User                 @relation("CreatedBy", fields: [createdById], references: [id])
   items     PurchaseOrderItem[]
   grns      GRN[]
+  payments  Payment[]
 
   @@index([poNumber])
   @@index([supplierId])
@@ -1266,12 +1272,28 @@ model StockTransfer {
   sourceLocation Location @relation("SourceLocation", fields: [sourceLocationId], references: [id])
   destLocation   Location @relation("DestinationLocation", fields: [destLocationId], references: [id])
   createdBy      User     @relation("CreatedBy", fields: [createdById], references: [id])
+  items          StockTransferItem[]
 
   @@index([transferNumber])
   @@index([sourceLocationId])
   @@index([destLocationId])
   @@index([status])
   @@map("stock_transfers")
+}
+
+/// Stock transfer line items
+model StockTransferItem {
+  id         String       @id @default(uuid()) @db.Uuid
+  transferId String       @db.Uuid
+  productId  String       @db.Uuid
+  quantity   Decimal      @db.Decimal(10, 2)
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product      @relation(fields: [productId], references: [id])
+
+  @@unique([transferId, productId])
+  @@index([productId])
+  @@map("stock_transfer_items")
 }
 
 /// Stock adjustments

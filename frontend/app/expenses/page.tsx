@@ -1,0 +1,2 @@
+import { ResourceWorkspace } from "@/components/ResourceWorkspace";
+export default function ExpensesPage() { return <ResourceWorkspace eyebrow="Finance desk" title="Expenses" description="Track operational expenses through controlled submission and approval." endpoint="/approvals/expenses?page=1&limit=100" emptyLabel="No expenses found." createPermission="expenses.create" createLabel="New expense" />; }

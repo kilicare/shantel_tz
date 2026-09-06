@@ -1,0 +1,11 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useSearch } from "@/hooks/useSearch";
+
+export function SearchableSelect<T extends { name?: string }>({ placeholder = "Search...", onSelect, onSearch, renderItem, maxResults = 10 }: { placeholder?: string; onSelect: (item: T) => void; onSearch: (query: string) => Promise<T[]>; renderItem?: (item: T) => React.ReactNode; maxResults?: number }) {
+  const [open, setOpen] = useState(false); const [selected, setSelected] = useState<T | null>(null); const ref = useRef<HTMLDivElement>(null); const { query, setQuery, results, loading } = useSearch({ minChars: 1, onSearch });
+  useEffect(() => { const close = (event: MouseEvent) => { if (!ref.current?.contains(event.target as Node)) setOpen(false); }; document.addEventListener("mousedown", close); return () => document.removeEventListener("mousedown", close); }, []);
+  return <div ref={ref} className="relative"><div className="relative"><Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" /><input className="h-9 w-full rounded-lg border bg-background pl-9 pr-9 text-sm outline-none focus:ring-2 focus:ring-ring" placeholder={placeholder} value={selected?.name ?? query} onChange={(event) => { setSelected(null); setQuery(event.target.value); setOpen(true); }} onFocus={() => setOpen(true)} />{selected ? <button type="button" className="absolute right-3 top-2.5" onClick={() => { setSelected(null); setQuery(""); }} aria-label="Clear selection"><X className="size-4" /></button> : null}</div>{open ? <div className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border bg-popover p-1 shadow-lg">{loading ? <p className="p-3 text-sm text-muted-foreground">Searching...</p> : results.slice(0, maxResults).map((item, index) => <button type="button" key={index} onClick={() => { setSelected(item); setQuery(""); setOpen(false); onSelect(item); }} className="block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-muted">{renderItem ? renderItem(item) : item.name ?? String(item)}</button>)}{!loading && query && !results.length ? <p className="p-3 text-sm text-muted-foreground">No results</p> : null}</div> : null}</div>;
+}

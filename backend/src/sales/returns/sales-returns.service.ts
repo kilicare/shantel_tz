@@ -112,11 +112,18 @@ export class SalesReturnsService {
     );
 
     // Get next return number
-    const seq = await this.db.documentSequence.findUnique({
-      where: { documentType: 'SALES_RETURN' },
-    });
+    const [seq, latestReturn] = await Promise.all([
+      this.db.documentSequence.findUnique({
+        where: { documentType: 'SALES_RETURN' },
+      }),
+      this.db.salesReturn.findFirst({
+        orderBy: { createdAt: 'desc' },
+        select: { returnNumber: true },
+      }),
+    ]);
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestReturnNumber = latestReturn?.returnNumber.match(/(\d+)$/)?.[1];
+    const nextNumber = Math.max(Number(seq?.currentNumber || 0), Number(latestReturnNumber || 0)) + 1;
     const returnNumber = `SR-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create return (DRAFT status)
@@ -155,9 +162,10 @@ export class SalesReturnsService {
     }
 
     // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'SALES_RETURN' },
-      data: { currentNumber: nextNumber },
+      create: { documentType: 'SALES_RETURN', prefix: 'SR', currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
     });
 
     this.logger.log(`Sales Return created: ${returnNumber}`);
@@ -261,7 +269,6 @@ export class SalesReturnsService {
               referenceId: returnId,
               unitCost: item.unitPrice,
               reason: item.reason,
-              createdById: userId,
             },
           });
         }

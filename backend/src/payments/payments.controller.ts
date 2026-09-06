@@ -13,6 +13,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RequirePermission } from '../common/decorators/require-permission.decorator.js';
 import { PaginationService } from '../shared/services/pagination.service.js';
+import { DatabaseService } from '../database/database.service.js';
 
 import { PaymentsService } from './payments.service.js';
 import { ReceiptsService } from './receipts/receipts.service.js';
@@ -30,7 +31,15 @@ export class PaymentsController {
     private refundsService: RefundsService,
     private reportsService: FinancialReportsService,
     private paginationService: PaginationService,
+    private db: DatabaseService,
   ) {}
+
+  @Get('methods')
+  @RequirePermission('payments.view')
+  @ApiOperation({ summary: 'Get active payment methods' })
+  async getPaymentMethods() {
+    return { success: true, data: await this.db.paymentMethod.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' } }) };
+  }
 
   // ===== CUSTOMER PAYMENT ENDPOINTS =====
 
@@ -69,16 +78,6 @@ export class PaymentsController {
   ) {
     const paginationParams = this.paginationService.parsePaginationParams(query);
     return this.paymentsService.getCustomerPayments(customerId, paginationParams);
-  }
-
-  @Get(':id')
-  @RequirePermission('payments.view')
-  @ApiOperation({ summary: 'Get payment by ID' })
-  async getPayment(@Param('id') id: string) {
-    return {
-      success: true,
-      data: await this.paymentsService.findById(id),
-    };
   }
 
   @Get()
@@ -162,6 +161,16 @@ export class PaymentsController {
     return {
       success: true,
       data: await this.refundsService.findById(id),
+    };
+  }
+
+  @Get(':id')
+  @RequirePermission('payments.view')
+  @ApiOperation({ summary: 'Get payment by ID' })
+  async getPayment(@Param('id') id: string) {
+    return {
+      success: true,
+      data: await this.paymentsService.findById(id),
     };
   }
 

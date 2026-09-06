@@ -106,6 +106,10 @@ async function main() {
         { id: uuidv4(), code: 'dashboard.view', name: 'View Dashboard', module: 'dashboard' },
         { id: uuidv4(), code: 'reports.view', name: 'View Reports', module: 'reports' },
         { id: uuidv4(), code: 'reports.export', name: 'Export Reports', module: 'reports' },
+        // DOCUMENTS
+        { id: uuidv4(), code: 'documents.view', name: 'View Documents', module: 'documents' },
+        { id: uuidv4(), code: 'documents.print', name: 'Print Documents', module: 'documents' },
+        { id: uuidv4(), code: 'documents.configure', name: 'Configure Document Numbering', module: 'documents' },
         // AUDIT
         { id: uuidv4(), code: 'audit.view', name: 'View Audit Logs', module: 'audit' },
       ];
@@ -116,17 +120,20 @@ async function main() {
       console.log(`ℹ️  ${permissionCount} permissions already exist, skipping`);
     }
 
-    const dashboardPermission = await prisma.permission.upsert({
-      where: { code: 'dashboard.view' },
-      update: { name: 'View Dashboard', module: 'dashboard' },
-      create: { id: uuidv4(), code: 'dashboard.view', name: 'View Dashboard', module: 'dashboard' },
-    });
-    const superAdminRole = await prisma.role.findFirst({ where: { name: 'Super Administrator' } });
-    if (superAdminRole) {
-      await prisma.rolePermission.upsert({
-        where: { roleId_permissionId: { roleId: superAdminRole.id, permissionId: dashboardPermission.id } },
+    const requiredPermissionCodes = [
+      'approvals.view', 'approvals.create', 'approvals.approve',
+      'expenses.view', 'expenses.create', 'expenses.approve',
+      'locations.view', 'locations.create', 'locations.edit',
+      'suppliers.view', 'suppliers.create', 'suppliers.edit',
+      'projects.view', 'projects.create', 'projects.edit',
+      'serial_numbers.view', 'serial_numbers.create', 'serial_numbers.edit',
+      'assets.view', 'assets.create', 'assets.edit', 'purchase_returns.view',
+    ];
+    for (const code of requiredPermissionCodes) {
+      await prisma.permission.upsert({
+        where: { code },
         update: {},
-        create: { id: uuidv4(), roleId: superAdminRole.id, permissionId: dashboardPermission.id },
+        create: { id: uuidv4(), code, name: code.split('.').map((part) => part.charAt(0).toUpperCase() + part.slice(1).replace('_', ' ')).join(' '), module: code.split('.')[0] },
       });
     }
   } catch (error) {
@@ -144,23 +151,77 @@ async function main() {
     const allPermissions = await prisma.permission.findMany();
 
     if (superAdminRole && allPermissions.length > 0) {
-      const existingRolePermissions = await prisma.rolePermission.count({
-        where: { roleId: superAdminRole.id },
-      });
-
-      if (existingRolePermissions === 0) {
-        await prisma.rolePermission.createMany({
-          data: allPermissions.map((perm) => ({
+      for (const permission of allPermissions) {
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: {
+              roleId: superAdminRole.id,
+              permissionId: permission.id,
+            },
+          },
+          update: {},
+          create: {
             id: uuidv4(),
             roleId: superAdminRole.id,
-            permissionId: perm.id,
-          })),
+            permissionId: permission.id,
+          },
         });
-        console.log('✅ Permissions assigned');
-      } else {
-        console.log('ℹ️  Permissions already assigned, skipping');
+      }
+      console.log('✅ Permissions reconciled for Super Admin');
+    }
+
+    const rolePermissionMap: Record<string, string[]> = {
+      Administrator: allPermissions.map((permission) => permission.code),
+      Manager: [
+        'dashboard.view', 'reports.view', 'reports.export', 'audit.view',
+        'approvals.view', 'approvals.approve',
+        'users.view', 'products.view', 'customers.view', 'suppliers.view', 'locations.view',
+        'quotations.view', 'sales_orders.view', 'sales_orders.approve', 'invoices.view', 'invoices.approve', 'invoices.post',
+        'payments.view', 'payments.record', 'sales_returns.view', 'sales_returns.approve',
+        'purchase_orders.view', 'purchase_orders.approve', 'grns.view', 'grns.post',
+        'inventory.view', 'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit',
+        'documents.view', 'documents.print',
+      ],
+      Salesperson: [
+        'dashboard.view', 'products.view', 'customers.view', 'customers.create', 'customers.edit',
+        'locations.view',
+        'quotations.view', 'quotations.create', 'quotations.edit', 'sales_orders.view', 'sales_orders.create',
+        'invoices.view', 'invoices.create', 'invoices.post', 'payments.view', 'sales_returns.view', 'sales_returns.create',
+        'documents.view', 'documents.print',
+      ],
+      Storekeeper: [
+        'dashboard.view', 'products.view', 'locations.view', 'inventory.view', 'inventory.adjust',
+        'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit', 'purchase_orders.view',
+        'grns.view', 'grns.create', 'grns.post', 'sales_returns.view', 'audit.view',
+        'documents.view', 'documents.print',
+      ],
+      Purchaser: [
+        'dashboard.view', 'products.view', 'products.create', 'products.edit', 'suppliers.view', 'suppliers.create', 'suppliers.edit',
+        'purchase_orders.view', 'purchase_orders.create', 'purchase_orders.approve', 'grns.view', 'grns.create', 'grns.post',
+        'purchase_returns.create', 'inventory.view', 'documents.view', 'documents.print',
+      ],
+      'Accountant/Finance': [
+        'dashboard.view', 'reports.view', 'reports.export', 'audit.view', 'customers.view', 'suppliers.view',
+        'invoices.view', 'payments.view', 'payments.record', 'expenses.view', 'expenses.create', 'expenses.approve',
+        'documents.view', 'documents.print',
+      ],
+    };
+
+    for (const [roleName, permissionCodes] of Object.entries(rolePermissionMap)) {
+      const role = await prisma.role.findFirst({ where: { name: roleName } });
+      if (!role) continue;
+      const permissionsByCode = new Map(allPermissions.map((permission) => [permission.code, permission]));
+      for (const code of permissionCodes) {
+        const permission = permissionsByCode.get(code);
+        if (!permission) continue;
+        await prisma.rolePermission.upsert({
+          where: { roleId_permissionId: { roleId: role.id, permissionId: permission.id } },
+          update: {},
+          create: { id: uuidv4(), roleId: role.id, permissionId: permission.id },
+        });
       }
     }
+    console.log('✅ Operational role permissions reconciled');
   } catch (error) {
     console.error('❌ Error assigning permissions:', error);
   }
@@ -207,6 +268,52 @@ async function main() {
     }
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
+  }
+
+  // ========================================
+  // CREATE ROLE TEST USERS
+  // ========================================
+
+  console.log('👥 Creating role test users...');
+
+  try {
+    const roleTestUsers = [
+      { email: 'administrator@shantel.local', username: 'administrator', name: 'Operations Administrator', role: 'Administrator' },
+      { email: 'manager@shantel.local', username: 'manager', name: 'Operations Manager', role: 'Manager' },
+      { email: 'salesperson@shantel.local', username: 'salesperson', name: 'Salesperson User', role: 'Salesperson' },
+      { email: 'storekeeper@shantel.local', username: 'storekeeper', name: 'Storekeeper User', role: 'Storekeeper' },
+      { email: 'purchaser@shantel.local', username: 'purchaser', name: 'Purchaser User', role: 'Purchaser' },
+      { email: 'accountant@shantel.local', username: 'accountant', name: 'Accountant Finance User', role: 'Accountant/Finance' },
+    ];
+
+    for (const testUser of roleTestUsers) {
+      const role = await prisma.role.findFirst({ where: { name: testUser.role } });
+      if (!role) continue;
+
+      let user = await prisma.user.findFirst({ where: { email: testUser.email } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            id: uuidv4(),
+            email: testUser.email,
+            username: testUser.username,
+            name: testUser.name,
+            passwordHash: await bcrypt.hash('Role@123456', 10),
+            status: 'ACTIVE',
+          },
+        });
+      }
+
+      await prisma.userRole.upsert({
+        where: { userId_roleId: { userId: user.id, roleId: role.id } },
+        update: {},
+        create: { id: uuidv4(), userId: user.id, roleId: role.id },
+      });
+    }
+
+    console.log('✅ Role test users reconciled');
+  } catch (error) {
+    console.error('❌ Error creating role test users:', error);
   }
 
   // ========================================
@@ -269,6 +376,36 @@ async function main() {
     }
   } catch (error) {
     console.error('❌ Error creating system settings:', error);
+  }
+
+  // ========================================
+  // DOCUMENT SEQUENCES
+  // ========================================
+
+  console.log('🔢 Reconciling document sequences...');
+
+  try {
+    const documentSequences = [
+      ['REQUISITION', 'REQ'],
+      ['PURCHASE_ORDER', 'PO'],
+      ['GRN', 'GRN'],
+      ['STOCK_TRANSFER', 'TRF'],
+      ['STOCK_ADJUSTMENT', 'ADJ'],
+      ['STOCK_AUDIT', 'AUD'],
+      ['PAYMENT', 'PAY'],
+    ];
+
+    for (const [documentType, prefix] of documentSequences) {
+      await prisma.documentSequence.upsert({
+        where: { documentType },
+        update: {},
+        create: { id: uuidv4(), documentType, prefix, currentNumber: 0, padding: 6, year: 2026, status: 'ACTIVE' },
+      });
+    }
+
+    console.log('✅ Document sequences reconciled');
+  } catch (error) {
+    console.error('❌ Error creating document sequences:', error);
   }
 
   // ========================================

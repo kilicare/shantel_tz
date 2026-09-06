@@ -16,7 +16,10 @@ export class DashboardService {
     const [todaySales, openInvoices, pendingApprovals, balances, recentInvoices, recentPOs] =
       await Promise.all([
         this.db.invoice.findMany({
-          where: { invoiceDate: { gte: today, lt: tomorrow }, status: { not: 'CANCELLED' } },
+          where: {
+            invoiceDate: { gte: today, lt: tomorrow },
+            status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] },
+          },
           select: { totalAmount: true, amountPaid: true },
         }),
         this.db.invoice.findMany({
@@ -91,7 +94,10 @@ export class DashboardService {
     end.setHours(23, 59, 59, 999);
 
     const invoices = await this.db.invoice.findMany({
-      where: { invoiceDate: { gte: start, lte: end }, status: { not: 'CANCELLED' } },
+      where: {
+        invoiceDate: { gte: start, lte: end },
+        status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] },
+      },
       select: { invoiceDate: true, totalAmount: true },
     });
     const totals = new Map<string, number>();

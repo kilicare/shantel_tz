@@ -104,6 +104,16 @@ export class StockTransferService {
       },
     });
 
+    for (const item of data.items) {
+      await this.db.stockTransferItem.create({
+        data: {
+          transferId: transfer.id,
+          productId: item.productId,
+          quantity: new Prisma.Decimal(item.quantity),
+        },
+      });
+    }
+
     // Update document sequence
     await this.db.documentSequence.update({
       where: { documentType: 'STOCK_TRANSFER' },
@@ -135,9 +145,7 @@ export class StockTransferService {
     // USE TRANSACTION FOR ATOMICITY
     try {
       const result = await this.db.$transaction(async (tx) => {
-        // 1. Get all items in this transfer (from the transfer details)
-        // Note: In production, you'd have a transfer_items junction table
-        // For now, we'll simulate with a simple example
+        const transferItems = await tx.stockTransferItem.findMany({ where: { transferId } });
 
         const sourceLocation = await tx.location.findUnique({
           where: { id: transfer.sourceLocationId },
@@ -148,35 +156,31 @@ export class StockTransferService {
         });
 
         // Get current balances at source
-        const sourceBalances = await tx.stockBalance.findMany({
-          where: { locationId: transfer.sourceLocationId },
-        });
-
-        // 2. For each product, transfer stock
-        for (const balance of sourceBalances) {
+        // Transfer only the explicitly requested products and quantities.
+        for (const item of transferItems) {
           // Check source has stock
           const sourceBalance = await tx.stockBalance.findUnique({
             where: {
               productId_locationId: {
-                productId: balance.productId,
+                productId: item.productId,
                 locationId: transfer.sourceLocationId,
               },
             },
           });
 
-          if (!sourceBalance || sourceBalance.quantity.toNumber() < 1) {
+          if (!sourceBalance || sourceBalance.quantity.toNumber() < item.quantity.toNumber()) {
             throw new BadRequestException(
-              `Stock mismatch for product ${balance.productId}. Transfer aborted.`,
+              `Insufficient stock for product ${item.productId}. Transfer aborted.`,
             );
           }
 
-          const transferQuantity = Math.min(sourceBalance.quantity.toNumber(), 10); // Transfer 10 units for demo
+          const transferQuantity = item.quantity.toNumber();
 
           // Deduct from source
           await tx.stockBalance.update({
             where: {
               productId_locationId: {
-                productId: balance.productId,
+                productId: item.productId,
                 locationId: transfer.sourceLocationId,
               },
             },
@@ -189,7 +193,7 @@ export class StockTransferService {
           const destBalance = await tx.stockBalance.findUnique({
             where: {
               productId_locationId: {
-                productId: balance.productId,
+                productId: item.productId,
                 locationId: transfer.destLocationId,
               },
             },
@@ -199,7 +203,7 @@ export class StockTransferService {
             await tx.stockBalance.update({
               where: {
                 productId_locationId: {
-                  productId: balance.productId,
+                  productId: item.productId,
                   locationId: transfer.destLocationId,
                 },
               },
@@ -211,7 +215,7 @@ export class StockTransferService {
             // Create new balance at destination
             await tx.stockBalance.create({
               data: {
-                productId: balance.productId,
+                productId: item.productId,
                 locationId: transfer.destLocationId,
                 quantity: transferQuantity,
               },
@@ -221,25 +225,23 @@ export class StockTransferService {
           // Record movements
           await tx.inventoryMovement.create({
             data: {
-              productId: balance.productId,
+              productId: item.productId,
               locationId: transfer.sourceLocationId,
               movementType: 'TRANSFER_OUT',
               quantityOut: new Prisma.Decimal(transferQuantity),
               referenceType: 'STOCK_TRANSFER',
               referenceId: transferId,
-              createdById: userId,
             },
           });
 
           await tx.inventoryMovement.create({
             data: {
-              productId: balance.productId,
+              productId: item.productId,
               locationId: transfer.destLocationId,
               movementType: 'TRANSFER_IN',
               quantityIn: new Prisma.Decimal(transferQuantity),
               referenceType: 'STOCK_TRANSFER',
               referenceId: transferId,
-              createdById: userId,
             },
           });
         }

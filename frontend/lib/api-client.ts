@@ -18,4 +18,23 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const responseMessage = error.response?.data?.message;
+    const authenticationFailure =
+      error.response?.status === 401 ||
+      (error.response?.status === 403 &&
+        ["User not authenticated", "No authentication token provided", "Invalid or expired token"].includes(responseMessage));
+
+    if (typeof window !== "undefined" && authenticationFailure) {
+      localStorage.removeItem("shantel_access_token");
+      localStorage.removeItem("shantel_refresh_token");
+      localStorage.removeItem("shantel_user");
+      if (!window.location.pathname.startsWith("/login")) window.location.assign("/login");
+    }
+    return Promise.reject(error);
+  },
+);
+
 export { apiClient };

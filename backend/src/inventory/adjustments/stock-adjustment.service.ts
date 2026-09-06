@@ -69,7 +69,12 @@ export class StockAdjustmentService {
       where: { documentType: 'STOCK_ADJUSTMENT' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestAdjustment = await this.db.stockAdjustment.findFirst({
+      orderBy: { adjustmentNumber: 'desc' },
+      select: { adjustmentNumber: true },
+    });
+    const latestNumber = Number(latestAdjustment?.adjustmentNumber.split('-').pop() || 0);
+    const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
     const adjustmentNumber = `ADJ-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create adjustment (DRAFT status)
@@ -85,10 +90,24 @@ export class StockAdjustmentService {
       },
     });
 
+    for (const item of data.items) {
+      await this.db.stockAdjustmentItem.create({
+        data: {
+          adjustmentId: adjustment.id,
+          productId: item.productId,
+          systemQuantity: new Prisma.Decimal(item.systemQuantity),
+          physicalQuantity: new Prisma.Decimal(item.physicalQuantity),
+          difference: new Prisma.Decimal(item.physicalQuantity - item.systemQuantity),
+          reason: data.reason,
+        },
+      });
+    }
+
     // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'STOCK_ADJUSTMENT' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'STOCK_ADJUSTMENT', prefix: 'ADJ', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Stock Adjustment created: ${adjustmentNumber}`);
@@ -128,6 +147,9 @@ export class StockAdjustmentService {
   async post(adjustmentId: string, userId: string) {
     const adjustment = await this.db.stockAdjustment.findUnique({
       where: { id: adjustmentId },
+      include: {
+        items: true,
+      },
     });
 
     if (!adjustment) {
@@ -140,8 +162,53 @@ export class StockAdjustmentService {
 
     try {
       const result = await this.db.$transaction(async (tx) => {
-        // For now, we'll create a simple adjustment without items
-        // In production, you'd process each adjustment item
+        for (const item of adjustment.items) {
+          const delta = item.difference.toNumber();
+          const currentBalance = await tx.stockBalance.findUnique({
+            where: {
+              productId_locationId: {
+                productId: item.productId,
+                locationId: adjustment.locationId,
+              },
+            },
+          });
+
+          const nextQuantity = (currentBalance
+            ? currentBalance.quantity.toNumber()
+            : 0) + delta;
+
+          await tx.stockBalance.upsert({
+            where: {
+              productId_locationId: {
+                productId: item.productId,
+                locationId: adjustment.locationId,
+              },
+            },
+            update: {
+              quantity: new Prisma.Decimal(nextQuantity),
+            },
+            create: {
+              productId: item.productId,
+              locationId: adjustment.locationId,
+              quantity: new Prisma.Decimal(nextQuantity),
+            },
+          });
+
+          if (delta !== 0) {
+            await tx.inventoryMovement.create({
+              data: {
+                productId: item.productId,
+                locationId: adjustment.locationId,
+                movementType: 'ADJUSTMENT',
+                quantityIn: delta > 0 ? new Prisma.Decimal(delta) : new Prisma.Decimal(0),
+                quantityOut: delta < 0 ? new Prisma.Decimal(Math.abs(delta)) : new Prisma.Decimal(0),
+                referenceType: 'STOCK_ADJUSTMENT',
+                referenceId: adjustmentId,
+                reason: item.reason || adjustment.reason,
+              },
+            });
+          }
+        }
 
         // Update adjustment status
         return tx.stockAdjustment.update({

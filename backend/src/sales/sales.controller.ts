@@ -197,6 +197,16 @@ export class SalesController {
     };
   }
 
+  @Patch('invoices/:id')
+  @RequirePermission('invoices.create')
+  @ApiOperation({ summary: 'Edit draft invoice' })
+  async updateInvoice(@Param('id') id: string, @Body() body: { notes?: string }) {
+    return {
+      success: true,
+      data: await this.invoicesService.updateDraft(id, body.notes),
+    };
+  }
+
   @Patch('invoices/:id/post')
   @RequirePermission('invoices.post')
   @ApiOperation({ summary: 'Post invoice (DEDUCT STOCK)' })

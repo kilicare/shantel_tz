@@ -273,7 +273,6 @@ export class StockAuditService {
                   referenceType: 'STOCK_AUDIT',
                   referenceId: auditId,
                   reason: 'Stock audit reconciliation gain',
-                  createdById: userId,
                 },
               });
             } else {
@@ -287,7 +286,6 @@ export class StockAuditService {
                   referenceType: 'STOCK_AUDIT',
                   referenceId: auditId,
                   reason: 'Stock audit reconciliation loss',
-                  createdById: userId,
                 },
               });
             }

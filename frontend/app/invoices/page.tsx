@@ -1,0 +1,60 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { Eye, FilePlus2, Printer } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { DataTable } from "@/components/DataTable";
+import { ErrorAlert } from "@/components/ErrorAlert";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import { useAsyncData } from "@/hooks/useAsyncData";
+import { formatCurrency, formatDate } from "@/utils/formatters";
+import { apiClient } from "@/lib/api-client";
+import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
+
+type Invoice = { id: string; invoiceNumber: string; customer?: { name: string }; invoiceDate: string; totalAmount: number | string; balance: number | string; status: string };
+export default function InvoicesPage() {
+  const router = useRouter();
+  const [permissions, setPermissions] = useState<string[]>([]);
+  async function openAuthenticatedDocument(path: string, fileName?: string) {
+    const response = await apiClient.get(path, { responseType: "blob" });
+    const url = URL.createObjectURL(response.data);
+    if (fileName) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
+    window.open(url, "_blank");
+  }
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("shantel_user") ?? "null");
+      setPermissions(user?.permissions ?? []);
+    } catch {
+      setPermissions([]);
+    }
+  }, []);
+  const canCreate = permissions.includes("invoices.create");
+  const canExport = permissions.includes("reports.export");
+  const loader = useCallback(async () => {
+    const response = await apiClient.get("/sales/invoices?page=1&limit=100");
+    const payload = response.data;
+    return (payload?.data?.data ?? payload?.data ?? payload ?? []) as Invoice[];
+  }, []);
+  const { data, loading, error, refetch } = useAsyncData({ loader });
+  const invoices = data ?? [];
+  const columns = [
+    { key: "invoiceNumber" as const, label: "Invoice", sortable: true },
+    { key: "customer" as const, label: "Customer", render: (value: Invoice["customer"]) => value?.name ?? "Walk-in customer" },
+    { key: "invoiceDate" as const, label: "Date", sortable: true, render: (value: string) => formatDate(value) },
+    { key: "totalAmount" as const, label: "Total", render: (value: number | string) => formatCurrency(value) },
+    { key: "balance" as const, label: "Balance", render: (value: number | string) => formatCurrency(value) },
+    { key: "status" as const, label: "Status", render: (value: string) => <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{value}</span> },
+    { key: "id" as const, label: "Actions", render: (_: string, row: Invoice) => <div className="flex gap-1"><Button variant="ghost" size="icon-sm" aria-label="View invoice" onClick={(event) => { event.stopPropagation(); router.push(`/invoices/${row.id}`); }}><Eye /></Button><Button variant="ghost" size="icon-sm" aria-label="Print invoice" onClick={(event) => { event.stopPropagation(); void openAuthenticatedDocument(`/documents/invoices/${row.id}/print-pdf`); }}><Printer /></Button></div> },
+  ];
+  const currentYear = new Date().getFullYear();
+  return <><WorkspaceNavigation /><div className="mx-auto w-full min-w-0 max-w-7xl space-y-6"><header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Sales desk</p><h1 className="mt-2 text-3xl font-semibold tracking-tight">Invoices</h1><p className="mt-2 text-sm text-muted-foreground">Search, inspect and print customer invoices.</p></div>{canCreate ? <Button onClick={() => router.push("/invoices/new")}><FilePlus2 /> New invoice</Button> : null}</header><ErrorAlert error={error?.message ?? null} onDismiss={() => void refetch()} />{loading ? <LoadingSpinner message="Loading invoices" /> : <DataTable columns={columns} data={invoices} searchFields={["invoiceNumber", "customer.name", "status"]} onRowClick={(row) => router.push(`/invoices/${row.id}`)} exportable={canExport} onExport={() => { void openAuthenticatedDocument(`/reports/export/sales-excel?startDate=${currentYear}-01-01&endDate=${currentYear}-12-31`, "sales-invoices.xlsx"); }} />}</div></>;
+}

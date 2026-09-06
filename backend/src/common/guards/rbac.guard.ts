@@ -5,6 +5,8 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { DatabaseService } from '../../database/database.service.js';
 
@@ -15,15 +17,13 @@ export class RbacGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private db: DatabaseService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-
-    if (!user) {
-      throw new ForbiddenException('User not authenticated');
-    }
 
     // Get required permissions from decorator
     const requiredPermissions = this.reflector.get<string[]>(
@@ -35,8 +35,29 @@ export class RbacGuard implements CanActivate {
       return true; // No permissions required
     }
 
+    if (!request.user) {
+      const authorization = request.headers.authorization;
+      const token = authorization?.startsWith('Bearer ')
+        ? authorization.slice(7)
+        : undefined;
+
+      if (!token) {
+        throw new ForbiddenException('User not authenticated');
+      }
+
+      try {
+        request.user = this.jwtService.verify(token, {
+          secret: this.configService.get('jwt.secret'),
+        });
+      } catch {
+        throw new ForbiddenException('User not authenticated');
+      }
+    }
+
+    const authenticatedUser = request.user;
+
     // Get user's permissions from database
-    const userId = user.id ?? user.sub;
+    const userId = authenticatedUser.id ?? authenticatedUser.sub;
     if (!userId) {
       throw new ForbiddenException('Authenticated user identity is missing');
     }

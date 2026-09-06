@@ -93,11 +93,21 @@ export class InvoicesService {
     const totalAmount = subtotal - discountAmount + taxAmount;
 
     // Get next invoice number
-    const seq = await this.db.documentSequence.findUnique({
-      where: { documentType: 'INVOICE' },
-    });
+    const [seq, latestInvoice] = await Promise.all([
+      this.db.documentSequence.findUnique({
+        where: { documentType: 'INVOICE' },
+      }),
+      this.db.invoice.findFirst({
+        orderBy: { createdAt: 'desc' },
+        select: { invoiceNumber: true },
+      }),
+    ]);
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestInvoiceNumber = latestInvoice?.invoiceNumber.match(/(\d+)$/)?.[1];
+    const nextNumber = Math.max(
+      Number(seq?.currentNumber || 0),
+      Number(latestInvoiceNumber || 0),
+    ) + 1;
     const invoiceNumber = `INV-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create invoice (DRAFT status - NO STOCK CHANGE)
@@ -139,10 +149,11 @@ export class InvoicesService {
       });
     }
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    // Keep numbering safe even when a fresh database has no sequence row yet.
+    await this.db.documentSequence.upsert({
       where: { documentType: 'INVOICE' },
-      data: { currentNumber: nextNumber },
+      create: { documentType: 'INVOICE', prefix: 'INV', currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
     });
 
     this.logger.log(`Invoice created: ${invoiceNumber} (DRAFT - No stock change)`);
@@ -267,7 +278,6 @@ export class InvoicesService {
               referenceType: 'INVOICE',
               referenceId: invoiceId,
               unitCost: item.unitPrice,
-              createdById: userId,
             },
           });
         }
@@ -399,6 +409,24 @@ export class InvoicesService {
   /**
    * Get invoice by ID
    */
+  async updateDraft(id: string, notes?: string) {
+    const invoice = await this.db.invoice.findUnique({ where: { id } });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice ${id} not found`);
+    }
+
+    if (invoice.status !== 'DRAFT') {
+      throw new BadRequestException('Only DRAFT invoices can be edited');
+    }
+
+    return this.db.invoice.update({
+      where: { id },
+      data: { notes },
+      include: { customer: true, items: { include: { product: true } } },
+    });
+  }
+
   async findById(id: string) {
     const invoice = await this.db.invoice.findUnique({
       where: { id },

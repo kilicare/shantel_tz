@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import configuration from './config/configuration.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -20,10 +20,13 @@ import { ExpensesModule } from './expenses/expenses.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { ApprovalsModule } from './approvals/approvals.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { DocumentsModule } from './documents/documents.module.js';
+import { AuditModule } from './audit/audit.module.js';
 import { HealthController } from './health.controller.js';
 
 import { AllExceptionsFilter } from './common/filters/http-exception.filter.js';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
+import { RbacGuard } from './common/guards/rbac.guard.js';
 
 @Module({
   imports: [
@@ -57,9 +60,15 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor.
     ReportsModule,
     ApprovalsModule,
     PaymentsModule,
+    DocumentsModule,
+    AuditModule,
   ],
   controllers: [HealthController],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RbacGuard,
+    },
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,

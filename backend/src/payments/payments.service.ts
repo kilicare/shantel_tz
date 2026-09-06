@@ -72,7 +72,12 @@ export class PaymentsService {
       where: { documentType: 'PAYMENT' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestPayment = await this.db.payment.findFirst({
+      orderBy: { paymentNumber: 'desc' },
+      select: { paymentNumber: true },
+    });
+    const latestNumber = Number(latestPayment?.paymentNumber.split('-').pop() || 0);
+    const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
     const paymentNumber = `PAY-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create payment (RECORDED status)
@@ -123,9 +128,10 @@ export class PaymentsService {
     }
 
     // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'PAYMENT' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'PAYMENT', prefix: 'PAY', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Payment recorded: ${paymentNumber}`);

@@ -38,16 +38,6 @@ export class ApprovalsController {
     return this.approvalsService.getPendingApprovals(req.user.sub, paginationParams);
   }
 
-  @Get(':id')
-  @RequirePermission('approvals.view')
-  @ApiOperation({ summary: 'Get approval by ID' })
-  async getApproval(@Param('id') id: string) {
-    return {
-      success: true,
-      data: await this.approvalsService.findById(id),
-    };
-  }
-
   @Post('submit')
   @RequirePermission('approvals.create')
   @ApiOperation({ summary: 'Submit document for approval' })
@@ -157,6 +147,16 @@ export class ApprovalsController {
     return {
       success: true,
       data: await this.expensesService.findById(id),
+    };
+  }
+
+  @Get(':id')
+  @RequirePermission('approvals.view')
+  @ApiOperation({ summary: 'Get approval by ID' })
+  async getApproval(@Param('id') id: string) {
+    return {
+      success: true,
+      data: await this.approvalsService.findById(id),
     };
   }
 

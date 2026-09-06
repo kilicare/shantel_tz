@@ -1,0 +1,14 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { BarChart3, Boxes, FileText, LayoutDashboard, LogOut, Menu, Settings, ShoppingCart, X } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+
+const nav = [{ href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, { href: "/sales", label: "Sales", icon: ShoppingCart }, { href: "/invoices", label: "Invoices", icon: FileText }, { href: "/inventory", label: "Inventory", icon: Boxes }, { href: "/reports", label: "Reports", icon: BarChart3 }, { href: "/settings", label: "Settings", icon: Settings }];
+export function Layout({ children, user, onLogout }: { children: React.ReactNode; user?: { name: string; email: string }; onLogout?: () => void }) {
+  const [open, setOpen] = useState(false); const pathname = usePathname(); const router = useRouter();
+  const logout = () => { onLogout?.(); localStorage.removeItem("shantel_access_token"); router.push("/login"); };
+  return <div className="flex min-h-screen bg-muted/30"><aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r bg-card transition-transform md:static md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}><div className="flex h-16 items-center justify-between border-b px-5"><span className="font-semibold tracking-tight">SHANTEL <span className="text-primary">OPS</span></span><Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(false)} aria-label="Close navigation"><X /></Button></div><nav className="space-y-1 p-3">{nav.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${pathname.startsWith(href) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}><Icon className="size-4" />{label}</Link>)}</nav></aside><div className="flex min-w-0 flex-1 flex-col"><header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:px-8"><Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></Button><div className="ml-auto flex items-center gap-3">{user ? <div className="hidden text-right sm:block"><p className="text-sm font-medium">{user.name}</p><p className="text-xs text-muted-foreground">{user.email}</p></div> : null}<Button variant="ghost" size="icon" onClick={logout} aria-label="Log out"><LogOut /></Button></div></header><main className="flex-1 p-4 md:p-8">{children}</main></div>{open ? <button aria-label="Close navigation overlay" className="fixed inset-0 z-30 bg-black/20 md:hidden" onClick={() => setOpen(false)} /> : null}</div>;
+}

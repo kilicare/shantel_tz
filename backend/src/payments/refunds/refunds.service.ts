@@ -56,11 +56,19 @@ export class RefundsService {
     }
 
     // Create refund as a separate payment with negative amount
-    const seq = await this.db.documentSequence.findUnique({
-      where: { documentType: 'REFUND' },
-    });
+    const [seq, latestRefund] = await Promise.all([
+      this.db.documentSequence.findUnique({
+        where: { documentType: 'REFUND' },
+      }),
+      this.db.payment.findFirst({
+        where: { paymentNumber: { startsWith: 'RFD-' } },
+        orderBy: { paymentDate: 'desc' },
+        select: { paymentNumber: true },
+      }),
+    ]);
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestRefundNumber = latestRefund?.paymentNumber.match(/(\d+)$/)?.[1];
+    const nextNumber = Math.max(Number(seq?.currentNumber || 0), Number(latestRefundNumber || 0)) + 1;
     const refundNumber = `RFD-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create refund record
@@ -112,9 +120,10 @@ export class RefundsService {
     }
 
     // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'REFUND' },
-      data: { currentNumber: nextNumber },
+      create: { documentType: 'REFUND', prefix: 'RFD', currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
     });
 
     this.logger.log(`Refund created: ${refundNumber}`);

@@ -1,0 +1,19 @@
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr !important; }
+  .btn-full { width: 100%; }
+  input, textarea, select { font-size: 16px; }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (min-width: 1025px) {
+  .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+img, iframe { max-width: 100%; }
+
+@media (hover: none) {
+  button, [role="button"] { min-height: 40px; }
+}

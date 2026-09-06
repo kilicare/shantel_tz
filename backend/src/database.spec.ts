@@ -26,12 +26,12 @@ describe('DatabaseService', () => {
   });
 
   it('should have all tables created', async () => {
-    const tables = await service.$queryRaw`
-      SELECT table_name 
-      FROM information_schema.tables 
+    const tables = await service.$queryRaw<Array<{ table_name: string }>>`
+      SELECT table_name
+      FROM information_schema.tables
       WHERE table_schema = 'public'
     `;
-    
+
     expect(tables.length).toBeGreaterThan(0);
   });
 

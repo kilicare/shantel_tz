@@ -55,7 +55,12 @@ export class RequisitionsService {
       where: { documentType: 'REQUISITION' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
+    const latestRequisition = await this.db.requisition.findFirst({
+      orderBy: { requisitionNumber: 'desc' },
+      select: { requisitionNumber: true },
+    });
+    const latestNumber = Number(latestRequisition?.requisitionNumber.split('-').pop() || 0);
+    const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
     const requisitionNumber = `REQ-2026-${String(nextNumber).padStart(6, '0')}`;
 
     // Create requisition
@@ -90,9 +95,10 @@ export class RequisitionsService {
     }
 
     // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'REQUISITION' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'REQUISITION', prefix: 'REQ', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Requisition created: ${requisitionNumber}`);
@@ -119,8 +125,6 @@ export class RequisitionsService {
       where: { id: requisitionId },
       data: {
         status: 'APPROVED',
-        approvedById: userId,
-        approvedAt: new Date(),
       },
     });
   }

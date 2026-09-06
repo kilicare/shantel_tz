@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowUpRight, Boxes, CircleDollarSign, FileCheck2, Package, RefreshCw, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, ArrowUpRight, Boxes, CircleDollarSign, FileCheck2, LogOut, Package, RefreshCw, TrendingUp } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 
 type DashboardData = {
   todaySales: { count: number; totalAmount: number; totalPaid: number };
@@ -16,6 +18,7 @@ type DashboardData = {
 const currency = new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", maximumFractionDigits: 0 });
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [trend, setTrend] = useState<Array<{ date: string; sales: number }>>([]);
   const [error, setError] = useState("");
@@ -38,7 +41,14 @@ export default function DashboardPage() {
     }
   }
 
-  useEffect(() => { void loadDashboard(); }, []);
+  useEffect(() => {
+    if (!localStorage.getItem("shantel_access_token")) {
+      router.replace("/login");
+      return;
+    }
+
+    void loadDashboard();
+  }, [router]);
 
   if (isLoading) {
     return <main className="min-h-screen bg-[#f4f1ec] p-6 text-[#17221f] sm:p-10"><div className="mx-auto max-w-7xl animate-pulse"><div className="h-4 w-24 bg-[#17221f]/10" /><div className="mt-5 h-12 w-72 bg-[#17221f]/10" /><div className="mt-10 grid gap-4 md:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-36 bg-white/70" />)}</div></div></main>;
@@ -57,11 +67,13 @@ export default function DashboardPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#f4f1ec] px-5 py-7 text-[#17221f] sm:px-10 sm:py-10">
+    <>
+      <WorkspaceNavigation />
+      <main className="min-h-screen bg-[#f4f1ec] px-5 py-7 text-[#17221f] sm:px-10 sm:py-10">
       <div className="mx-auto max-w-7xl">
         <header className="flex flex-col justify-between gap-6 border-b border-[#17221f]/12 pb-8 sm:flex-row sm:items-end">
           <div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#ad6742]">Operations overview</p><h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">Good morning, team.</h1><p className="mt-2 text-sm text-[#17221f]/55">Here is what is moving across Shantel today.</p></div>
-          <button onClick={() => void loadDashboard()} className="flex items-center gap-2 self-start border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white sm:self-auto"><RefreshCw size={15} /> Refresh data</button>
+          <div className="flex flex-wrap gap-2 self-start sm:self-auto"><button onClick={() => void loadDashboard()} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white"><RefreshCw size={15} /> Refresh data</button><button onClick={() => { localStorage.removeItem("shantel_access_token"); localStorage.removeItem("shantel_refresh_token"); localStorage.removeItem("shantel_user"); router.push("/login"); }} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white" aria-label="Log out"><LogOut size={15} /> Log out</button></div>
         </header>
 
         <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -75,6 +87,7 @@ export default function DashboardPage() {
 
         <section className="mt-5 grid gap-5 lg:grid-cols-2"><article className="bg-white p-6"><div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Recent invoices</h2><ArrowUpRight size={18} className="text-[#17221f]/35" /></div><div className="mt-5 divide-y divide-[#17221f]/10">{data.recentTransactions.invoices.map((invoice) => <div key={invoice.number} className="flex items-center justify-between py-3"><div><p className="text-sm font-semibold">{invoice.number}</p><p className="mt-1 text-xs text-[#17221f]/45">{invoice.customer}</p></div><p className="text-sm font-semibold">{currency.format(invoice.amount)}</p></div>)}</div></article><article className="bg-white p-6"><div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Recent purchase orders</h2><ArrowUpRight size={18} className="text-[#17221f]/35" /></div><div className="mt-5 divide-y divide-[#17221f]/10">{data.recentTransactions.purchaseOrders.map((order) => <div key={order.number} className="flex items-center justify-between py-3"><div><p className="text-sm font-semibold">{order.number}</p><p className="mt-1 text-xs text-[#17221f]/45">{order.supplier}</p></div><p className="text-sm font-semibold">{currency.format(order.amount)}</p></div>)}</div></article></section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

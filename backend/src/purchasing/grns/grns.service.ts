@@ -223,7 +223,6 @@ export class GRNService {
               referenceType: 'GRN',
               referenceId: grnId,
               unitCost: item.unitCost,
-              createdById: userId,
             },
           });
         }

@@ -1,0 +1,14 @@
+{
+  "name": "SHANTEL Sales & Store System",
+  "short_name": "SHANTEL",
+  "description": "Sales, inventory, purchasing and financial operations.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f1ec",
+  "theme_color": "#17221f",
+  "categories": ["business", "productivity"],
+  "icons": [{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }],
+  "shortcuts": [{ "name": "Create Invoice", "short_name": "Invoice", "url": "/invoices/new", "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }] }, { "name": "View Dashboard", "short_name": "Dashboard", "url": "/dashboard", "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }] }]
+}
