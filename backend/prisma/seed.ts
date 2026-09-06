@@ -103,6 +103,7 @@ async function main() {
         { id: uuidv4(), code: 'grns.post', name: 'Post GRN', module: 'purchasing' },
         { id: uuidv4(), code: 'purchase_returns.create', name: 'Create Purchase Return', module: 'purchasing' },
         // REPORTS
+        { id: uuidv4(), code: 'dashboard.view', name: 'View Dashboard', module: 'dashboard' },
         { id: uuidv4(), code: 'reports.view', name: 'View Reports', module: 'reports' },
         { id: uuidv4(), code: 'reports.export', name: 'Export Reports', module: 'reports' },
         // AUDIT
@@ -113,6 +114,20 @@ async function main() {
       console.log(`✅ ${permissions.length} permissions created`);
     } else {
       console.log(`ℹ️  ${permissionCount} permissions already exist, skipping`);
+    }
+
+    const dashboardPermission = await prisma.permission.upsert({
+      where: { code: 'dashboard.view' },
+      update: { name: 'View Dashboard', module: 'dashboard' },
+      create: { id: uuidv4(), code: 'dashboard.view', name: 'View Dashboard', module: 'dashboard' },
+    });
+    const superAdminRole = await prisma.role.findFirst({ where: { name: 'Super Administrator' } });
+    if (superAdminRole) {
+      await prisma.rolePermission.upsert({
+        where: { roleId_permissionId: { roleId: superAdminRole.id, permissionId: dashboardPermission.id } },
+        update: {},
+        create: { id: uuidv4(), roleId: superAdminRole.id, permissionId: dashboardPermission.id },
+      });
     }
   } catch (error) {
     console.error('❌ Error creating permissions:', error);
