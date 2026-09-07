@@ -9,6 +9,12 @@
   transition: margin-left 0.2s ease;
 }
 
+.product-auxiliary-panel {
+  width: 100%;
+  max-width: 100%;
+  transition: margin-left 0.2s ease, width 0.2s ease;
+}
+
 @media (min-width: 768px) {
   .workspace-navigation-shell + * {
     margin-left: 16rem;
@@ -17,6 +23,18 @@
 
   .workspace-navigation-shell.workspace-collapsed + * {
     margin-left: 4.75rem;
+    max-width: calc(100% - 4.75rem);
+  }
+
+  .workspace-navigation-shell ~ .product-auxiliary-panel {
+    margin-left: 16rem;
+    width: calc(100% - 16rem);
+    max-width: calc(100% - 16rem);
+  }
+
+  .workspace-navigation-shell.workspace-collapsed ~ .product-auxiliary-panel {
+    margin-left: 4.75rem;
+    width: calc(100% - 4.75rem);
     max-width: calc(100% - 4.75rem);
   }
 }
