@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { AlertCircle, CheckCircle2, Info, LoaderCircle, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Info, LoaderCircle } from "lucide-react";
 
 import { cn } from "cn";
 
@@ -55,11 +55,11 @@ export function KpiCard({ label, value, note, accent = "amber", icon: Icon }: { 
 }
 
 export function ChartFrame({ title, description, children, className }: { title: string; description?: string; children: ReactNode; className?: string }) {
-  return <ShantelCard surface="feature" className={cn("overflow-hidden p-6 sm:p-7", className)}><div className="flex items-start gap-3"><div className="flex-1"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-amber">Analytics</p><h2 className="mt-2 text-xl font-semibold">{title}</h2>{description ? <p className="mt-2 max-w-lg text-sm leading-6 text-text-inverse/60">{description}</p> : null}</div><Sparkles className="shrink-0 text-brand-amber" size={19} /></div><div className="mt-6">{children}</div></ShantelCard>;
+  return <ShantelCard surface="feature" className={cn("overflow-hidden p-6 sm:p-7", className)}><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-amber">Analytics</p><h2 className="mt-2 text-xl font-semibold">{title}</h2>{description ? <p className="mt-2 max-w-lg text-sm leading-6 text-text-inverse/60">{description}</p> : null}</div><div className="mt-6">{children}</div></ShantelCard>;
 }
 
 export function EmptyState({ title = "Nothing here yet", description }: { title?: string; description?: string }) {
-  return <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-border-default px-6 py-10 text-center"><Sparkles className="size-5 text-brand-terracotta" /><p className="mt-3 text-sm font-semibold text-text-primary">{title}</p>{description ? <p className="mt-1 max-w-sm text-sm text-text-muted">{description}</p> : null}</div>;
+  return <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-border-default px-6 py-10 text-center"><p className="text-sm font-semibold text-text-primary">{title}</p>{description ? <p className="mt-1 max-w-sm text-sm text-text-muted">{description}</p> : null}</div>;
 }
 
 export function LoadingState({ message = "Loading..." }: { message?: string }) {
