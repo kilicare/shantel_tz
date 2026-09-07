@@ -90,7 +90,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="flex min-h-screen items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
+        <section className="flex min-h-screen items-center justify-center bg-[#ECEDEF] px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
           <div className="w-full max-w-sm">
             <div className="mb-12 flex items-center gap-3 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172B4D] text-[#D4A72C]"><Activity size={21} /></div>
@@ -105,9 +105,9 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <label className="block">
-                <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[#172033]/60">Work email</span>
-                <span className="flex items-center border-b border-[#172033]/20 transition-colors focus-within:border-[#2563EB]">
-                  <Mail size={18} className="mr-3 text-[#172033]/40" />
+                <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">Work email</span>
+                <span className="flex items-center rounded-lg border border-transparent bg-white px-3 transition-colors focus-within:border-[#2563EB]">
+                  <Mail size={18} className="mr-3 text-[#2563EB]" />
                   <input
                     type="email"
                     autoComplete="email"
@@ -121,8 +121,8 @@ export default function LoginPage() {
 
               <label className="block">
                 <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-[#172033]/60">Password</span>
-                <span className="flex items-center border-b border-[#172033]/20 transition-colors focus-within:border-[#2563EB]">
-                  <LockKeyhole size={18} className="mr-3 text-[#172033]/40" />
+                <span className="flex items-center rounded-lg border border-transparent bg-white px-3 transition-colors focus-within:border-[#2563EB]">
+                  <LockKeyhole size={18} className="mr-3 text-[#D4A72C]" />
                   <input
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <button type="submit" disabled={isSubmitting} className="group flex h-14 w-full items-center justify-between rounded-lg bg-[#172B4D] px-5 text-sm font-semibold text-[#F8FBFF] transition-colors hover:bg-[#213A66] disabled:cursor-wait disabled:opacity-60">
+              <button type="submit" disabled={isSubmitting} className="group flex h-14 w-full items-center justify-between rounded-lg bg-[#111111] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#252525] disabled:cursor-wait disabled:opacity-60">
                 <span>{isSubmitting ? "Signing you in..." : "Enter workspace"}</span>
                 <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
               </button>

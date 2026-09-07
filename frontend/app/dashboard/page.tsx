@@ -18,12 +18,26 @@ type DashboardData = {
 
 const currency = new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", maximumFractionDigits: 0 });
 
+function getTimeGreeting() {
+  const hour = Number(new Intl.DateTimeFormat("en-TZ", {
+    hour: "numeric",
+    hour12: false,
+    timeZone: "Africa/Dar_es_Salaam",
+  }).format(new Date()));
+
+  if (hour >= 5 && hour < 12) return "Good morning, team.";
+  if (hour >= 12 && hour < 17) return "Good afternoon, team.";
+  if (hour >= 17 && hour < 21) return "Good evening, team.";
+  return "Good night, team.";
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [trend, setTrend] = useState<Array<{ date: string; sales: number }>>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [timeGreeting, setTimeGreeting] = useState("Good day, team.");
 
   async function loadDashboard() {
     try {
@@ -43,6 +57,7 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    setTimeGreeting(getTimeGreeting());
     if (!localStorage.getItem("shantel_access_token")) {
       router.replace("/login");
       return;
@@ -84,7 +99,7 @@ export default function DashboardPage() {
       <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-[1440px]">
         <header className="flex flex-col justify-between gap-6 border-b border-[#172B4D]/12 pb-8 sm:flex-row sm:items-end">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Operations overview</p><h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">Good morning, team.</h1><p className="mt-2 text-sm text-[#172B4D]/55">Here is what is moving across Shantel today.</p></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Operations overview</p><h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">{timeGreeting}</h1><p className="mt-2 text-sm text-[#172B4D]/55">Here is what is moving across Shantel today.</p></div>
           <div className="flex flex-wrap gap-2 self-start sm:self-auto"><button onClick={() => void loadDashboard()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white"><RefreshCw size={15} /> Refresh data</button><button onClick={() => { localStorage.removeItem("shantel_access_token"); localStorage.removeItem("shantel_refresh_token"); localStorage.removeItem("shantel_user"); router.push("/login"); }} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white" aria-label="Log out"><LogOut size={15} /> Log out</button></div>
         </header>
 
