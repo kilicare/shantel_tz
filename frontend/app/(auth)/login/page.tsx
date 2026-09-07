@@ -45,10 +45,13 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f1ec] text-[#17221f]">
-      <div className="grid min-h-screen lg:grid-cols-[minmax(420px,0.88fr)_1.12fr]">
+      <div className="grid min-h-screen lg:grid-cols-[minmax(500px,1.12fr)_minmax(420px,0.88fr)]">
         <section className="relative hidden overflow-hidden bg-[#17221f] px-12 py-10 text-[#f4f1ec] lg:flex lg:flex-col lg:justify-between xl:px-20">
-          <div className="absolute -right-24 top-24 h-72 w-72 rounded-full border border-[#e8a36b]/25" />
-          <div className="absolute -right-4 top-44 h-44 w-44 rounded-full border border-[#e8a36b]/20" />
+          <video className="absolute inset-0 h-full w-full object-cover opacity-75" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+            <source src="/login_background.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-[#17221f]/48" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#17221f]/70 via-[#17221f]/25 to-[#ad6742]/20" />
           <div className="absolute bottom-20 left-0 h-px w-2/3 bg-[#e8a36b]/40" />
 
           <div className="relative z-10 flex items-center gap-3">
@@ -87,8 +90,8 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="flex min-h-screen items-center justify-center px-6 py-10 sm:px-12">
-          <div className="w-full max-w-md">
+        <section className="flex min-h-screen items-center justify-center px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
+          <div className="w-full max-w-sm">
             <div className="mb-12 flex items-center gap-3 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center bg-[#17221f] text-[#e8a36b]"><Activity size={21} /></div>
               <p className="text-sm font-semibold tracking-[0.2em]">SHANTEL</p>

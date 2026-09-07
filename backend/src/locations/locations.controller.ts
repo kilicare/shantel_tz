@@ -60,4 +60,11 @@ export class LocationsController {
   async update(@Param('id') id: string, @Body() updateLocationDto: UpdateLocationDto) {
     return this.locationsService.update(id, updateLocationDto);
   }
+
+  @Patch(':id/deactivate')
+  @RequirePermission('locations.edit')
+  @ApiOperation({ summary: 'Deactivate location' })
+  async deactivate(@Param('id') id: string) {
+    return this.locationsService.update(id, { status: 'INACTIVE' });
+  }
 }

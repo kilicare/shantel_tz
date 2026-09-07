@@ -86,5 +86,6 @@ All accounts use the development password `Role@123456`, except the existing Sup
 - Added a dedicated Adjustments workspace with permission-gated Approve and Post actions.
 - Added a dedicated Stock Audits workspace with create/count/complete/approve/post controls.
 - Aligned audit movement writes with the backend Prisma schema and removed nonexistent movement fields.
+- Added the missing `/invoices/new` route redirect to the working Sales invoice workspace, preventing the literal `new` segment from reaching the UUID invoice-detail endpoint.
 
 Round 2 must remain open until the remaining checks pass through the UI.

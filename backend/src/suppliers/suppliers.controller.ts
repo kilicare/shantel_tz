@@ -41,6 +41,13 @@ export class SuppliersController {
     return this.suppliersService.search(query.q, paginationParams);
   }
 
+  @Get(':id/balance')
+  @RequirePermission('suppliers.view')
+  @ApiOperation({ summary: 'Get supplier balance' })
+  async getBalance(@Param('id') id: string) {
+    return this.suppliersService.getBalance(id);
+  }
+
   @Get(':id')
   @RequirePermission('suppliers.view')
   @ApiOperation({ summary: 'Get supplier by ID' })
@@ -68,4 +75,5 @@ export class SuppliersController {
   async deactivate(@Param('id') id: string) {
     return this.suppliersService.deactivate(id);
   }
+
 }

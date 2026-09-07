@@ -125,6 +125,7 @@ export class ProductsService {
           category: true,
           brand: true,
           unit: true,
+          serialNumbers: { select: { serialNumber: true } },
         },
         orderBy: { name: 'asc' },
       }),
@@ -183,6 +184,7 @@ export class ProductsService {
             { name: { contains: query, mode: 'insensitive' } },
             { sku: { contains: query, mode: 'insensitive' } },
             { barcode: { contains: query, mode: 'insensitive' } },
+            { serialNumbers: { some: { serialNumber: { contains: query, mode: 'insensitive' } } } },
           ],
         },
         skip,
@@ -191,6 +193,7 @@ export class ProductsService {
           category: true,
           brand: true,
           unit: true,
+          serialNumbers: { select: { serialNumber: true } },
         },
       }),
       this.db.product.count({

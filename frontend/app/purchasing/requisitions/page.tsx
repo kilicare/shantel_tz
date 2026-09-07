@@ -83,7 +83,7 @@ export default function RequisitionsPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#f4f1ec] px-5 py-7 text-[#17221f] sm:px-10 sm:py-10">
+      <main className="min-h-screen bg-[#f4f1ec] px-4 py-5 text-[#17221f] sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <header className="flex flex-col justify-between gap-5 border-b border-[#17221f]/12 pb-7 sm:flex-row sm:items-end">
             <div>

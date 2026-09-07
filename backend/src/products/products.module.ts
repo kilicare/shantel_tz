@@ -6,16 +6,16 @@ import { UnitsModule } from './units/units.module.js';
 
 @Module({
   imports: [
-    ProductsServiceModule,
     CategoriesModule,
     BrandsModule,
     UnitsModule,
+    ProductsServiceModule,
   ],
   exports: [
-    ProductsServiceModule,
     CategoriesModule,
     BrandsModule,
     UnitsModule,
+    ProductsServiceModule,
   ],
 })
 export class ProductsModule {}

@@ -8,6 +8,8 @@ import {
   UseGuards,
   Query,
   Request,
+  ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
@@ -39,6 +41,37 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Get active payment methods' })
   async getPaymentMethods() {
     return { success: true, data: await this.db.paymentMethod.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' } }) };
+  }
+
+  @Post('methods')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Create payment method' })
+  async createPaymentMethod(@Body() body: { name: string; code: string; description?: string }) {
+    const existing = await this.db.paymentMethod.findUnique({ where: { code: body.code } });
+    if (existing) throw new ConflictException(`Payment method code ${body.code} already exists`);
+    return { success: true, data: await this.db.paymentMethod.create({ data: { name: body.name, code: body.code, description: body.description, status: 'ACTIVE' } }) };
+  }
+
+  @Patch('methods/:id')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Update payment method' })
+  async updatePaymentMethod(@Param('id') id: string, @Body() body: { name?: string; code?: string; description?: string; status?: 'ACTIVE' | 'INACTIVE' }) {
+    const method = await this.db.paymentMethod.findUnique({ where: { id } });
+    if (!method) throw new NotFoundException(`Payment method ${id} not found`);
+    if (body.code && body.code !== method.code) {
+      const existing = await this.db.paymentMethod.findUnique({ where: { code: body.code } });
+      if (existing) throw new ConflictException(`Payment method code ${body.code} already exists`);
+    }
+    return { success: true, data: await this.db.paymentMethod.update({ where: { id }, data: body }) };
+  }
+
+  @Patch('methods/:id/deactivate')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Deactivate payment method' })
+  async deactivatePaymentMethod(@Param('id') id: string) {
+    const method = await this.db.paymentMethod.findUnique({ where: { id } });
+    if (!method) throw new NotFoundException(`Payment method ${id} not found`);
+    return { success: true, data: await this.db.paymentMethod.update({ where: { id }, data: { status: 'INACTIVE' } }) };
   }
 
   // ===== CUSTOMER PAYMENT ENDPOINTS =====

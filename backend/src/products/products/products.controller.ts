@@ -52,23 +52,6 @@ export class ProductsController {
     return this.productsService.findBySku(sku);
   }
 
-  @Get('units')
-  @RequirePermission('products.view')
-  @ApiOperation({ summary: 'Get all units (static route)' })
-  async getUnits(@Query() query: any) {
-    // This is a proxy to the units controller
-    // Redirect or just return empty to avoid route conflict
-    return { success: true, message: 'Use /products/units endpoint', data: [] };
-  }
-
-  @Get('categories')
-  @RequirePermission('products.view')
-  @ApiOperation({ summary: 'Get all categories (static route)' })
-  async getCategories(@Query() query: any) {
-    // This is a proxy to the categories controller
-    return { success: true, message: 'Use /products/categories endpoint', data: [] };
-  }
-
   @Get(':id')
   @RequirePermission('products.view')
   @ApiOperation({ summary: 'Get product by ID' })

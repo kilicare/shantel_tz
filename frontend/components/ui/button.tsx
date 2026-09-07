@@ -7,15 +7,19 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "bg-interactive-primary text-text-inverse hover:bg-interactive-primary-hover",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border-default bg-surface-card text-text-primary hover:bg-surface-muted hover:text-text-primary aria-expanded:bg-surface-muted aria-expanded:text-text-primary",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-surface-muted text-text-primary hover:bg-brand-paper aria-expanded:bg-surface-muted aria-expanded:text-text-primary",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-text-secondary hover:bg-surface-muted hover:text-text-primary aria-expanded:bg-surface-muted aria-expanded:text-text-primary",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "border-status-danger-border bg-status-danger-surface text-status-danger-text hover:bg-status-danger-border/40 focus-visible:border-status-danger-border focus-visible:ring-status-danger-border/40",
+        success:
+          "bg-status-success-text text-text-inverse hover:bg-brand-teal",
+        workflow:
+          "bg-interactive-secondary text-brand-forest hover:bg-interactive-secondary-hover",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
