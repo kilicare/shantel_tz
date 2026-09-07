@@ -1,5 +1,6 @@
 import {
   Controller,
+  BadRequestException,
   Get,
   Post,
   Patch,
@@ -8,7 +9,10 @@ import {
   UseGuards,
   Query,
   Request,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UsersService } from './users.service.js';
 import { PaginationService } from '../shared/services/pagination.service.js';
@@ -37,6 +41,17 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user' })
   async getMe(@Request() req: any) {
     return this.usersService.findById(req.user.sub);
+  }
+
+  @Post('me/avatar')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 2 * 1024 * 1024 } }))
+  @ApiOperation({ summary: 'Update current user profile picture' })
+  async updateMyAvatar(@Request() req: any, @UploadedFile() file?: { mimetype: string; buffer: Buffer; size: number }) {
+    if (!file) {
+      throw new BadRequestException('Profile picture file is required');
+    }
+
+    return this.usersService.updateMyAvatar(req.user.sub, file);
   }
 
   @Get(':id')

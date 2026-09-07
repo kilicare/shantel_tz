@@ -103,64 +103,64 @@
 }
 
 :root {
-  --brand-forest: #17221f;
-  --brand-paper: #f4f1ec;
-  --brand-soft: #fffdf8;
-  --brand-amber: #e8a36b;
-  --brand-terracotta: #ad6742;
-  --brand-teal: #3f7769;
-  --brand-gold: #c5a65c;
-  --brand-blue-gray: #55758a;
-  --brand-danger: #b9554d;
+  --brand-forest: #172B4D;
+  --brand-paper: #F6F8FB;
+  --brand-soft: #FFFFFF;
+  --brand-amber: #D4A72C;
+  --brand-terracotta: #2563EB;
+  --brand-teal: #2563EB;
+  --brand-gold: #D4A72C;
+  --brand-blue-gray: #3B82F6;
+  --brand-danger: #C94A4A;
   --surface-canvas: var(--brand-paper);
   --surface-card: var(--brand-soft);
-  --surface-muted: #f0e6d8;
+  --surface-muted: #EEF4FF;
   --surface-feature: var(--brand-forest);
-  --surface-overlay: var(--brand-soft);
+  --surface-overlay: #F8FAFC;
   --surface-input: var(--brand-soft);
-  --surface-disabled: #ebe8e2;
-  --text-primary: var(--brand-forest);
-  --text-secondary: #40504b;
-  --text-muted: #66736e;
-  --text-inverse: var(--brand-paper);
+  --surface-disabled: #E5EAF3;
+  --text-primary: #172033;
+  --text-secondary: #334155;
+  --text-muted: #5B6474;
+  --text-inverse: #F8FBFF;
   --text-eyebrow: var(--brand-terracotta);
-  --text-disabled: #8b938f;
-  --border-subtle: color-mix(in srgb, var(--brand-forest) 8%, transparent);
-  --border-default: color-mix(in srgb, var(--brand-forest) 14%, transparent);
+  --text-disabled: #94A3B8;
+  --border-subtle: color-mix(in srgb, var(--brand-forest) 10%, transparent);
+  --border-default: color-mix(in srgb, var(--brand-forest) 16%, transparent);
   --border-strong: color-mix(in srgb, var(--brand-forest) 24%, transparent);
-  --border-inverse: color-mix(in srgb, var(--brand-paper) 18%, transparent);
+  --border-inverse: color-mix(in srgb, var(--brand-paper) 20%, transparent);
   --border-focus: var(--brand-amber);
   --interactive-primary: var(--brand-forest);
-  --interactive-primary-hover: #263631;
+  --interactive-primary-hover: #213A66;
   --interactive-secondary: var(--brand-amber);
-  --interactive-secondary-hover: #d9915c;
-  --interactive-active: var(--brand-amber);
+  --interactive-secondary-hover: #C49D19;
+  --interactive-active: var(--brand-terracotta);
   --interactive-focus: var(--brand-amber);
-  --interactive-disabled: #b9bcb8;
-  --status-success-surface: #e5f0eb;
-  --status-success-text: #2f6656;
-  --status-success-border: #9fc5b5;
-  --status-warning-surface: #f8eadf;
-  --status-warning-text: #8a4931;
-  --status-warning-border: #d7a88c;
-  --status-danger-surface: #f9e5e2;
-  --status-danger-text: #8f3f39;
-  --status-danger-border: #d99c96;
-  --status-info-surface: #e8eff2;
-  --status-info-text: #3e6071;
-  --status-info-border: #a9c0cc;
+  --interactive-disabled: #CBD5E1;
+  --status-success-surface: #EAF7F1;
+  --status-success-text: #16805C;
+  --status-success-border: #9ED2B3;
+  --status-warning-surface: #FFF7E5;
+  --status-warning-text: #7A5A12;
+  --status-warning-border: #E9C86B;
+  --status-danger-surface: #FDECEC;
+  --status-danger-text: #C94A4A;
+  --status-danger-border: #F0B3B3;
+  --status-info-surface: #EEF4FF;
+  --status-info-text: #1847AA;
+  --status-info-border: #AFC7FF;
   --status-pending-surface: var(--status-warning-surface);
   --status-pending-text: var(--status-warning-text);
   --status-pending-border: var(--status-warning-border);
-  --chart-primary: var(--brand-amber);
-  --chart-secondary: var(--brand-teal);
-  --chart-positive: var(--brand-teal);
-  --chart-negative: var(--brand-danger);
-  --chart-grid: color-mix(in srgb, var(--brand-paper) 14%, transparent);
-  --chart-axis: color-mix(in srgb, var(--brand-paper) 58%, transparent);
+  --chart-primary: var(--brand-terracotta);
+  --chart-secondary: var(--brand-amber);
+  --chart-positive: var(--status-success-text);
+  --chart-negative: var(--status-danger-text);
+  --chart-grid: color-mix(in srgb, var(--brand-forest) 10%, transparent);
+  --chart-axis: color-mix(in srgb, var(--brand-forest) 40%, transparent);
   --chart-tooltip: var(--brand-soft);
   --chart-highlight: var(--brand-gold);
-  --chart-empty: #b8c0bb;
+  --chart-empty: #CBD5E1;
   --background: var(--surface-canvas);
   --foreground: var(--text-primary);
   --card: var(--surface-card);
@@ -244,6 +244,15 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  [role="alert"] {
+    border-color: var(--status-danger-border) !important;
+    background-color: var(--status-danger-surface) !important;
+    border-radius: 0.5rem;
+    color: var(--status-danger-text) !important;
   }
 }
 

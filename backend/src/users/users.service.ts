@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { PaginationService, PaginationParams } from '../shared/services/pagination.service.js';
 import * as bcrypt from 'bcryptjs';
@@ -26,6 +26,7 @@ export class UsersService {
           username: true,
           name: true,
           phone: true,
+          avatarUrl: true,
           status: true,
           lastLoginAt: true,
           createdAt: true,
@@ -58,6 +59,7 @@ export class UsersService {
         username: true,
         name: true,
         phone: true,
+        avatarUrl: true,
         status: true,
         lastLoginAt: true,
         createdAt: true,
@@ -155,6 +157,38 @@ export class UsersService {
     this.logger.log(`User updated: ${id}`);
 
     return this.findById(updated.id);
+  }
+
+  async updateMyAvatar(userId: string, file: { mimetype: string; buffer: Buffer; size: number }) {
+    const user = await this.db.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException('Profile picture must be a JPG, PNG, or WebP image');
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      throw new BadRequestException('Profile picture must be smaller than 2 MB');
+    }
+
+    const avatarUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+    await this.db.user.update({ where: { id: userId }, data: { avatarUrl } });
+
+    await this.db.auditLog.create({
+      data: {
+        userId,
+        action: 'UPDATE',
+        entityType: 'USER',
+        entityId: userId,
+        afterData: { action: 'PROFILE_PICTURE_UPDATED' },
+      },
+    });
+
+    return this.findById(userId);
   }
 
   // DEACTIVATE USER

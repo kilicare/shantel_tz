@@ -109,46 +109,46 @@ export default function TransfersPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#f4f1ec] px-4 py-5 text-[#17221f] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#17221f]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#ad6742]">Inventory control</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Inventory control</p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Stock transfers</h1>
-              <p className="mt-2 text-sm text-[#17221f]/55">Move goods between locations with approval and posting.</p>
+              <p className="mt-2 text-sm text-[#172B4D]/55">Move goods between locations with approval and posting.</p>
             </div>
-            <button type="button" onClick={() => void loadTransfers()} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white">
+            <button type="button" onClick={() => void loadTransfers()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white">
               <RefreshCw size={15} /> Refresh
             </button>
           </header>
 
           {error && (
-            <div role="alert" className="mt-6 flex items-center gap-3 border border-[#ad6742]/30 bg-[#ad6742]/8 px-4 py-3 text-sm text-[#8a4931]">
+            <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]">
               <AlertCircle size={18} /> {error}
             </div>
           )}
 
           {message && (
-            <div role="status" className="mt-6 border border-[#567b68]/30 bg-[#567b68]/10 px-4 py-3 text-sm text-[#365b4a]">
+            <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">
               {message}
             </div>
           )}
 
           {canCreate && (
-            <form onSubmit={createTransfer} className="mt-8 bg-[#17221f] p-6 text-[#f4f1ec] sm:p-8">
+            <form onSubmit={createTransfer} className="mt-8 bg-[#172B4D] p-6 text-[#F6F8FB] sm:p-8">
               <div className="flex items-center gap-3">
-                <ArrowRightLeft className="text-[#e8a36b]" />
+                <ArrowRightLeft className="text-[#D4A72C]" />
                 <h2 className="text-2xl font-semibold">Create stock transfer</h2>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <label className="text-xs uppercase tracking-[0.12em] text-[#f4f1ec]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
                   Source location
                   <select
                     aria-label="Source location"
                     value={form.sourceLocationId}
                     onChange={(event) => setForm({ ...form, sourceLocationId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-[#17221f] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal"
                   >
                     <option value="">Select source</option>
                     {locations.map((location) => (
@@ -157,13 +157,13 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-[#f4f1ec]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
                   Destination location
                   <select
                     aria-label="Destination location"
                     value={form.destLocationId}
                     onChange={(event) => setForm({ ...form, destLocationId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-[#17221f] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal"
                   >
                     <option value="">Select destination</option>
                     {locations.map((location) => (
@@ -172,13 +172,13 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-[#f4f1ec]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
                   Product
                   <select
                     aria-label="Transfer product"
                     value={form.productId}
                     onChange={(event) => setForm({ ...form, productId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-[#17221f] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal"
                   >
                     <option value="">Select product</option>
                     {products.map((product) => (
@@ -187,7 +187,7 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-[#f4f1ec]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
                   Quantity
                   <input
                     aria-label="Transfer quantity"
@@ -195,25 +195,25 @@ export default function TransfersPage() {
                     min="1"
                     value={form.quantity}
                     onChange={(event) => setForm({ ...form, quantity: event.target.value })}
-                    className="mt-2 h-11 w-full bg-[#17221f] px-3 text-sm normal-case tracking-normal outline-none focus:border focus:border-[#e8a36b]"
+                    className="mt-2 h-11 w-full bg-[#172B4D] px-3 text-sm normal-case tracking-normal outline-none focus:border focus:border-[#D4A72C]"
                   />
                 </label>
               </div>
 
-              <label className="mt-4 block text-xs uppercase tracking-[0.12em] text-[#f4f1ec]/60">
+              <label className="mt-4 block text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
                 Notes
                 <textarea
                   aria-label="Transfer notes"
                   value={form.notes}
                   onChange={(event) => setForm({ ...form, notes: event.target.value })}
                   rows={3}
-                  className="mt-2 w-full bg-[#17221f] px-3 py-2 text-sm normal-case tracking-normal outline-none focus:border focus:border-[#e8a36b]"
+                  className="mt-2 w-full bg-[#172B4D] px-3 py-2 text-sm normal-case tracking-normal outline-none focus:border focus:border-[#D4A72C]"
                   placeholder="Optional notes"
                 />
               </label>
 
               <div className="mt-6 flex justify-end">
-                <button type="submit" disabled={saving} className="bg-[#e8a36b] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#17221f] disabled:opacity-60">
+                <button type="submit" disabled={saving} className="bg-[#D4A72C] px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#172B4D] disabled:opacity-60">
                   {saving ? "Creating..." : "Create transfer"}
                 </button>
               </div>
@@ -223,35 +223,35 @@ export default function TransfersPage() {
           <section className="mt-8 bg-white p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#ad6742]">Directory</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563EB]">Directory</p>
                 <h2 className="mt-2 text-2xl font-semibold">Transfers</h2>
               </div>
-              <span className="text-xs text-[#17221f]/45">{transfers.length} records</span>
+              <span className="text-xs text-[#172B4D]/45">{transfers.length} records</span>
             </div>
 
             {loading ? (
-              <p className="py-10 text-sm text-[#17221f]/50">Loading transfers...</p>
+              <p className="py-10 text-sm text-[#172B4D]/50">Loading transfers...</p>
             ) : transfers.length === 0 ? (
-              <p className="py-10 text-sm text-[#17221f]/50">No transfers found.</p>
+              <p className="py-10 text-sm text-[#172B4D]/50">No transfers found.</p>
             ) : (
               <div className="mt-6 space-y-3">
                 {transfers.map((transfer) => (
-                  <div key={transfer.id} className="flex flex-col gap-3 border border-[#17221f]/10 p-4 md:flex-row md:items-center md:justify-between">
+                  <div key={transfer.id} className="flex flex-col gap-3 border border-[#172B4D]/10 p-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-[#17221f]">{transfer.transferNumber ?? "Transfer"}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#17221f]/50">{transfer.status ?? "DRAFT"}</p>
-                      <p className="mt-2 text-sm text-[#17221f]/70">
+                      <p className="text-sm font-semibold text-[#172B4D]">{transfer.transferNumber ?? "Transfer"}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{transfer.status ?? "DRAFT"}</p>
+                      <p className="mt-2 text-sm text-[#172B4D]/70">
                         {transfer.sourceLocation?.name ?? "Unknown source"} → {transfer.destLocation?.name ?? "Unknown destination"}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {canApprove && transfer.status === "DRAFT" && (
-                        <button type="button" onClick={() => void transition(transfer.id, "approve")} className="flex items-center gap-2 bg-[#17221f] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                        <button type="button" onClick={() => void transition(transfer.id, "approve")} className="flex items-center gap-2 bg-[#172B4D] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
                           <Check size={14} /> Approve
                         </button>
                       )}
                       {canApprove && (transfer.status === "DRAFT" || transfer.status === "SUBMITTED") && (
-                        <button type="button" onClick={() => void transition(transfer.id, "post")} className="flex items-center gap-2 border border-[#17221f]/15 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em]">
+                        <button type="button" onClick={() => void transition(transfer.id, "post")} className="flex items-center gap-2 border border-[#172B4D]/15 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em]">
                           <Check size={14} /> Post
                         </button>
                       )}

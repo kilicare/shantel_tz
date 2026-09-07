@@ -83,41 +83,41 @@ export default function RequisitionsPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#f4f1ec] px-4 py-5 text-[#17221f] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#17221f]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#ad6742]">Procurement control</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Procurement control</p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Requisition decisions.</h1>
-              <p className="mt-2 text-sm text-[#17221f]/55">Approve requests and convert them into purchase orders.</p>
+              <p className="mt-2 text-sm text-[#172B4D]/55">Approve requests and convert them into purchase orders.</p>
             </div>
-            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white">
+            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white">
               <RefreshCw size={15} /> Refresh
             </button>
           </header>
 
-          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#ad6742]/30 bg-[#ad6742]/8 px-4 py-3 text-sm text-[#8a4931]"><AlertCircle size={18} /> {error}</div>}
-          {message && <div role="status" className="mt-6 border border-[#567b68]/30 bg-[#567b68]/10 px-4 py-3 text-sm text-[#365b4a]">{message}</div>}
+          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"><AlertCircle size={18} /> {error}</div>}
+          {message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">{message}</div>}
 
           <section className="mt-8 space-y-3" aria-label="Requisition decisions">
-            {loading && <p className="bg-white p-5 text-sm text-[#17221f]/55">Loading requisitions...</p>}
-            {!loading && requisitions.length === 0 && <p className="bg-white p-5 text-sm text-[#17221f]/55">No requisitions found.</p>}
+            {loading && <p className="bg-white p-5 text-sm text-[#172B4D]/55">Loading requisitions...</p>}
+            {!loading && requisitions.length === 0 && <p className="bg-white p-5 text-sm text-[#172B4D]/55">No requisitions found.</p>}
             {requisitions.map((requisition) => (
               <article key={requisition.id} className="flex flex-col gap-4 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold">{requisition.requisitionNumber ?? "Requisition"}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#17221f]/50">{requisition.status ?? "UNKNOWN"}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{requisition.status ?? "UNKNOWN"}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {requisition.status === "DRAFT" && <button type="button" onClick={() => void approveRequisition(requisition)} className="flex items-center gap-2 bg-[#17221f] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button>}
+                  {requisition.status === "DRAFT" && <button type="button" onClick={() => void approveRequisition(requisition)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button>}
                   {requisition.status === "APPROVED" && <>
-                    <select aria-label={`Supplier for ${requisition.requisitionNumber ?? "requisition"}`} value={selectedSuppliers[requisition.id] ?? ""} onChange={(event) => setSelectedSuppliers((current) => ({ ...current, [requisition.id]: event.target.value }))} className="border border-[#17221f]/15 bg-white px-3 py-2.5 text-sm">
+                    <select aria-label={`Supplier for ${requisition.requisitionNumber ?? "requisition"}`} value={selectedSuppliers[requisition.id] ?? ""} onChange={(event) => setSelectedSuppliers((current) => ({ ...current, [requisition.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm">
                       <option value="">Select supplier</option>
                       {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
                     </select>
-                    <button type="button" onClick={() => void convertToPurchaseOrder(requisition)} className="border border-[#17221f]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Convert to PO</button>
+                    <button type="button" onClick={() => void convertToPurchaseOrder(requisition)} className="border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Convert to PO</button>
                   </>}
-                  {requisition.status === "CONVERTED_TO_PO" && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-[#567b68]">Converted</span>}
+                  {requisition.status === "CONVERTED_TO_PO" && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-[#16805C]">Converted</span>}
                 </div>
               </article>
             ))}

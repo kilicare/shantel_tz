@@ -118,46 +118,46 @@ export default function PurchaseOrdersPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#f4f1ec] px-4 py-5 text-[#17221f] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#17221f]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#ad6742]">Procurement control</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Procurement control</p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Purchase orders and receiving.</h1>
-              <p className="mt-2 text-sm text-[#17221f]/55">Approve orders, post them, and receive accepted stock.</p>
+              <p className="mt-2 text-sm text-[#172B4D]/55">Approve orders, post them, and receive accepted stock.</p>
             </div>
-            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#17221f]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"><RefreshCw size={15} /> Refresh</button>
+            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"><RefreshCw size={15} /> Refresh</button>
           </header>
 
-          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#ad6742]/30 bg-[#ad6742]/8 px-4 py-3 text-sm text-[#8a4931]"><AlertCircle size={18} /> {error}</div>}
-          {message && <div role="status" className="mt-6 border border-[#567b68]/30 bg-[#567b68]/10 px-4 py-3 text-sm text-[#365b4a]">{message}</div>}
+          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"><AlertCircle size={18} /> {error}</div>}
+          {message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">{message}</div>}
 
           <section className="mt-8 space-y-3" aria-label="Purchase orders">
             <h2 className="text-xl font-semibold">Purchase orders</h2>
-            {loading && <p className="bg-white p-5 text-sm text-[#17221f]/55">Loading purchase orders...</p>}
-            {!loading && orders.length === 0 && <p className="bg-white p-5 text-sm text-[#17221f]/55">No purchase orders found.</p>}
+            {loading && <p className="bg-white p-5 text-sm text-[#172B4D]/55">Loading purchase orders...</p>}
+            {!loading && orders.length === 0 && <p className="bg-white p-5 text-sm text-[#172B4D]/55">No purchase orders found.</p>}
             {orders.map((order) => (
               <article key={order.id} className="bg-white p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="font-semibold">{order.poNumber ?? "Purchase order"}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#17221f]/50">{order.status} · {order.supplier?.name ?? "Supplier"}</p>
-                    <p className="mt-2 text-sm text-[#17221f]/65">{order.items?.map((item) => `${item.product?.name ?? "Product"} x ${item.quantity}`).join(", ")}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{order.status} · {order.supplier?.name ?? "Supplier"}</p>
+                    <p className="mt-2 text-sm text-[#172B4D]/65">{order.items?.map((item) => `${item.product?.name ?? "Product"} x ${item.quantity}`).join(", ")}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {order.status === "DRAFT" && <button type="button" onClick={() => void transitionOrder(order, "approve")} className="flex items-center gap-2 bg-[#17221f] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve PO</button>}
-                    {order.status === "SUBMITTED" && <button type="button" onClick={() => void transitionOrder(order, "post")} className="flex items-center gap-2 border border-[#17221f]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post PO</button>}
+                    {order.status === "DRAFT" && <button type="button" onClick={() => void transitionOrder(order, "approve")} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve PO</button>}
+                    {order.status === "SUBMITTED" && <button type="button" onClick={() => void transitionOrder(order, "post")} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post PO</button>}
                   </div>
                 </div>
-                {(order.status === "SENT" || order.status === "APPROVED") && <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#17221f]/10 pt-4"><select aria-label={`Receiving location for ${order.poNumber ?? "purchase order"}`} value={selectedLocations[order.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [order.id]: event.target.value }))} className="border border-[#17221f]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select receiving location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void createGRN(order)} className="flex items-center gap-2 border border-[#17221f]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><PackageCheck size={15} /> Create GRN</button></div>}
+                {(order.status === "SENT" || order.status === "APPROVED") && <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#172B4D]/10 pt-4"><select aria-label={`Receiving location for ${order.poNumber ?? "purchase order"}`} value={selectedLocations[order.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [order.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select receiving location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void createGRN(order)} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><PackageCheck size={15} /> Create GRN</button></div>}
               </article>
             ))}
           </section>
 
           <section className="mt-10 space-y-3" aria-label="Goods received">
             <h2 className="text-xl font-semibold">Goods received</h2>
-            {grns.length === 0 && <p className="bg-white p-5 text-sm text-[#17221f]/55">No goods received found.</p>}
-            {grns.map((grn) => <article key={grn.id} className="flex flex-col gap-3 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{grn.grnNumber ?? "GRN"}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#17221f]/50">{grn.status} · {grn.purchaseOrder?.poNumber ?? "Purchase order"}</p></div>{grn.status === "DRAFT" && <div className="flex flex-wrap gap-2"><select aria-label={`Post location for ${grn.grnNumber ?? "GRN"}`} value={selectedLocations[grn.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [grn.id]: event.target.value }))} className="border border-[#17221f]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select posting location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void postGRN(grn)} className="flex items-center gap-2 bg-[#17221f] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Send size={15} /> Post GRN</button></div>}</article>)}
+            {grns.length === 0 && <p className="bg-white p-5 text-sm text-[#172B4D]/55">No goods received found.</p>}
+            {grns.map((grn) => <article key={grn.id} className="flex flex-col gap-3 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{grn.grnNumber ?? "GRN"}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{grn.status} · {grn.purchaseOrder?.poNumber ?? "Purchase order"}</p></div>{grn.status === "DRAFT" && <div className="flex flex-wrap gap-2"><select aria-label={`Post location for ${grn.grnNumber ?? "GRN"}`} value={selectedLocations[grn.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [grn.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select posting location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void postGRN(grn)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Send size={15} /> Post GRN</button></div>}</article>)}
           </section>
         </div>
       </main>
