@@ -76,6 +76,14 @@ export class InventoryController {
     return { success: true, data: summary };
   }
 
+  @Post('stock-in')
+  @RequirePermission('grns.create')
+  @ApiOperation({ summary: 'Receive stock into a location' })
+  async stockIn(@Body() body: any) {
+    const movement = await this.inventoryMovementService.stockIn(body);
+    return { success: true, data: movement };
+  }
+
   // ===== MOVEMENTS ENDPOINTS =====
 
   @Get('movements')
@@ -186,6 +194,14 @@ export class InventoryController {
   async approveAdjustment(@Param('id') id: string, @Body('userId') userId: string) {
     const approved = await this.stockAdjustmentService.approve(id, userId);
     return { success: true, data: approved };
+  }
+
+  @Patch('adjustments/:id/reject')
+  @RequirePermission('inventory.approve_adjust')
+  @ApiOperation({ summary: 'Reject stock adjustment' })
+  async rejectAdjustment(@Param('id') id: string) {
+    const rejected = await this.stockAdjustmentService.reject(id);
+    return { success: true, data: rejected };
   }
 
   @Patch('adjustments/:id/post')

@@ -134,10 +134,10 @@ export class QuotationsService {
       });
     }
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'QUOTATION' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'QUOTATION', prefix: 'QT', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Quotation created: ${quotationNumber}`);
@@ -258,10 +258,10 @@ export class QuotationsService {
       data: { status: 'CONVERTED' },
     });
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'SALES_ORDER' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'SALES_ORDER', prefix: 'SO', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Sales Order created from Quotation: ${orderNumber}`);

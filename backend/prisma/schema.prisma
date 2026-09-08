@@ -84,6 +84,7 @@ enum QuotationStatus {
 enum SalesOrderStatus {
   DRAFT
   SUBMITTED
+  REJECTED
   CONFIRMED
   PARTIALLY_FULFILLED
   FULFILLED
@@ -127,6 +128,7 @@ enum RequisitionStatus {
   SUBMITTED
   APPROVED
   REJECTED
+  RETURNED_FOR_CORRECTION
   CONVERTED_TO_PO
   CANCELLED
 }
@@ -134,6 +136,7 @@ enum RequisitionStatus {
 enum PurchaseOrderStatus {
   DRAFT
   SUBMITTED
+  REJECTED
   APPROVED
   SENT
   PARTIALLY_RECEIVED

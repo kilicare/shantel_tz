@@ -1,15 +1,36 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { AlertCircle, ClipboardCheck, RefreshCw, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  AlertCircle,
+  ClipboardCheck,
+  PackagePlus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
 
 type Product = { id: string; name: string; sku: string };
 type Location = { id: string; name: string };
-type Balance = { product?: { name?: string; sku?: string }; location?: { name?: string }; quantity?: number | string };
-type Adjustment = { id: string; adjustmentNumber?: string; reason?: string; status?: string; location?: { name?: string } };
-function unwrap(response: any) { const payload = response?.data?.data ?? response?.data ?? response; return payload?.data ?? payload ?? []; }
+type Balance = {
+  product?: { name?: string; sku?: string };
+  location?: { name?: string };
+  quantity?: number | string;
+};
+type Adjustment = {
+  id: string;
+  adjustmentNumber?: string;
+  reason?: string;
+  status?: string;
+  location?: { name?: string };
+};
+function unwrap(response: any) {
+  const payload = response?.data?.data ?? response?.data ?? response;
+  return payload?.data ?? payload ?? [];
+}
 
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,30 +38,570 @@ export default function InventoryPage() {
   const [balances, setBalances] = useState<Balance[]>([]);
   const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [form, setForm] = useState({ locationId: "", productId: "", systemQuantity: "0", physicalQuantity: "0", reason: "", notes: "" });
+  const [form, setForm] = useState({
+    locationId: "",
+    productId: "",
+    systemQuantity: "0",
+    physicalQuantity: "0",
+    reason: "",
+    notes: "",
+  });
+  const [receiveForm, setReceiveForm] = useState({
+    locationId: "",
+    productId: "",
+    quantity: "1",
+    unitCost: "0",
+    reason: "",
+  });
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showReceiveForm, setShowReceiveForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   async function loadInventory() {
-    try { setLoading(true); setError(""); const [productsResponse, locationsResponse, balancesResponse, adjustmentsResponse] = await Promise.all([apiClient.get("/products?page=1&limit=100"), apiClient.get("/locations?page=1&limit=100"), apiClient.get("/inventory/balances"), apiClient.get("/inventory/adjustments?page=1&limit=20")]); setProducts(unwrap(productsResponse)); setLocations(unwrap(locationsResponse)); setBalances(unwrap(balancesResponse)); setAdjustments(unwrap(adjustmentsResponse)); }
-    catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Inventory data could not be loaded."); }
-    finally { setLoading(false); }
+    try {
+      setLoading(true);
+      setError("");
+      const [
+        productsResponse,
+        locationsResponse,
+        balancesResponse,
+        adjustmentsResponse,
+      ] = await Promise.all([
+        apiClient.get("/products?page=1&limit=100"),
+        apiClient.get("/locations?page=1&limit=100"),
+        apiClient.get("/inventory/balances"),
+        apiClient.get("/inventory/adjustments?page=1&limit=20"),
+      ]);
+      setProducts(unwrap(productsResponse));
+      setLocations(unwrap(locationsResponse));
+      setBalances(unwrap(balancesResponse));
+      setAdjustments(unwrap(adjustmentsResponse));
+    } catch (requestError: any) {
+      const apiMessage = requestError?.response?.data?.message;
+      setError(
+        Array.isArray(apiMessage)
+          ? apiMessage[0]
+          : apiMessage || "Inventory data could not be loaded.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => { try { setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void loadInventory(); }, []);
+  useEffect(() => {
+    try {
+      setPermissions(
+        JSON.parse(localStorage.getItem("shantel_user") ?? "null")
+          ?.permissions ?? [],
+      );
+    } catch {
+      setPermissions([]);
+    }
+    void loadInventory();
+  }, []);
 
   async function createAdjustment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.locationId || !form.productId || !form.reason || Number(form.systemQuantity) < 0 || Number(form.physicalQuantity) < 0) { setError("Location, product, reason, and valid quantities are required."); return; }
-    try { setSaving(true); setError(""); const userId = JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.id; const response = await apiClient.post("/inventory/adjustments", { locationId: form.locationId, reason: form.reason, notes: form.notes, userId, items: [{ productId: form.productId, systemQuantity: Number(form.systemQuantity), physicalQuantity: Number(form.physicalQuantity) }] }); const created = unwrap(response); setMessage(`${created.adjustmentNumber ?? "Adjustment"} created as DRAFT.`); setShowForm(false); setForm({ locationId: "", productId: "", systemQuantity: "0", physicalQuantity: "0", reason: "", notes: "" }); await loadInventory(); }
-    catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Adjustment could not be created."); }
-    finally { setSaving(false); }
+    if (
+      !form.locationId ||
+      !form.productId ||
+      !form.reason ||
+      Number(form.systemQuantity) < 0 ||
+      Number(form.physicalQuantity) < 0
+    ) {
+      setError("Location, product, reason, and valid quantities are required.");
+      return;
+    }
+    try {
+      setSaving(true);
+      setError("");
+      const userId = JSON.parse(
+        localStorage.getItem("shantel_user") ?? "null",
+      )?.id;
+      const response = await apiClient.post("/inventory/adjustments", {
+        locationId: form.locationId,
+        reason: form.reason,
+        notes: form.notes,
+        userId,
+        items: [
+          {
+            productId: form.productId,
+            systemQuantity: Number(form.systemQuantity),
+            physicalQuantity: Number(form.physicalQuantity),
+          },
+        ],
+      });
+      const created = unwrap(response);
+      setMessage(
+        `${created.adjustmentNumber ?? "Adjustment"} created as DRAFT.`,
+      );
+      setShowForm(false);
+      setForm({
+        locationId: "",
+        productId: "",
+        systemQuantity: "0",
+        physicalQuantity: "0",
+        reason: "",
+        notes: "",
+      });
+      await loadInventory();
+    } catch (requestError: any) {
+      const apiMessage = requestError?.response?.data?.message;
+      setError(
+        Array.isArray(apiMessage)
+          ? apiMessage[0]
+          : apiMessage || "Adjustment could not be created.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function receiveStock(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (
+      !receiveForm.locationId ||
+      !receiveForm.productId ||
+      Number(receiveForm.quantity) <= 0 ||
+      Number(receiveForm.unitCost) < 0
+    ) {
+      setError(
+        "Location, product, positive quantity, and valid unit cost are required.",
+      );
+      return;
+    }
+    try {
+      setSaving(true);
+      setError("");
+      const userId = JSON.parse(
+        localStorage.getItem("shantel_user") ?? "null",
+      )?.id;
+      const response = await apiClient.post("/inventory/stock-in", {
+        ...receiveForm,
+        quantity: Number(receiveForm.quantity),
+        unitCost: Number(receiveForm.unitCost),
+        referenceType: "MANUAL_RECEIPT",
+        referenceId: userId,
+        userId,
+      });
+      const movement = unwrap(response);
+      setMessage(
+        `Received ${movement.quantityIn ?? receiveForm.quantity} units into stock.`,
+      );
+      setShowReceiveForm(false);
+      setReceiveForm({
+        locationId: "",
+        productId: "",
+        quantity: "1",
+        unitCost: "0",
+        reason: "",
+      });
+      await loadInventory();
+    } catch (requestError: any) {
+      const apiMessage = requestError?.response?.data?.message;
+      setError(
+        Array.isArray(apiMessage)
+          ? apiMessage[0]
+          : apiMessage || "Stock receipt failed.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   const canAdjust = permissions.includes("inventory.adjust");
-  const filteredBalances = balances.filter((balance) => `${balance.product?.name ?? ""} ${balance.product?.sku ?? ""} ${balance.location?.name ?? ""}`.toLowerCase().includes(search.toLowerCase()));
-  return <><WorkspaceNavigation /><main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8"><div className="mx-auto max-w-7xl"><header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Inventory control</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Know what is on hand.</h1><p className="mt-2 text-sm text-[#172B4D]/55">Balances and controlled stock adjustments in one place.</p></div><div className="flex gap-2"><button type="button" onClick={() => void loadInventory()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"><RefreshCw size={15} /> Refresh</button>{canAdjust && <button type="button" onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"><SlidersHorizontal size={15} /> New adjustment</button>}</div></header>{error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"><AlertCircle size={18} /> {error}</div>}{message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">{message}</div>}{showForm && <form onSubmit={createAdjustment} className="mt-8 bg-[#172B4D] p-6 text-[#F6F8FB] sm:p-8"><div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4A72C]">Stock control</p><h2 className="mt-2 text-2xl font-semibold">New stock adjustment</h2></div><button type="button" onClick={() => setShowForm(false)} aria-label="Close adjustment form"><X size={20} /></button></div><div className="mt-6 grid gap-4 sm:grid-cols-2"><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">Location<select aria-label="Adjustment location" value={form.locationId} onChange={(event) => setForm({ ...form, locationId: event.target.value })} className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"><option value="">Select location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">Product<select aria-label="Adjustment product" value={form.productId} onChange={(event) => setForm({ ...form, productId: event.target.value })} className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"><option value="">Select product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.name} · {product.sku}</option>)}</select></label><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">System quantity<input aria-label="System quantity" type="number" min="0" value={form.systemQuantity} onChange={(event) => setForm({ ...form, systemQuantity: event.target.value })} className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none" /></label><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">Physical quantity<input aria-label="Physical quantity" type="number" min="0" value={form.physicalQuantity} onChange={(event) => setForm({ ...form, physicalQuantity: event.target.value })} className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none" /></label><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">Reason<input aria-label="Adjustment reason" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none" /></label><label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">Notes<input aria-label="Adjustment notes" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none" /></label></div><button type="submit" disabled={saving} className="mt-6 bg-[#D4A72C] px-5 py-3 text-sm font-semibold text-[#172B4D] disabled:opacity-50">{saving ? "Creating..." : "Create adjustment"}</button></form>}<section className="mt-8 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]"><article className="bg-white p-6"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563EB]">Stock balance</p><h2 className="mt-2 text-2xl font-semibold">By product and location</h2></div><span className="text-xs text-[#172B4D]/45">{filteredBalances.length} rows</span></div><div className="relative mt-5"><Search size={17} className="absolute left-0 top-3 text-[#172B4D]/35" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search product, SKU, or location" className="h-11 w-full border-b border-[#172B4D]/15 bg-transparent pl-7 text-sm outline-none focus:border-[#2563EB]" /></div>{loading ? <p className="py-10 text-sm text-[#172B4D]/50">Loading stock...</p> : <div className="mt-4 divide-y divide-[#172B4D]/10">{filteredBalances.map((balance, index) => <div key={index} className="flex items-center justify-between py-4"><div><p className="text-sm font-semibold">{balance.product?.name}</p><p className="mt-1 text-xs text-[#172B4D]/45">{balance.product?.sku} · {balance.location?.name}</p></div><p className="text-sm font-semibold">{Number(balance.quantity ?? 0).toLocaleString()} units</p></div>)}</div>}</article><article className="bg-white p-6"><div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Adjustments</h2><ClipboardCheck size={19} className="text-[#2563EB]" /></div><div className="mt-4 divide-y divide-[#172B4D]/10">{adjustments.length ? adjustments.map((adjustment) => <div key={adjustment.id} className="py-3"><div className="flex justify-between"><p className="text-sm font-semibold">{adjustment.adjustmentNumber}</p><span className="text-[10px] uppercase tracking-[0.1em] text-[#2563EB]">{adjustment.status}</span></div><p className="mt-1 text-xs text-[#172B4D]/45">{adjustment.location?.name} · {adjustment.reason}</p></div>) : <p className="py-8 text-sm text-[#172B4D]/50">No adjustments found.</p>}</div></article></section></div></main></>;
+  const canReceive = permissions.includes("grns.create");
+  const filteredBalances = balances.filter((balance) =>
+    `${balance.product?.name ?? ""} ${balance.product?.sku ?? ""} ${balance.location?.name ?? ""}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+  return (
+    <>
+      <WorkspaceNavigation />
+      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+                Inventory control
+              </p>
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+                Know what is on hand.
+              </h1>
+              <p className="mt-2 text-sm text-[#172B4D]/55">
+                Balances and controlled stock adjustments in one place.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {canReceive && (
+                <button
+                  type="button"
+                  onClick={() => setShowReceiveForm(true)}
+                  className="flex items-center gap-2 bg-[#16805C] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                >
+                  <PackagePlus size={15} /> Receive stock
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => void loadInventory()}
+                className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"
+              >
+                <RefreshCw size={15} /> Refresh
+              </button>
+              {canAdjust && (
+                <button
+                  type="button"
+                  onClick={() => setShowForm(true)}
+                  className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                >
+                  <SlidersHorizontal size={15} /> New adjustment
+                </button>
+              )}
+            </div>
+          </header>
+          {error && (
+            <div
+              role="alert"
+              className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"
+            >
+              <AlertCircle size={18} /> {error}
+            </div>
+          )}
+          {message && (
+            <div
+              role="status"
+              className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]"
+            >
+              {message}
+            </div>
+          )}
+          {showReceiveForm && (
+            <form
+              onSubmit={receiveStock}
+              className="mt-8 bg-[#16805C] p-6 text-white sm:p-8"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                    Stock in
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">Receive stock</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowReceiveForm(false)}
+                  aria-label="Close receive stock form"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <label className="text-xs uppercase tracking-[0.12em]">
+                  Location
+                  <select
+                    aria-label="Receive location"
+                    value={receiveForm.locationId}
+                    onChange={(event) =>
+                      setReceiveForm({
+                        ...receiveForm,
+                        locationId: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                  >
+                    <option value="">Select location</option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em]">
+                  Product
+                  <select
+                    aria-label="Receive product"
+                    value={receiveForm.productId}
+                    onChange={(event) =>
+                      setReceiveForm({
+                        ...receiveForm,
+                        productId: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                  >
+                    <option value="">Select product</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} · {product.sku}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em]">
+                  Quantity
+                  <input
+                    aria-label="Receive quantity"
+                    type="number"
+                    min="1"
+                    value={receiveForm.quantity}
+                    onChange={(event) =>
+                      setReceiveForm({
+                        ...receiveForm,
+                        quantity: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                  />
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em]">
+                  Unit cost
+                  <input
+                    aria-label="Receive unit cost"
+                    type="number"
+                    min="0"
+                    value={receiveForm.unitCost}
+                    onChange={(event) =>
+                      setReceiveForm({
+                        ...receiveForm,
+                        unitCost: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                  />
+                </label>
+              </div>
+              <label className="mt-4 block text-xs uppercase tracking-[0.12em]">
+                Reason
+                <input
+                  aria-label="Receive reason"
+                  value={receiveForm.reason}
+                  onChange={(event) =>
+                    setReceiveForm({
+                      ...receiveForm,
+                      reason: event.target.value,
+                    })
+                  }
+                  className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={saving}
+                className="mt-6 bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#16805C]"
+              >
+                {saving ? "Receiving..." : "Receive stock"}
+              </button>
+            </form>
+          )}
+          {showForm && (
+            <form
+              onSubmit={createAdjustment}
+              className="mt-8 bg-[#172B4D] p-6 text-[#F6F8FB] sm:p-8"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4A72C]">
+                    Stock control
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    New stock adjustment
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  aria-label="Close adjustment form"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  Location
+                  <select
+                    aria-label="Adjustment location"
+                    value={form.locationId}
+                    onChange={(event) =>
+                      setForm({ ...form, locationId: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"
+                  >
+                    <option value="">Select location</option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  Product
+                  <select
+                    aria-label="Adjustment product"
+                    value={form.productId}
+                    onChange={(event) =>
+                      setForm({ ...form, productId: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"
+                  >
+                    <option value="">Select product</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} · {product.sku}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  System quantity
+                  <input
+                    aria-label="System quantity"
+                    type="number"
+                    min="0"
+                    value={form.systemQuantity}
+                    onChange={(event) =>
+                      setForm({ ...form, systemQuantity: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                  />
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  Physical quantity
+                  <input
+                    aria-label="Physical quantity"
+                    type="number"
+                    min="0"
+                    value={form.physicalQuantity}
+                    onChange={(event) =>
+                      setForm({ ...form, physicalQuantity: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                  />
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  Reason
+                  <input
+                    aria-label="Adjustment reason"
+                    value={form.reason}
+                    onChange={(event) =>
+                      setForm({ ...form, reason: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                  />
+                </label>
+                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                  Notes
+                  <input
+                    aria-label="Adjustment notes"
+                    value={form.notes}
+                    onChange={(event) =>
+                      setForm({ ...form, notes: event.target.value })
+                    }
+                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                  />
+                </label>
+              </div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="mt-6 bg-[#D4A72C] px-5 py-3 text-sm font-semibold text-[#172B4D] disabled:opacity-50"
+              >
+                {saving ? "Creating..." : "Create adjustment"}
+              </button>
+            </form>
+          )}
+          <section className="mt-8 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+            <article className="bg-white p-6">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563EB]">
+                    Stock balance
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    By product and location
+                  </h2>
+                </div>
+                <span className="text-xs text-[#172B4D]/45">
+                  {filteredBalances.length} rows
+                </span>
+              </div>
+              <div className="relative mt-5">
+                <Search
+                  size={17}
+                  className="absolute left-0 top-3 text-[#172B4D]/35"
+                />
+                <input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search product, SKU, or location"
+                  className="h-11 w-full border-b border-[#172B4D]/15 bg-transparent pl-7 text-sm outline-none focus:border-[#2563EB]"
+                />
+              </div>
+              {loading ? (
+                <p className="py-10 text-sm text-[#172B4D]/50">
+                  Loading stock...
+                </p>
+              ) : (
+                <div className="mt-4 divide-y divide-[#172B4D]/10">
+                  {filteredBalances.map((balance, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between py-4"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">
+                          {balance.product?.name}
+                        </p>
+                        <p className="mt-1 text-xs text-[#172B4D]/45">
+                          {balance.product?.sku} · {balance.location?.name}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold">
+                        {Number(balance.quantity ?? 0).toLocaleString()} units
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+            <article className="bg-white p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Adjustments</h2>
+                <ClipboardCheck size={19} className="text-[#2563EB]" />
+              </div>
+              <div className="mt-4 divide-y divide-[#172B4D]/10">
+                {adjustments.length ? (
+                  adjustments.map((adjustment) => (
+                    <div key={adjustment.id} className="py-3">
+                      <div className="flex justify-between">
+                        <p className="text-sm font-semibold">
+                          {adjustment.adjustmentNumber}
+                        </p>
+                        <span className="text-[10px] uppercase tracking-[0.1em] text-[#2563EB]">
+                          {adjustment.status}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-[#172B4D]/45">
+                        {adjustment.location?.name} · {adjustment.reason}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="py-8 text-sm text-[#172B4D]/50">
+                    No adjustments found.
+                  </p>
+                )}
+              </div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </>
+  );
 }

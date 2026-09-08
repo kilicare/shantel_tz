@@ -133,10 +133,10 @@ export class SalesOrdersService {
       });
     }
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'SALES_ORDER' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'SALES_ORDER', prefix: 'SO', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Sales Order created: ${orderNumber}`);
@@ -146,6 +146,14 @@ export class SalesOrdersService {
   /**
    * Approve sales order (if needed)
    */
+  async submit(soId: string, userId: string) {
+    const so = await this.db.salesOrder.findUnique({ where: { id: soId }, include: { items: true } });
+    if (!so) throw new NotFoundException(`Sales Order ${soId} not found`);
+    if (!['DRAFT', 'REJECTED'].includes(so.status)) throw new BadRequestException('Only DRAFT or REJECTED orders can be submitted');
+    if (!so.items.length) throw new BadRequestException('Sales order must have at least one item');
+    return this.db.salesOrder.update({ where: { id: soId }, data: { status: 'SUBMITTED' }, include: { customer: true, items: { include: { product: true } } } });
+  }
+
   async approve(soId: string, userId: string) {
     const so = await this.db.salesOrder.findUnique({
       where: { id: soId },
@@ -155,18 +163,26 @@ export class SalesOrdersService {
       throw new NotFoundException(`Sales Order ${soId} not found`);
     }
 
-    if (so.status !== 'DRAFT') {
-      throw new BadRequestException(`Only DRAFT orders can be approved`);
+    if (so.status !== 'SUBMITTED') {
+      throw new BadRequestException(`Only SUBMITTED orders can be approved`);
     }
 
     return this.db.salesOrder.update({
       where: { id: soId },
       data: {
-        status: 'SUBMITTED',
+        status: 'CONFIRMED',
         approvedById: userId,
         approvedAt: new Date(),
       },
     });
+  }
+
+  async reject(soId: string, reason: string) {
+    if (!reason?.trim()) throw new BadRequestException('A rejection reason is required');
+    const so = await this.db.salesOrder.findUnique({ where: { id: soId } });
+    if (!so) throw new NotFoundException(`Sales Order ${soId} not found`);
+    if (so.status !== 'SUBMITTED') throw new BadRequestException('Only SUBMITTED orders can be rejected');
+    return this.db.salesOrder.update({ where: { id: soId }, data: { status: 'REJECTED', notes: `${so.notes ?? ''}${so.notes ? '\n' : ''}Rejected: ${reason}` }, include: { customer: true, items: { include: { product: true } } } });
   }
 
   /**
@@ -185,8 +201,8 @@ export class SalesOrdersService {
       throw new NotFoundException(`Sales Order ${soId} not found`);
     }
 
-    if (so.status !== 'SUBMITTED' && so.status !== 'DRAFT') {
-      throw new BadRequestException(`Sales order must be DRAFT or SUBMITTED to convert`);
+    if (!['SUBMITTED', 'DRAFT', 'CONFIRMED'].includes(so.status)) {
+      throw new BadRequestException(`Sales order must be DRAFT, SUBMITTED, or CONFIRMED to convert`);
     }
 
     // Get next invoice number
@@ -235,10 +251,10 @@ export class SalesOrdersService {
       });
     }
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'INVOICE' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber },
+      create: { documentType: 'INVOICE', prefix: 'INV', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
     });
 
     this.logger.log(`Invoice created from Sales Order: ${invoiceNumber}`);
@@ -268,8 +284,9 @@ export class SalesOrdersService {
       this.db.salesOrder.count(),
     ]);
 
+    const ordersWithQuotation = await Promise.all(orders.map(async (order) => ({ ...order, quotation: order.quotationId ? await this.db.quotation.findUnique({ where: { id: order.quotationId }, select: { quotationNumber: true } }) : null })));
     return this.paginationService.formatPaginatedResponse(
-      orders,
+      ordersWithQuotation,
       total,
       paginationParams.page || 1,
       paginationParams.limit || 20,
@@ -295,7 +312,6 @@ export class SalesOrdersService {
     if (!order) {
       throw new NotFoundException(`Sales Order ${id} not found`);
     }
-
-    return order;
+    return { ...order, quotation: order.quotationId ? await this.db.quotation.findUnique({ where: { id: order.quotationId }, select: { quotationNumber: true } }) : null };
   }
 }

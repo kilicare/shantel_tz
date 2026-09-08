@@ -86,8 +86,8 @@ export class ReportsController {
 
   @Get('inventory/low-stock')
   @RequirePermission('reports.view')
-  getLowStock() {
-    return this.inventoryReportsService.getLowStockItems();
+  getLowStock(@Query('locationId') locationId?: string) {
+    return this.inventoryReportsService.getLowStockItems(locationId);
   }
 
   @Get('inventory/movements')
@@ -96,14 +96,15 @@ export class ReportsController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
     @Query('productId') productId?: string,
+    @Query('locationId') locationId?: string,
   ) {
-    return this.inventoryReportsService.getMovementReport(...this.parseDateRange(startDate, endDate), productId);
+    return this.inventoryReportsService.getMovementReport(...this.parseDateRange(startDate, endDate), productId, locationId);
   }
 
   @Get('inventory/valuation')
   @RequirePermission('reports.view')
-  getValuation() {
-    return this.inventoryReportsService.getStockValuation();
+  getValuation(@Query('locationId') locationId?: string) {
+    return this.inventoryReportsService.getStockValuation(locationId);
   }
 
   @Get('export/sales-excel')

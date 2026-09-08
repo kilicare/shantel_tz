@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module.js';
 import { PaginationService } from '../shared/services/pagination.service.js';
 import { InventoryModule } from '../inventory/inventory.module.js';
+import { AuditModule } from '../audit/audit.module.js';
 
 import { PurchasingController } from './purchasing.controller.js';
 import { RequisitionsService } from './requisitions/requisitions.service.js';
@@ -10,7 +11,7 @@ import { GRNService } from './grns/grns.service.js';
 import { PurchaseReturnsService } from './returns/purchase-returns.service.js';
 
 @Module({
-  imports: [DatabaseModule, InventoryModule],
+  imports: [DatabaseModule, InventoryModule, AuditModule],
   providers: [
     PaginationService,
     RequisitionsService,

@@ -8,6 +8,7 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class RequisitionsService {
@@ -16,6 +17,7 @@ export class RequisitionsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -31,24 +33,8 @@ export class RequisitionsService {
     notes?: string;
     userId: string;
   }) {
-    if (!data.items || data.items.length === 0) {
-      throw new BadRequestException('Requisition must have at least one item');
-    }
-
-    // Validate all products exist
-    for (const item of data.items) {
-      const product = await this.db.product.findUnique({
-        where: { id: item.productId },
-      });
-
-      if (!product) {
-        throw new NotFoundException(`Product ${item.productId} not found`);
-      }
-
-      if (item.quantity <= 0) {
-        throw new BadRequestException('Quantity must be greater than 0');
-      }
-    }
+    const items = data.items ?? [];
+    await this.validateItems(items);
 
     // Get next requisition number
     const seq = await this.db.documentSequence.findUnique({
@@ -63,46 +49,61 @@ export class RequisitionsService {
     const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
     const requisitionNumber = `REQ-2026-${String(nextNumber).padStart(6, '0')}`;
 
-    // Create requisition
-    const requisition = await this.db.requisition.create({
-      data: {
-        requisitionNumber,
-        requestDate: new Date(),
-        notes: data.notes,
-        status: 'DRAFT',
-        createdById: data.userId,
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-
-    // Create requisition items
-    for (const item of data.items) {
-      await this.db.requisitionItem.create({
+    const requisition = await this.db.$transaction(async (transaction) => {
+      const created = await transaction.requisition.create({
         data: {
-          requisitionId: requisition.id,
-          productId: item.productId,
-          quantity: new Prisma.Decimal(item.quantity),
-          description: item.description,
-          notes: item.notes,
+          requisitionNumber,
+          requestDate: new Date(),
+          notes: data.notes,
+          status: 'DRAFT',
+          createdById: data.userId,
+          items: { create: items.map((item) => ({ productId: item.productId, quantity: new Prisma.Decimal(item.quantity), description: item.description, notes: item.notes })) },
         },
       });
-    }
-
-    // Update document sequence
-    await this.db.documentSequence.upsert({
-      where: { documentType: 'REQUISITION' },
-      update: { currentNumber: nextNumber },
-      create: { documentType: 'REQUISITION', prefix: 'REQ', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      await transaction.documentSequence.upsert({
+        where: { documentType: 'REQUISITION' },
+        update: { currentNumber: nextNumber },
+        create: { documentType: 'REQUISITION', prefix: 'REQ', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      });
+      return transaction.requisition.findUniqueOrThrow({ where: { id: created.id }, include: { items: { include: { product: true } } } });
     });
+    await this.auditLogService.logAction({ entityType: 'REQUISITION', entityId: requisition.id, action: 'CREATE', afterData: { requisitionNumber, itemCount: items.length }, userId: data.userId });
 
     this.logger.log(`Requisition created: ${requisitionNumber}`);
     return requisition;
+  }
+
+  private async validateItems(items: Array<{ productId: string; quantity: number; description?: string; notes?: string }>) {
+    for (const item of items) {
+      if (!Number.isFinite(item.quantity) || item.quantity <= 0) throw new BadRequestException('Quantity must be greater than 0');
+      const product = await this.db.product.findUnique({ where: { id: item.productId }, select: { id: true } });
+      if (!product) throw new NotFoundException(`Product ${item.productId} not found`);
+    }
+  }
+
+  async addItems(requisitionId: string, items: Array<{ productId: string; quantity: number; description?: string; notes?: string }>, userId: string) {
+    const requisition = await this.db.requisition.findUnique({ where: { id: requisitionId } });
+    if (!requisition) throw new NotFoundException(`Requisition ${requisitionId} not found`);
+    if (!['DRAFT', 'RETURNED_FOR_CORRECTION'].includes(requisition.status)) throw new BadRequestException('Items can only be added to a draft or returned requisition');
+    if (!items.length) throw new BadRequestException('At least one item is required');
+    await this.validateItems(items);
+    const updated = await this.db.requisition.update({ where: { id: requisitionId }, data: { items: { create: items.map((item) => ({ productId: item.productId, quantity: new Prisma.Decimal(item.quantity), description: item.description, notes: item.notes })) } }, include: { items: { include: { product: true } } } });
+    await this.auditLogService.logAction({ entityType: 'REQUISITION', entityId: requisitionId, action: 'UPDATE', afterData: { addedItemCount: items.length }, userId });
+    return updated;
+  }
+
+  async submit(requisitionId: string, userId: string) {
+    const requisition = await this.db.requisition.findUnique({ where: { id: requisitionId }, include: { items: true } });
+    if (!requisition) throw new NotFoundException(`Requisition ${requisitionId} not found`);
+    if (!['DRAFT', 'RETURNED_FOR_CORRECTION'].includes(requisition.status)) throw new BadRequestException('Only draft or returned requisitions can be submitted');
+    if (!requisition.items.length) throw new BadRequestException('Requisition must have at least one item before submission');
+    const updated = await this.db.$transaction(async (transaction) => {
+      const previousSteps = await transaction.approval.count({ where: { documentType: 'REQUISITION', documentId: requisitionId } });
+      await transaction.approval.create({ data: { documentType: 'REQUISITION', documentId: requisitionId, approvalStep: previousSteps + 1, approvalDecision: 'PENDING' } });
+      return transaction.requisition.update({ where: { id: requisitionId }, data: { status: 'SUBMITTED' }, include: { items: { include: { product: true } } } });
+    });
+    await this.auditLogService.logAction({ entityType: 'REQUISITION', entityId: requisitionId, action: 'UPDATE', afterData: { status: 'SUBMITTED' }, userId });
+    return updated;
   }
 
   /**
@@ -117,16 +118,39 @@ export class RequisitionsService {
       throw new NotFoundException(`Requisition ${requisitionId} not found`);
     }
 
-    if (requisition.status !== 'DRAFT') {
-      throw new BadRequestException(`Only DRAFT requisitions can be approved`);
-    }
-
-    return this.db.requisition.update({
-      where: { id: requisitionId },
-      data: {
-        status: 'APPROVED',
-      },
+    if (requisition.status !== 'SUBMITTED') throw new BadRequestException('Only SUBMITTED requisitions can be approved');
+    const approval = await this.db.approval.findFirst({ where: { documentType: 'REQUISITION', documentId: requisitionId, approvalDecision: 'PENDING' } });
+    if (!approval) throw new BadRequestException('Requisition has no pending approval step');
+    const updated = await this.db.$transaction(async (transaction) => {
+      await transaction.approval.update({ where: { id: approval.id }, data: { approvalDecision: 'APPROVED', actedById: userId, actedAt: new Date() } });
+      return transaction.requisition.update({ where: { id: requisitionId }, data: { status: 'APPROVED' }, include: { items: { include: { product: true } } } });
     });
+    await this.auditLogService.logAction({ entityType: 'REQUISITION', entityId: requisitionId, action: 'APPROVE', afterData: { status: 'APPROVED' }, userId });
+    return updated;
+  }
+
+  async reject(requisitionId: string, userId: string, reason: string) { return this.decide(requisitionId, userId, reason, 'REJECTED', 'REJECT'); }
+  async returnForCorrection(requisitionId: string, userId: string, reason: string) { return this.decide(requisitionId, userId, reason, 'RETURNED_FOR_CORRECTION', 'UPDATE'); }
+
+  private async decide(requisitionId: string, userId: string, reason: string, status: 'REJECTED' | 'RETURNED_FOR_CORRECTION', action: 'REJECT' | 'UPDATE') {
+    if (!reason?.trim()) throw new BadRequestException('A decision reason is required');
+    const requisition = await this.db.requisition.findUnique({ where: { id: requisitionId } });
+    if (!requisition) throw new NotFoundException(`Requisition ${requisitionId} not found`);
+    if (requisition.status !== 'SUBMITTED') throw new BadRequestException('Only SUBMITTED requisitions can be decided');
+    const approval = await this.db.approval.findFirst({ where: { documentType: 'REQUISITION', documentId: requisitionId, approvalDecision: 'PENDING' } });
+    if (!approval) throw new BadRequestException('Requisition has no pending approval step');
+    const updated = await this.db.$transaction(async (transaction) => {
+      await transaction.approval.update({ where: { id: approval.id }, data: { approvalDecision: status === 'REJECTED' ? 'REJECTED' : 'RETURNED', approverComment: reason, actedById: userId, actedAt: new Date() } });
+      return transaction.requisition.update({ where: { id: requisitionId }, data: { status }, include: { items: { include: { product: true } } } });
+    });
+    await this.auditLogService.logAction({ entityType: 'REQUISITION', entityId: requisitionId, action, afterData: { status, reason }, userId });
+    return updated;
+  }
+
+  async approvalHistory(requisitionId: string) {
+    const requisition = await this.db.requisition.findUnique({ where: { id: requisitionId }, select: { id: true } });
+    if (!requisition) throw new NotFoundException(`Requisition ${requisitionId} not found`);
+    return this.db.approval.findMany({ where: { documentType: 'REQUISITION', documentId: requisitionId }, include: { actedBy: { select: { id: true, name: true, email: true } } }, orderBy: { createdAt: 'asc' } });
   }
 
   /**

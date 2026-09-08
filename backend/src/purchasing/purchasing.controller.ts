@@ -65,6 +65,20 @@ export class PurchasingController {
     };
   }
 
+  @Post('requisitions/:id/items')
+  @RequirePermission('purchase_orders.create')
+  async addRequisitionItems(@Param('id') id: string, @Body() body: any, @Request() req: any) {
+    return { success: true, data: await this.requisitionsService.addItems(id, body.items ?? [], req.user.sub) };
+  }
+
+  @Get('requisitions/:id/approval-history')
+  @RequirePermission('purchase_orders.view')
+  async requisitionApprovalHistory(@Param('id') id: string) { return { success: true, data: await this.requisitionsService.approvalHistory(id) }; }
+
+  @Patch('requisitions/:id/submit')
+  @RequirePermission('purchase_orders.create')
+  async submitRequisition(@Param('id') id: string, @Request() req: any) { return { success: true, data: await this.requisitionsService.submit(id, req.user.sub) }; }
+
   @Patch('requisitions/:id/approve')
   @RequirePermission('purchase_orders.approve')
   @ApiOperation({ summary: 'Approve requisition' })
@@ -74,6 +88,14 @@ export class PurchasingController {
       data: await this.requisitionsService.approve(id, req.user.sub),
     };
   }
+
+  @Patch('requisitions/:id/reject')
+  @RequirePermission('purchase_orders.approve')
+  async rejectRequisition(@Param('id') id: string, @Body() body: { reason: string }, @Request() req: any) { return { success: true, data: await this.requisitionsService.reject(id, req.user.sub, body.reason) }; }
+
+  @Patch('requisitions/:id/return-for-correction')
+  @RequirePermission('purchase_orders.approve')
+  async returnRequisition(@Param('id') id: string, @Body() body: { reason: string }, @Request() req: any) { return { success: true, data: await this.requisitionsService.returnForCorrection(id, req.user.sub, body.reason) }; }
 
   @Post('requisitions/:id/convert-to-po')
   @RequirePermission('purchase_orders.create')
@@ -141,6 +163,14 @@ export class PurchasingController {
       data: await this.poService.approve(id, req.user.sub),
     };
   }
+
+  @Patch('purchase-orders/:id/submit')
+  @RequirePermission('purchase_orders.create')
+  async submitPO(@Param('id') id: string, @Request() req: any) { return { success: true, data: await this.poService.submit(id, req.user.sub) }; }
+
+  @Patch('purchase-orders/:id/reject')
+  @RequirePermission('purchase_orders.approve')
+  async rejectPO(@Param('id') id: string, @Body() body: { reason: string }, @Request() req: any) { return { success: true, data: await this.poService.reject(id, req.user.sub, body.reason) }; }
 
   @Patch('purchase-orders/:id/post')
   @RequirePermission('purchase_orders.approve')

@@ -2,6 +2,118 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@media (max-width: 639px) {
+  main > div > section:nth-of-type(2) table {
+    min-width: 0;
+    display: block;
+  }
+
+  main > div > section:nth-of-type(2) table thead {
+    display: none;
+  }
+
+  main > div > section:nth-of-type(2) table tbody,
+  main > div > section:nth-of-type(2) table tr {
+    display: block;
+  }
+
+  main > div > section:nth-of-type(2) table tr {
+    border-bottom: 1px solid color-mix(in srgb, var(--brand-forest) 10%, transparent);
+    padding: 0.75rem 0;
+  }
+
+  main > div > section:nth-of-type(2) table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+    padding: 0.3rem 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  main > div > section:nth-of-type(2) table td::before {
+    flex: 0 0 auto;
+    color: color-mix(in srgb, var(--brand-forest) 55%, transparent);
+    content: "";
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  main > div > section:nth-of-type(2) table td:nth-child(1)::before { content: "When"; }
+  main > div > section:nth-of-type(2) table td:nth-child(2)::before { content: "Entity"; }
+  main > div > section:nth-of-type(2) table td:nth-child(3)::before { content: "Action"; }
+  main > div > section:nth-of-type(2) table td:nth-child(4)::before { content: "Actor"; }
+  main > div > section:nth-of-type(2) table td:nth-child(5)::before { content: "Reference"; }
+
+  main > div > section:last-child table {
+    min-width: 0;
+    display: block;
+  }
+
+  main > div > section:last-child table thead {
+    display: none;
+  }
+
+  main > div > section:last-child table tbody,
+  main > div > section:last-child table tr {
+    display: block;
+  }
+
+  main > div > section:last-child table tr {
+    border-bottom: 1px solid color-mix(in srgb, white 12%, transparent);
+    padding: 0.75rem 0;
+  }
+
+  main > div > section:last-child table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3rem 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  main > div > section:last-child table td::before {
+    flex: 0 0 auto;
+    color: color-mix(in srgb, white 55%, transparent);
+    content: "";
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  main > div > section:last-child table td:nth-child(1)::before { content: "Date"; }
+  main > div > section:last-child table td:nth-child(2)::before { content: "Type"; }
+  main > div > section:last-child table td:nth-child(3)::before { content: "Direction"; }
+  main > div > section:last-child table td:nth-child(4)::before { content: "Quantity"; }
+  main > div > section:last-child table td:nth-child(5)::before { content: "Balance"; }
+  main > div > section:last-child table td:nth-child(6)::before { content: "Reference"; }
+
+  main > div > section:nth-of-type(2) input,
+  main > div > section:nth-of-type(2) button,
+  main > div > section:last-child select,
+  main > div > section:last-child button {
+    max-width: 100%;
+  }
+}
+
+main form input[type="number"] {
+  background-color: white;
+  border: 1px solid color-mix(in srgb, var(--brand-forest) 15%, transparent);
+  color: var(--text-primary);
+}
+
+main form input[type="number"]::placeholder {
+  color: color-mix(in srgb, var(--brand-forest) 45%, transparent);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

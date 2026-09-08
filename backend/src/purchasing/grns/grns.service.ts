@@ -61,6 +61,12 @@ export class GRNService {
       throw new BadRequestException('GRN must have at least one item');
     }
 
+    if (!['SENT', 'PARTIALLY_RECEIVED'].includes(po.status)) {
+      throw new BadRequestException('Only SENT or PARTIALLY_RECEIVED POs can receive goods');
+    }
+
+    const previousGRNs = await this.db.gRN.findMany({ where: { purchaseOrderId: data.purchaseOrderId, status: { not: 'CANCELLED' } }, include: { items: true } });
+
     // Validate each item
     for (const item of data.items) {
       const product = await this.db.product.findUnique({
@@ -85,6 +91,10 @@ export class GRNService {
 
       if (item.receivedQuantity <= 0) {
         throw new BadRequestException('Received quantity must be greater than 0');
+      }
+      const alreadyReceived = previousGRNs.flatMap((grn) => grn.items).filter((grnItem) => grnItem.purchaseOrderItemId === item.purchaseOrderItemId).reduce((sum, grnItem) => sum + grnItem.receivedQuantity.toNumber(), 0);
+      if (alreadyReceived + item.receivedQuantity > item.orderedQuantity) {
+        throw new BadRequestException(`Total received quantity cannot exceed ordered quantity for ${product.name}. Outstanding: ${Math.max(item.orderedQuantity - alreadyReceived, 0)}`);
       }
     }
 
@@ -244,23 +254,11 @@ export class GRNService {
           },
         });
 
-        // 3. Update PO status (if all items received)
-        const receivingStatus = await this.getReceivingStatus(grn.purchaseOrderId);
-
-        if (receivingStatus.totalOutstanding === 0) {
-          await tx.purchaseOrder.update({
-            where: { id: grn.purchaseOrderId },
-            data: { status: 'RECEIVED' },
-          });
-        } else {
-          await tx.purchaseOrder.update({
-            where: { id: grn.purchaseOrderId },
-            data: { status: 'PARTIALLY_RECEIVED' },
-          });
-        }
-
         return postedGRN;
       });
+
+      const receivingStatus = await this.getReceivingStatus(grn.purchaseOrderId);
+      await this.db.purchaseOrder.update({ where: { id: grn.purchaseOrderId }, data: { status: receivingStatus.totalOutstanding === 0 ? 'RECEIVED' : 'PARTIALLY_RECEIVED' } });
 
       this.logger.log(`GRN posted: ${grn.grnNumber}`);
       return result;

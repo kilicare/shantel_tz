@@ -333,6 +333,9 @@ export class InvoicesService {
     if (amount <= 0) {
       throw new BadRequestException('Payment amount must be greater than 0');
     }
+    if (amount > invoice.balance.toNumber() + 0.01) {
+      throw new BadRequestException(`Payment exceeds invoice balance. Outstanding: ${invoice.balance.toNumber()}`);
+    }
 
     // Create payment record
     const seq = await this.db.documentSequence.findUnique({
@@ -342,8 +345,9 @@ export class InvoicesService {
     const nextNumber = Number(seq?.currentNumber || 0) + 1;
     const paymentNumber = `PAY-2026-${String(nextNumber).padStart(6, '0')}`;
 
-    const payment = await this.db.payment.create({
-      data: {
+    const payment = await this.db.$transaction(async (transaction) => {
+      const created = await transaction.payment.create({
+        data: {
         paymentNumber,
         customerId: invoice.customerId,
         invoiceId: invoiceId,
@@ -352,7 +356,10 @@ export class InvoicesService {
         paymentDate: new Date(),
         status: 'RECORDED',
         createdById: userId,
-      },
+        },
+      });
+      await transaction.documentSequence.upsert({ where: { documentType: 'PAYMENT' }, update: { currentNumber: nextNumber }, create: { documentType: 'PAYMENT', prefix: 'PAY', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' } });
+      return created;
     });
 
     // Update invoice balance and status

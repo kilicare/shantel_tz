@@ -146,6 +146,14 @@ export class SalesController {
     };
   }
 
+  @Patch('orders/:id/submit')
+  @RequirePermission('sales_orders.create')
+  async submitSalesOrder(@Param('id') id: string, @Request() req: any) { return { success: true, data: await this.salesOrdersService.submit(id, req.user.sub) }; }
+
+  @Patch('orders/:id/reject')
+  @RequirePermission('sales_orders.approve')
+  async rejectSalesOrder(@Param('id') id: string, @Body() body: { reason: string }) { return { success: true, data: await this.salesOrdersService.reject(id, body.reason) }; }
+
   @Post('orders/:id/convert-to-invoice')
   @RequirePermission('invoices.create')
   @ApiOperation({ summary: 'Convert sales order to invoice' })

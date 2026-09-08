@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class PurchaseReturnsService {
@@ -15,6 +16,7 @@ export class PurchaseReturnsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -42,6 +44,7 @@ export class PurchaseReturnsService {
     if (!grn) {
       throw new NotFoundException(`GRN ${data.grnId} not found`);
     }
+    if (grn.status !== 'POSTED') throw new BadRequestException('Purchase returns can only be created from a posted GRN');
 
     // Validate supplier
     const supplier = await this.db.supplier.findUnique({
@@ -72,7 +75,9 @@ export class PurchaseReturnsService {
         throw new BadRequestException(`Product ${item.productId} not in this GRN`);
       }
 
-      if (item.quantity > grnItem.acceptedQuantity.toNumber()) {
+      const previousReturned = await this.db.purchaseReturnItem.aggregate({ where: { productId: item.productId, purchaseReturn: { grnId: data.grnId, status: { not: 'CANCELLED' } } }, _sum: { quantity: true } });
+      const availableToReturn = grnItem.acceptedQuantity.toNumber() - (previousReturned._sum.quantity?.toNumber() ?? 0);
+      if (item.quantity > availableToReturn) {
         throw new BadRequestException(
           `Return quantity exceeds received quantity for ${product.name}`,
         );
@@ -91,45 +96,13 @@ export class PurchaseReturnsService {
     const nextNumber = Number(seq?.currentNumber || 0) + 1;
     const returnNumber = `PR-2026-${String(nextNumber).padStart(6, '0')}`;
 
-    // Create return
-    const purchaseReturn = await this.db.purchaseReturn.create({
-      data: {
-        returnNumber,
-        supplierId: data.supplierId,
-        grnId: data.grnId,
-        returnDate: new Date(),
-        notes: data.notes,
-        status: 'DRAFT',
-        createdById: data.userId,
-      },
-      include: {
-        supplier: true,
-        grn: true,
-      },
+    const purchaseReturn = await this.db.$transaction(async (transaction) => {
+      const created = await transaction.purchaseReturn.create({ data: { returnNumber, supplierId: data.supplierId, grnId: data.grnId, returnDate: new Date(), notes: data.notes, status: 'DRAFT', createdById: data.userId } });
+      await transaction.purchaseReturnItem.createMany({ data: data.items.map((item) => { const unitCost = this.getGRNItemCost(grn, item.productId); return { purchaseReturnId: created.id, productId: item.productId, quantity: new Prisma.Decimal(item.quantity), unitCost, lineTotal: new Prisma.Decimal(item.quantity * unitCost.toNumber()), reason: item.reason }; }) });
+      await transaction.documentSequence.upsert({ where: { documentType: 'PURCHASE_RETURN' }, update: { currentNumber: nextNumber }, create: { documentType: 'PURCHASE_RETURN', prefix: 'PR', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' } });
+      return transaction.purchaseReturn.findUniqueOrThrow({ where: { id: created.id }, include: { supplier: true, grn: true, items: { include: { product: true } } } });
     });
-
-    // Create return items
-    for (const item of data.items) {
-      const unitCost = this.getGRNItemCost(grn, item.productId);
-      const lineTotal = item.quantity * unitCost.toNumber();
-
-      await this.db.purchaseReturnItem.create({
-        data: {
-          purchaseReturnId: purchaseReturn.id,
-          productId: item.productId,
-          quantity: new Prisma.Decimal(item.quantity),
-          unitCost: unitCost,
-          lineTotal: new Prisma.Decimal(lineTotal),
-          reason: item.reason,
-        },
-      });
-    }
-
-    // Update document sequence
-    await this.db.documentSequence.update({
-      where: { documentType: 'PURCHASE_RETURN' },
-      data: { currentNumber: nextNumber },
-    });
+    await this.auditLogService.logAction({ entityType: 'PURCHASE_RETURN', entityId: purchaseReturn.id, action: 'CREATE', afterData: { returnNumber }, userId: data.userId });
 
     this.logger.log(`Purchase Return created: ${returnNumber}`);
     return purchaseReturn;
@@ -205,6 +178,8 @@ export class PurchaseReturnsService {
             );
           }
 
+          if (balance.quantity.toNumber() < item.quantity.toNumber()) throw new BadRequestException(`Insufficient stock to return ${item.productId}`);
+
           const newQuantity = balance.quantity.toNumber() - item.quantity.toNumber();
 
           await tx.stockBalance.update({
@@ -230,7 +205,6 @@ export class PurchaseReturnsService {
               referenceId: returnId,
               unitCost: item.unitCost,
               reason: item.reason,
-              createdById: userId,
             },
           });
         }
@@ -254,6 +228,7 @@ export class PurchaseReturnsService {
       });
 
       this.logger.log(`Purchase Return posted: ${purchaseReturn.returnNumber}`);
+      await this.auditLogService.logAction({ entityType: 'PURCHASE_RETURN', entityId: returnId, action: 'POST', afterData: { status: 'POSTED' }, userId });
       return result;
     } catch (error) {
       this.logger.error(`Purchase Return posting failed: ${error instanceof Error ? error.message : String(error)}`);

@@ -51,35 +51,33 @@ export class InventoryMovementService {
       throw new BadRequestException('Quantity must be greater than 0');
     }
 
-    // Get current balance
-    const currentBalance = await this.stockBalanceService.getBalance(
-      data.productId,
-      data.locationId,
-    );
+    const movement = await this.db.$transaction(async (tx) => {
+      const currentBalance = await tx.stockBalance.findUnique({
+        where: { productId_locationId: { productId: data.productId, locationId: data.locationId } },
+      });
+      const currentQuantity = currentBalance?.quantity.toNumber() ?? 0;
+      const newQuantity = currentQuantity + data.quantity;
 
-    const newQuantity = (typeof currentBalance.quantity === 'number' ? currentBalance.quantity : currentBalance.quantity.toNumber()) + data.quantity;
+      await tx.stockBalance.upsert({
+        where: { productId_locationId: { productId: data.productId, locationId: data.locationId } },
+        update: { quantity: new Prisma.Decimal(newQuantity) },
+        create: { productId: data.productId, locationId: data.locationId, quantity: new Prisma.Decimal(newQuantity) },
+      });
 
-    // Update stock balance
-    await this.stockBalanceService.updateBalance(data.productId, data.locationId, newQuantity);
-
-    // Record movement
-    const movement = await this.db.inventoryMovement.create({
-      data: {
-        productId: data.productId,
-        locationId: data.locationId,
-        movementType: 'STOCK_IN',
-        quantityIn: new Prisma.Decimal(data.quantity),
-        quantityOut: new Prisma.Decimal(0),
-        referenceType: data.referenceType,
-        referenceId: data.referenceId,
-        unitCost: new Prisma.Decimal(data.unitCost),
-        reason: data.reason,
-        createdById: data.userId,
-      },
-      include: {
-        product: true,
-        location: true,
-      },
+      return tx.inventoryMovement.create({
+        data: {
+          productId: data.productId,
+          locationId: data.locationId,
+          movementType: 'STOCK_IN',
+          quantityIn: new Prisma.Decimal(data.quantity),
+          quantityOut: new Prisma.Decimal(0),
+          referenceType: data.referenceType,
+          referenceId: data.referenceId,
+          unitCost: new Prisma.Decimal(data.unitCost),
+          reason: data.reason,
+        },
+        include: { product: true, location: true },
+      });
     });
 
     this.logger.log(

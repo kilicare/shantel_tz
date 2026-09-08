@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Check, PackageCheck, RefreshCw, Send } from "lucide-react";
+import { AlertCircle, Check, PackageCheck, Plus, Printer, RefreshCw, Send } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
 
@@ -14,6 +14,8 @@ type PurchaseOrder = {
 };
 type GRN = { id: string; grnNumber?: string; status?: string; purchaseOrder?: { poNumber?: string } };
 type Location = { id: string; name: string };
+type Supplier = { id: string; name: string };
+type Product = { id: string; name: string; sku: string; costPrice?: number };
 
 function unwrap(response: any) {
   const payload = response?.data?.data ?? response?.data ?? response;
@@ -24,7 +26,14 @@ export default function PurchaseOrdersPage() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [grns, setGrns] = useState<GRN[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ supplierId: "", productId: "", quantity: "1", unitCost: "0", discountPercent: "0", notes: "" });
+  const [reasons, setReasons] = useState<Record<string, string>>({});
   const [selectedLocations, setSelectedLocations] = useState<Record<string, string>>({});
+  const [grnQuantities, setGrnQuantities] = useState<Record<string, string>>({});
+  const [receivingStatuses, setReceivingStatuses] = useState<Record<string, { totalReceived: number; totalOutstanding: number }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -33,14 +42,21 @@ export default function PurchaseOrdersPage() {
     try {
       setLoading(true);
       setError("");
-      const [ordersResponse, grnsResponse, locationsResponse] = await Promise.all([
+      const [ordersResponse, grnsResponse, locationsResponse, suppliersResponse, productsResponse] = await Promise.all([
         apiClient.get("/purchasing/purchase-orders?page=1&limit=50"),
         apiClient.get("/purchasing/grns?page=1&limit=50"),
         apiClient.get("/locations?page=1&limit=100"),
+        apiClient.get("/suppliers?page=1&limit=100"),
+        apiClient.get("/products?page=1&limit=100"),
       ]);
-      setOrders(unwrap(ordersResponse));
+      const orderList = unwrap(ordersResponse) as PurchaseOrder[];
+      setOrders(orderList);
       setGrns(unwrap(grnsResponse));
       setLocations(unwrap(locationsResponse));
+      setSuppliers(unwrap(suppliersResponse));
+      setProducts(unwrap(productsResponse));
+      const statusEntries = await Promise.all(orderList.map(async (order) => { try { const response = await apiClient.get(`/purchasing/purchase-orders/${order.id}/receiving-status`); return [order.id, unwrap(response)] as const; } catch { return null; } }));
+      setReceivingStatuses(Object.fromEntries(statusEntries.filter((entry): entry is [string, any] => entry !== null)));
     } catch (requestError: any) {
       const apiMessage = requestError?.response?.data?.message;
       setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Purchase orders could not be loaded.");
@@ -53,10 +69,17 @@ export default function PurchaseOrdersPage() {
     void loadData();
   }, []);
 
-  async function transitionOrder(order: PurchaseOrder, action: "approve" | "post") {
+  async function createPO(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!form.supplierId || !form.productId || Number(form.quantity) <= 0 || Number(form.unitCost) <= 0) { setError("Supplier, product, quantity, and unit cost are required."); return; }
+    try { setError(""); const response = await apiClient.post("/purchasing/purchase-orders", { supplierId: form.supplierId, notes: form.notes, items: [{ productId: form.productId, quantity: Number(form.quantity), unitCost: Number(form.unitCost), discountPercent: Number(form.discountPercent) }] }); const created = unwrap(response); setMessage(`${created.poNumber ?? "Purchase order"} created with subtotal, tax, and total calculated.`); setShowForm(false); setForm({ supplierId: "", productId: "", quantity: "1", unitCost: "0", discountPercent: "0", notes: "" }); await loadData(); } catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Purchase order could not be created."); }
+  }
+
+  async function transitionOrder(order: PurchaseOrder, action: "submit" | "approve" | "post" | "reject") {
     try {
       setError("");
-      const response = await apiClient.patch(`/purchasing/purchase-orders/${order.id}/${action}`);
+      if (action === "reject" && !(reasons[order.id] ?? "").trim()) { setError("A rejection reason is required."); return; }
+      const response = await apiClient.patch(`/purchasing/purchase-orders/${order.id}/${action}`, action === "reject" ? { reason: reasons[order.id] } : {});
       const updated = unwrap(response);
       setMessage(`${updated.poNumber ?? order.poNumber} is now ${updated.status}.`);
       await loadData();
@@ -64,6 +87,10 @@ export default function PurchaseOrdersPage() {
       const apiMessage = requestError?.response?.data?.message;
       setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || `PO ${action} failed.`);
     }
+  }
+
+  async function printPO(order: PurchaseOrder) {
+    try { const response = await apiClient.get(`/documents/purchase-orders/${order.id}/print-pdf`, { responseType: "blob" }); const url = URL.createObjectURL(response.data); const link = document.createElement("a"); link.href = url; link.download = `${order.poNumber ?? "purchase-order"}.pdf`; link.click(); URL.revokeObjectURL(url); } catch (requestError: any) { const apiMessage = requestError?.response?.data?.message; setError(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage || "Purchase order could not be printed."); }
   }
 
   async function createGRN(order: PurchaseOrder) {
@@ -83,8 +110,8 @@ export default function PurchaseOrdersPage() {
           purchaseOrderItemId: item.id,
           productId: item.productId,
           orderedQuantity: Number(item.quantity),
-          receivedQuantity: Number(item.quantity),
-          acceptedQuantity: Number(item.quantity),
+          receivedQuantity: Number(grnQuantities[item.id] ?? item.quantity),
+          acceptedQuantity: Number(grnQuantities[item.id] ?? item.quantity),
           rejectedQuantity: 0,
         })),
       });
@@ -127,10 +154,13 @@ export default function PurchaseOrdersPage() {
               <p className="mt-2 text-sm text-[#172B4D]/55">Approve orders, post them, and receive accepted stock.</p>
             </div>
             <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"><RefreshCw size={15} /> Refresh</button>
+            <button type="button" onClick={() => setShowForm((current) => !current)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"><Plus size={15} /> New PO</button>
           </header>
 
           {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"><AlertCircle size={18} /> {error}</div>}
           {message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">{message}</div>}
+
+          {showForm && <form onSubmit={createPO} className="mt-8 border border-[#172B4D]/10 bg-[#172B4D] p-5 text-white sm:p-6"><h2 className="text-xl font-semibold">Create purchase order</h2><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"><select aria-label="PO supplier" value={form.supplierId} onChange={(event) => setForm({ ...form, supplierId: event.target.value })} className="h-11 bg-white px-3 text-sm text-[#172B4D]"><option value="">Select supplier</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select><select aria-label="PO product" value={form.productId} onChange={(event) => { const product = products.find((item) => item.id === event.target.value); setForm({ ...form, productId: event.target.value, unitCost: product?.costPrice ? String(product.costPrice) : form.unitCost }); }} className="h-11 bg-white px-3 text-sm text-[#172B4D]"><option value="">Select product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select><input aria-label="PO quantity" type="number" min="0.01" step="0.01" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: event.target.value })} className="h-11 bg-white px-3 text-sm text-[#172B4D]" placeholder="Quantity" /><input aria-label="PO unit cost" type="number" min="0.01" step="0.01" value={form.unitCost} onChange={(event) => setForm({ ...form, unitCost: event.target.value })} className="h-11 bg-white px-3 text-sm text-[#172B4D]" placeholder="Unit cost" /><input aria-label="PO discount" type="number" min="0" step="0.01" value={form.discountPercent} onChange={(event) => setForm({ ...form, discountPercent: event.target.value })} className="h-11 bg-white px-3 text-sm text-[#172B4D]" placeholder="Discount %" /></div><p className="mt-3 text-sm text-white/70">Subtotal: TSh {(Number(form.quantity) * Number(form.unitCost)).toLocaleString()} · Tax (18%): TSh {(Number(form.quantity) * Number(form.unitCost) * (1 - Number(form.discountPercent) / 100) * 0.18).toLocaleString()} · Total: TSh {(Number(form.quantity) * Number(form.unitCost) * (1 - Number(form.discountPercent) / 100) * 1.18).toLocaleString()}</p><div className="mt-4 flex justify-end"><button type="submit" className="bg-[#D4A72C] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#172B4D]">Save draft PO</button></div></form>}
 
           <section className="mt-8 space-y-3" aria-label="Purchase orders">
             <h2 className="text-xl font-semibold">Purchase orders</h2>
@@ -143,13 +173,16 @@ export default function PurchaseOrdersPage() {
                     <p className="font-semibold">{order.poNumber ?? "Purchase order"}</p>
                     <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{order.status} · {order.supplier?.name ?? "Supplier"}</p>
                     <p className="mt-2 text-sm text-[#172B4D]/65">{order.items?.map((item) => `${item.product?.name ?? "Product"} x ${item.quantity}`).join(", ")}</p>
+                    {receivingStatuses[order.id] && <p className="mt-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#2563EB]">Received {receivingStatuses[order.id].totalReceived} / {receivingStatuses[order.id].totalReceived + receivingStatuses[order.id].totalOutstanding} · Outstanding {receivingStatuses[order.id].totalOutstanding}</p>}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {order.status === "DRAFT" && <button type="button" onClick={() => void transitionOrder(order, "approve")} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve PO</button>}
-                    {order.status === "SUBMITTED" && <button type="button" onClick={() => void transitionOrder(order, "post")} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post PO</button>}
+                    {(order.status === "DRAFT" || order.status === "REJECTED") && <button type="button" onClick={() => void transitionOrder(order, "submit")} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Send size={15} /> Submit PO</button>}
+                    {order.status === "SUBMITTED" && <><input aria-label={`PO rejection reason for ${order.poNumber ?? "purchase order"}`} value={reasons[order.id] ?? ""} onChange={(event) => setReasons((current) => ({ ...current, [order.id]: event.target.value }))} className="w-48 border border-[#172B4D]/15 px-3 py-2.5 text-sm" placeholder="Rejection reason" /><button type="button" onClick={() => void transitionOrder(order, "approve")} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Check size={15} /> Approve PO</button><button type="button" onClick={() => void transitionOrder(order, "reject")} className="border border-[#C94A4A]/40 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#C94A4A]">Reject</button></>}
+                    {order.status === "APPROVED" && <button type="button" onClick={() => void transitionOrder(order, "post")} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post PO</button>}
+                    <button type="button" onClick={() => void printPO(order)} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Printer size={15} /> Print</button>
                   </div>
                 </div>
-                {(order.status === "SENT" || order.status === "APPROVED") && <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#172B4D]/10 pt-4"><select aria-label={`Receiving location for ${order.poNumber ?? "purchase order"}`} value={selectedLocations[order.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [order.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select receiving location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void createGRN(order)} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><PackageCheck size={15} /> Create GRN</button></div>}
+                {(order.status === "SENT" || order.status === "PARTIALLY_RECEIVED") && <div className="mt-4 border-t border-[#172B4D]/10 pt-4"><div className="mb-3 grid gap-2 sm:grid-cols-2">{order.items?.map((item) => <label key={item.id} className="text-xs uppercase tracking-[0.1em] text-[#172B4D]/55">{item.product?.name ?? "Product"} / ordered {item.quantity}<input aria-label={`GRN quantity for ${item.product?.name ?? "product"}`} type="number" min="0.01" max={Number(item.quantity)} step="0.01" value={grnQuantities[item.id] ?? String(item.quantity)} onChange={(event) => setGrnQuantities((current) => ({ ...current, [item.id]: event.target.value }))} className="mt-1 h-10 w-full border border-[#172B4D]/15 px-3 text-sm text-[#172B4D]" /></label>)}</div><div className="flex flex-wrap items-center gap-2"><select aria-label={`Receiving location for ${order.poNumber ?? "purchase order"}`} value={selectedLocations[order.id] ?? ""} onChange={(event) => setSelectedLocations((current) => ({ ...current, [order.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select receiving location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void createGRN(order)} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><PackageCheck size={15} /> Create GRN</button></div></div>}
               </article>
             ))}
           </section>

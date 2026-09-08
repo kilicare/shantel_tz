@@ -156,12 +156,14 @@ export class SuppliersService {
   async getBalance(id: string) {
     const supplier = await this.db.supplier.findUnique({ where: { id } });
     if (!supplier) throw new NotFoundException(`Supplier ${id} not found`);
-    const [orders, payments] = await Promise.all([
+    const [orders, payments, returns] = await Promise.all([
       this.db.purchaseOrder.aggregate({ where: { supplierId: id }, _sum: { totalAmount: true } }),
       this.db.payment.aggregate({ where: { purchaseOrder: { supplierId: id } }, _sum: { amount: true } }),
+      this.db.purchaseReturnItem.aggregate({ where: { purchaseReturn: { supplierId: id, status: 'POSTED' } }, _sum: { lineTotal: true } }),
     ]);
     const totalPurchases = orders._sum.totalAmount?.toNumber() ?? 0;
     const totalPaid = payments._sum.amount?.toNumber() ?? 0;
-    return { supplierId: id, totalBalance: totalPurchases - totalPaid, totalPurchases, totalPaid };
+    const totalReturns = returns._sum.lineTotal?.toNumber() ?? 0;
+    return { supplierId: id, totalBalance: totalPurchases - totalReturns - totalPaid, totalPurchases, totalReturns, totalPaid };
   }
 }

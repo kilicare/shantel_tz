@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class PurchaseOrdersService {
@@ -15,6 +16,7 @@ export class PurchaseOrdersService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -93,49 +95,31 @@ export class PurchaseOrdersService {
     const nextNumber = Number(seq?.currentNumber || 0) + 1;
     const poNumber = `PO-2026-${String(nextNumber).padStart(6, '0')}`;
 
-    // Create PO
-    const po = await this.db.purchaseOrder.create({
-      data: {
-        poNumber,
-        supplierId: data.supplierId,
-        requisitionId: data.requisitionId,
-        orderDate: new Date(),
-        subtotal: new Prisma.Decimal(subtotal),
-        taxAmount: new Prisma.Decimal(taxAmount),
-        totalAmount: new Prisma.Decimal(totalAmount),
-        notes: data.notes,
-        status: 'DRAFT',
-        createdById: data.userId,
-      },
-      include: {
-        supplier: true,
-      },
-    });
-
-    // Create PO items
-    for (const item of poItems) {
-      await this.db.purchaseOrderItem.create({
+    const po = await this.db.$transaction(async (transaction) => {
+      const created = await transaction.purchaseOrder.create({
         data: {
-          purchaseOrderId: po.id,
-          productId: item.productId,
-          quantity: item.quantity,
-          unitCost: item.unitCost,
-          discountPercent: item.discountPercent,
-          discountAmount: item.discountAmount,
-          taxAmount: item.taxAmount,
-          lineTotal: item.lineTotal,
+          poNumber, supplierId: data.supplierId, requisitionId: data.requisitionId, orderDate: new Date(),
+          subtotal: new Prisma.Decimal(subtotal), taxAmount: new Prisma.Decimal(taxAmount), totalAmount: new Prisma.Decimal(totalAmount), notes: data.notes, status: 'DRAFT', createdById: data.userId,
+          items: { create: poItems.map((item) => ({ productId: item.productId, quantity: item.quantity, unitCost: item.unitCost, discountPercent: item.discountPercent, discountAmount: item.discountAmount, taxAmount: item.taxAmount, lineTotal: item.lineTotal })) },
         },
       });
-    }
-
-    // Update document sequence
-    await this.db.documentSequence.update({
-      where: { documentType: 'PURCHASE_ORDER' },
-      data: { currentNumber: nextNumber },
+      await transaction.documentSequence.upsert({ where: { documentType: 'PURCHASE_ORDER' }, update: { currentNumber: nextNumber }, create: { documentType: 'PURCHASE_ORDER', prefix: 'PO', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' } });
+      return transaction.purchaseOrder.findUniqueOrThrow({ where: { id: created.id }, include: { supplier: true, items: { include: { product: true } } } });
     });
+    await this.auditLogService.logAction({ entityType: 'PURCHASE_ORDER', entityId: po.id, action: 'CREATE', afterData: { poNumber, subtotal, taxAmount, totalAmount }, userId: data.userId });
 
     this.logger.log(`PO created: ${poNumber}`);
     return po;
+  }
+
+  async submit(poId: string, userId: string) {
+    const po = await this.db.purchaseOrder.findUnique({ where: { id: poId }, include: { items: true } });
+    if (!po) throw new NotFoundException(`PO ${poId} not found`);
+    if (po.status !== 'DRAFT' && po.status !== 'REJECTED') throw new BadRequestException('Only DRAFT or REJECTED POs can be submitted');
+    if (!po.items.length) throw new BadRequestException('PO must have at least one item');
+    const updated = await this.db.purchaseOrder.update({ where: { id: poId }, data: { status: 'SUBMITTED' }, include: { supplier: true, items: { include: { product: true } } } });
+    await this.auditLogService.logAction({ entityType: 'PURCHASE_ORDER', entityId: poId, action: 'UPDATE', afterData: { status: 'SUBMITTED' }, userId });
+    return updated;
   }
 
   /**
@@ -150,18 +134,30 @@ export class PurchaseOrdersService {
       throw new NotFoundException(`PO ${poId} not found`);
     }
 
-    if (po.status !== 'DRAFT') {
-      throw new BadRequestException(`Only DRAFT POs can be approved`);
+    if (po.status !== 'SUBMITTED') {
+      throw new BadRequestException(`Only SUBMITTED POs can be approved`);
     }
 
-    return this.db.purchaseOrder.update({
+    const updated = await this.db.purchaseOrder.update({
       where: { id: poId },
       data: {
-        status: 'SUBMITTED',
+        status: 'APPROVED',
         approvedById: userId,
         approvedAt: new Date(),
       },
     });
+    await this.auditLogService.logAction({ entityType: 'PURCHASE_ORDER', entityId: poId, action: 'APPROVE', afterData: { status: 'APPROVED' }, userId });
+    return updated;
+  }
+
+  async reject(poId: string, userId: string, reason: string) {
+    if (!reason?.trim()) throw new BadRequestException('A rejection reason is required');
+    const po = await this.db.purchaseOrder.findUnique({ where: { id: poId } });
+    if (!po) throw new NotFoundException(`PO ${poId} not found`);
+    if (po.status !== 'SUBMITTED') throw new BadRequestException('Only SUBMITTED POs can be rejected');
+    const updated = await this.db.purchaseOrder.update({ where: { id: poId }, data: { status: 'REJECTED', notes: `${po.notes ?? ''}${po.notes ? '\n' : ''}Rejected: ${reason}` }, include: { supplier: true, items: { include: { product: true } } } });
+    await this.auditLogService.logAction({ entityType: 'PURCHASE_ORDER', entityId: poId, action: 'REJECT', afterData: { status: 'REJECTED', reason }, userId });
+    return updated;
   }
 
   /**
@@ -176,8 +172,8 @@ export class PurchaseOrdersService {
       throw new NotFoundException(`PO ${poId} not found`);
     }
 
-    if (po.status !== 'SUBMITTED') {
-      throw new BadRequestException(`PO must be SUBMITTED to post`);
+    if (po.status !== 'APPROVED') {
+      throw new BadRequestException(`PO must be APPROVED to post`);
     }
 
     return this.db.purchaseOrder.update({

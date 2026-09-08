@@ -94,16 +94,17 @@ export class CustomersService {
     }
 
     // Calculate total balance
-    const invoices = await this.db.invoice.findMany({
-      where: { customerId: id },
-      select: { balance: true },
-    });
+    const [invoices, returns] = await Promise.all([
+      this.db.invoice.findMany({ where: { customerId: id }, select: { balance: true } }),
+      this.db.salesReturn.aggregate({ where: { customerId: id, status: 'POSTED' }, _sum: { refundAmount: true } }),
+    ]);
 
     const totalBalance = invoices.reduce((sum, inv) => sum + inv.balance.toNumber(), 0);
 
     return {
       ...customer,
       totalBalance,
+      totalReturns: returns._sum.refundAmount?.toNumber() ?? 0,
     };
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRightLeft, BarChart3, Boxes, ClipboardCheck, FileText, LayoutDashboard, LoaderCircle, LogOut, Menu, PackageSearch, PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, ShoppingCart, SlidersHorizontal, Store, Tags, Users, WalletCards, X } from "lucide-react";
+import { ArrowRightLeft, BarChart3, Boxes, ChevronDown, ChevronRight, ClipboardCheck, FileText, LayoutDashboard, LoaderCircle, LogOut, Menu, PackageSearch, PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, ShoppingCart, SlidersHorizontal, Store, Tags, Users, WalletCards, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
@@ -12,23 +12,73 @@ type NavigationItem = {
   label: string;
   required: string[];
   icon: typeof LayoutDashboard;
+  children?: NavigationItem[];
 };
 
 const navigation: NavigationItem[] = [
   { href: "/dashboard", label: "Dashboard", required: ["dashboard.view"], icon: LayoutDashboard },
-  { href: "/sales", label: "Sales", required: ["quotations.view", "sales_orders.view", "invoices.view"], icon: ShoppingCart },
-  { href: "/invoices", label: "Invoices", required: ["invoices.view"], icon: FileText },
-  { href: "/inventory", label: "Inventory", required: ["inventory.view"], icon: Boxes },
-  { href: "/inventory/transfers", label: "Transfers", required: ["inventory.view"], icon: ArrowRightLeft },
-  { href: "/inventory/adjustments", label: "Adjustments", required: ["inventory.view"], icon: SlidersHorizontal },
-  { href: "/inventory/audits", label: "Stock audits", required: ["inventory.view"], icon: ClipboardCheck },
-  { href: "/products", label: "Products", required: ["products.view"], icon: Tags },
-  { href: "/products/master-data", label: "Product master", required: ["products.view"], icon: Tags },
+  { 
+    href: "/sales", 
+    label: "Sales", 
+    required: ["quotations.view", "sales_orders.view", "invoices.view"], 
+    icon: ShoppingCart,
+    children: [
+      { href: "/sales/quotations", label: "Quotations", required: ["quotations.view"], icon: FileText },
+      { href: "/sales/orders", label: "Sales orders", required: ["sales_orders.view"], icon: ShoppingCart },
+    ]
+  },
+  { 
+    href: "/invoices", 
+    label: "Invoices", 
+    required: ["invoices.view"], 
+    icon: FileText,
+    children: [
+      { href: "/invoices/new", label: "New invoice", required: ["invoices.create"], icon: FileText },
+    ]
+  },
+  { 
+    href: "/inventory", 
+    label: "Inventory", 
+    required: ["inventory.view"], 
+    icon: Boxes,
+    children: [
+      { href: "/inventory/transfers", label: "Transfers", required: ["inventory.view"], icon: ArrowRightLeft },
+      { href: "/inventory/adjustments", label: "Adjustments", required: ["inventory.view"], icon: SlidersHorizontal },
+      { href: "/inventory/audits", label: "Stock audits", required: ["inventory.view"], icon: ClipboardCheck },
+    ]
+  },
+  { 
+    href: "/products", 
+    label: "Products", 
+    required: ["products.view"], 
+    icon: Tags,
+    children: [
+      { href: "/products/master-data", label: "Product master", required: ["products.view"], icon: Tags },
+    ]
+  },
   { href: "/locations", label: "Locations", required: ["locations.view"], icon: Store },
-  { href: "/purchasing", label: "Purchasing", required: ["purchase_orders.view", "grns.view"], icon: PackageSearch },
+  { 
+    href: "/purchasing", 
+    label: "Purchasing", 
+    required: ["purchase_orders.view", "grns.view"], 
+    icon: PackageSearch,
+    children: [
+      { href: "/purchasing/orders", label: "Purchase orders", required: ["purchase_orders.view"], icon: PackageSearch },
+      { href: "/purchasing/requisitions", label: "Requisitions", required: ["requisitions.view"], icon: PackageSearch },
+      { href: "/purchasing/returns", label: "Purchase returns", required: ["purchase_returns.view"], icon: ReceiptText },
+    ]
+  },
   { href: "/customers", label: "Customers", required: ["customers.view"], icon: Users },
   { href: "/suppliers", label: "Suppliers", required: ["suppliers.view"], icon: Store },
-  { href: "/payments", label: "Payments", required: ["payments.view"], icon: WalletCards },
+  { 
+    href: "/payments", 
+    label: "Payments", 
+    required: ["payments.view"], 
+    icon: WalletCards,
+    children: [
+      { href: "/payments/refunds", label: "Refunds", required: ["payments.view"], icon: WalletCards },
+    ]
+  },
   { href: "/expenses", label: "Expenses", required: ["expenses.view"], icon: WalletCards },
   { href: "/approvals", label: "Approvals", required: ["approvals.view"], icon: ClipboardCheck },
   { href: "/returns", label: "Returns", required: ["sales_returns.view", "purchase_returns.view"], icon: ReceiptText },
@@ -37,9 +87,19 @@ const navigation: NavigationItem[] = [
   { href: "/settings", label: "Settings", required: ["documents.configure"], icon: Settings },
 ];
 
-const routePermissions: Record<string, string[]> = Object.fromEntries(
-  navigation.map((item) => [item.href, item.required]),
-);
+const routePermissions: Record<string, string[]> = (() => {
+  const permissions: Record<string, string[]> = {};
+  const collectPermissions = (items: NavigationItem[]) => {
+    items.forEach((item) => {
+      permissions[item.href] = item.required;
+      if (item.children) {
+        collectPermissions(item.children);
+      }
+    });
+  };
+  collectPermissions(navigation);
+  return permissions;
+})();
 
 export function WorkspaceNavigation() {
   const pathname = usePathname();
@@ -54,6 +114,7 @@ export function WorkspaceNavigation() {
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -80,8 +141,51 @@ export function WorkspaceNavigation() {
     setMobileMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const autoExpand = (items: NavigationItem[]) => {
+      items.forEach((item) => {
+        if (item.children) {
+          const hasActiveChild = item.children.some((child) => pathname === child.href || pathname.startsWith(child.href));
+          if (hasActiveChild) {
+            setExpandedItems((prev) => new Set([...prev, item.href]));
+          }
+          autoExpand(item.children);
+        }
+      });
+    };
+    autoExpand(navigation);
+  }, [pathname]);
+
   const canSee = (required: string[]) => required.some((permission) => permissions.includes(permission));
-  const visibleNavigation = navigation.filter((item) => canSee(item.required));
+  const toggleExpanded = (href: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(href)) {
+        next.delete(href);
+      } else {
+        next.add(href);
+      }
+      return next;
+    });
+  };
+  const filterNavigation = (items: NavigationItem[]): NavigationItem[] => {
+    return items
+      .map((item) => {
+        const canSeeParent = canSee(item.required);
+        const filteredChildren = item.children ? filterNavigation(item.children) : undefined;
+        const hasVisibleChildren = filteredChildren && filteredChildren.length > 0;
+        
+        if (canSeeParent || hasVisibleChildren) {
+          return {
+            ...item,
+            children: filteredChildren,
+          };
+        }
+        return null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+  };
+  const visibleNavigation = filterNavigation(navigation);
   const logout = () => {
     localStorage.removeItem("shantel_access_token");
     localStorage.removeItem("shantel_refresh_token");
@@ -112,6 +216,108 @@ export function WorkspaceNavigation() {
 
   const avatar = avatarUrl ? <img src={avatarUrl} alt="" className="size-full object-cover" /> : <span className="text-sm font-semibold">{userLabel.charAt(0).toUpperCase()}</span>;
 
+  const renderNavigationItem = (item: NavigationItem, level: number = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.has(item.href);
+    const active = pathname === item.href || (hasChildren && pathname.startsWith(item.href));
+
+    if (hasChildren) {
+      return (
+        <div key={item.href}>
+          <div className="flex items-center gap-1">
+            <Link
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              title={desktopCollapsed ? item.label : undefined}
+              className={`flex flex-1 items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-forest text-text-inverse shadow-sm" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
+            >
+              <item.icon size={17} />
+              {!desktopCollapsed && <span className="flex-1 text-left">{item.label}</span>}
+            </Link>
+            {!desktopCollapsed && (
+              <button
+                type="button"
+                onClick={() => toggleExpanded(item.href)}
+                aria-expanded={isExpanded}
+                aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
+                className={`flex items-center justify-center rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary`}
+              >
+                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
+            )}
+          </div>
+          {isExpanded && !desktopCollapsed && (
+            <div className="ml-4 mt-1 space-y-1">
+              {item.children?.map((child) => renderNavigationItem(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        title={desktopCollapsed ? item.label : undefined}
+        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-forest text-text-inverse shadow-sm" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
+      >
+        <item.icon size={17} />
+        {!desktopCollapsed && <span>{item.label}</span>}
+      </Link>
+    );
+  };
+
+  const renderMobileNavigationItem = (item: NavigationItem, level: number = 0) => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.has(item.href);
+    const active = pathname === item.href || (hasChildren && pathname.startsWith(item.href));
+
+    if (hasChildren) {
+      return (
+        <div key={item.href}>
+          <div className="flex items-center gap-1">
+            <Link
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-1 items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] ${active ? "bg-interactive-active text-brand-forest" : "text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse"}`}
+            >
+              <item.icon size={15} />
+              <span className="flex-1 text-left">{item.label}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => toggleExpanded(item.href)}
+              aria-expanded={isExpanded}
+              aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
+              className={`flex items-center justify-center rounded-md p-2 text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse`}
+            >
+              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </button>
+          </div>
+          {isExpanded && (
+            <div className="ml-4 mt-1 space-y-1">
+              {item.children?.map((child) => renderMobileNavigationItem(child, level + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] ${active ? "bg-interactive-active text-brand-forest" : "text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse"}`}
+      >
+        <item.icon size={15} />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <div className={`workspace-navigation-shell ${desktopCollapsed ? "workspace-collapsed" : "workspace-expanded"}`}>
       <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border-default bg-surface-card text-text-primary shadow-[8px_0_30px_rgba(23,34,31,0.04)] transition-[width] duration-200 md:flex ${desktopCollapsed ? "w-[76px]" : "w-64"}`}>
@@ -124,10 +330,7 @@ export function WorkspaceNavigation() {
         </div>
 
         <nav aria-label="Workspace navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
-          {visibleNavigation.map(({ href, label, icon: Icon }) => {
-            const active = pathname.startsWith(href);
-            return <Link key={href} href={href} aria-current={active ? "page" : undefined} title={desktopCollapsed ? label : undefined} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-forest text-text-inverse shadow-sm" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}><Icon size={17} />{!desktopCollapsed && <span>{label}</span>}</Link>;
-          })}
+          {visibleNavigation.map((item) => renderNavigationItem(item))}
         </nav>
 
         <div className={`border-t border-border-subtle p-3 ${desktopCollapsed ? "flex flex-col items-center gap-2" : ""}`}>
@@ -147,7 +350,7 @@ export function WorkspaceNavigation() {
             <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-inverse hover:bg-interactive-primary-hover">{mobileMenuOpen ? <X size={15} /> : <Menu size={15} />} Menu</button>
           </div>
         </div>
-        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-inverse px-4 py-3 sm:px-6">{visibleNavigation.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={pathname.startsWith(href) ? "page" : undefined} className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] ${pathname.startsWith(href) ? "bg-interactive-active text-brand-forest" : "text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse"}`}><Icon size={15} />{label}</Link>)}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-inverse pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-paper text-xs text-brand-forest">{avatar}</span><span className="truncate text-[10px] uppercase tracking-[0.12em] text-text-inverse/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] hover:bg-interactive-primary-hover"><LogOut size={15} /> Logout</button></div></nav>}
+        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-inverse px-4 py-3 sm:px-6">{visibleNavigation.map((item) => renderMobileNavigationItem(item))}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-inverse pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-paper text-xs text-brand-forest">{avatar}</span><span className="truncate text-[10px] uppercase tracking-[0.12em] text-text-inverse/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] hover:bg-interactive-primary-hover"><LogOut size={15} /> Logout</button></div></nav>}
       </div>
       <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void updateAvatar(event.target.files?.[0]); event.currentTarget.value = ""; }} />
       {profileOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-forest/55 px-4" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">

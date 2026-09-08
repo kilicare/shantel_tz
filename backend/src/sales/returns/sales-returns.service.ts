@@ -85,7 +85,9 @@ export class SalesReturnsService {
           );
         }
 
-        if (item.quantity > invoiceItem.quantity.toNumber()) {
+        const previousReturned = await this.db.salesReturnItem.aggregate({ where: { productId: item.productId, salesReturn: { invoiceId: data.invoiceId, status: { not: 'CANCELLED' } } }, _sum: { returnedQuantity: true } });
+        const availableToReturn = invoiceItem.quantity.toNumber() - (previousReturned._sum.returnedQuantity?.toNumber() ?? 0);
+        if (item.quantity > availableToReturn) {
           throw new BadRequestException(
             `Return quantity exceeds invoice quantity for ${product.name}`,
           );

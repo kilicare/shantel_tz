@@ -37,8 +37,8 @@ export class InventoryReportsService {
     };
   }
 
-  async getLowStockItems() {
-    const balances = await this.db.stockBalance.findMany({ include: { product: true, location: true } });
+  async getLowStockItems(locationId?: string) {
+    const balances = await this.db.stockBalance.findMany({ where: locationId ? { locationId } : undefined, include: { product: true, location: true } });
     const items = balances
       .filter((balance) => balance.quantity.toNumber() <= balance.product.minimumStockLevel)
       .map((balance) => ({
@@ -53,9 +53,9 @@ export class InventoryReportsService {
     return { reportDate: new Date(), totalLowStockItems: items.length, items };
   }
 
-  async getMovementReport(startDate: Date, endDate: Date, productId?: string) {
+  async getMovementReport(startDate: Date, endDate: Date, productId?: string, locationId?: string) {
     const movements = await this.db.inventoryMovement.findMany({
-      where: { createdAt: { gte: startDate, lte: endDate }, ...(productId ? { productId } : {}) },
+      where: { createdAt: { gte: startDate, lte: endDate }, ...(productId ? { productId } : {}), ...(locationId ? { locationId } : {}) },
       include: { product: true, location: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -77,8 +77,8 @@ export class InventoryReportsService {
     };
   }
 
-  async getStockValuation() {
-    const balances = await this.db.stockBalance.findMany({ include: { product: true, location: true } });
+  async getStockValuation(locationId?: string) {
+    const balances = await this.db.stockBalance.findMany({ where: locationId ? { locationId } : undefined, include: { product: true, location: true } });
     const items = balances.map((balance) => {
       const quantity = balance.quantity.toNumber();
       const costPerUnit = balance.product.costPrice.toNumber();

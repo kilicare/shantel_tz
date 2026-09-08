@@ -140,6 +140,13 @@ export class StockAdjustmentService {
     });
   }
 
+  async reject(adjustmentId: string) {
+    const adjustment = await this.db.stockAdjustment.findUnique({ where: { id: adjustmentId } });
+    if (!adjustment) throw new NotFoundException(`Stock Adjustment ${adjustmentId} not found`);
+    if (adjustment.status !== 'DRAFT') throw new BadRequestException('Only DRAFT adjustments can be rejected');
+    return this.db.stockAdjustment.update({ where: { id: adjustmentId }, data: { status: 'CANCELLED' } });
+  }
+
   /**
    * Post adjustment (apply to actual stock balance)
    * ATOMIC TRANSACTION

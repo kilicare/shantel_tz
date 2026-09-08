@@ -44,6 +44,14 @@ export class AuditController {
     return this.auditLogService.getLogsByDateRange(new Date(startDate), new Date(endDate), this.paginationService.parsePaginationParams(query));
   }
 
+  @Get('logs/recent')
+  @RequirePermission('audit.view')
+  @ApiOperation({ summary: 'Get recent audit events' })
+  getRecentLogs(@Query('limit') limit?: string, @Query('entityType') entityType?: string, @Query('action') action?: string) {
+    const parsedLimit = limit ? Number(limit) : 50;
+    return this.auditLogService.findAll({ limit: Number.isInteger(parsedLimit) ? parsedLimit : 50, entityType, action });
+  }
+
   @Get('integrity/financial-check')
   @RequirePermission('audit.view')
   @ApiOperation({ summary: 'Verify financial consistency' })
@@ -75,19 +83,19 @@ export class AuditController {
 
   @Get('trace/invoice/:invoiceId')
   @RequirePermission('audit.view')
-  getInvoiceTrace(@Param('invoiceId') invoiceId: string) { return { success: true, data: this.traceabilityService.getSalesTraceChain(invoiceId) }; }
+  async getInvoiceTrace(@Param('invoiceId') invoiceId: string) { return { success: true, data: await this.traceabilityService.getSalesTraceChain(invoiceId) }; }
 
   @Get('trace/po/:poId')
   @RequirePermission('audit.view')
-  getPOTrace(@Param('poId') poId: string) { return { success: true, data: this.traceabilityService.getPurchasingTraceChain(poId) }; }
+  async getPOTrace(@Param('poId') poId: string) { return { success: true, data: await this.traceabilityService.getPurchasingTraceChain(poId) }; }
 
   @Get('trace/stock/:productId')
   @RequirePermission('audit.view')
-  getStockTrace(@Param('productId') productId: string, @Query('locationId') locationId?: string) { return { success: true, data: this.traceabilityService.getStockMovementHistory(productId, locationId) }; }
+  async getStockTrace(@Param('productId') productId: string, @Query('locationId') locationId?: string) { return { success: true, data: await this.traceabilityService.getStockMovementHistory(productId, locationId) }; }
 
   @Get('trace/serial/:serialNumberId')
   @RequirePermission('audit.view')
-  getSerialTrace(@Param('serialNumberId') serialNumberId: string) { return { success: true, data: this.traceabilityService.getSerialNumberLifecycle(serialNumberId) }; }
+  async getSerialTrace(@Param('serialNumberId') serialNumberId: string) { return { success: true, data: await this.traceabilityService.getSerialNumberLifecycle(serialNumberId) }; }
 
   @Get('trail/:entityType/:entityId')
   @RequirePermission('audit.view')
