@@ -2,7 +2,7 @@ services:
   - type: web
     name: shantel-backend
     env: node
-    buildCommand: pnpm install && pnpm run build
+    buildCommand: pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm run build
     startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
@@ -18,7 +18,7 @@ services:
       - key: API_PORT
         value: 3001
       - key: FRONTEND_URL
-        value: https://your-frontend-url.vercel.app
+        value: https://frontend-mu-three-89.vercel.app
 
 databases:
   - name: shantel-db
