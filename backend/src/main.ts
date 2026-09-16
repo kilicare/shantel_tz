@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { WinstonLoggerService } from './shared/services/logger.service.js';
@@ -7,6 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: false,
   });
+
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Logging
   const logger = new WinstonLoggerService();

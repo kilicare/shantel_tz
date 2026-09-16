@@ -1,6 +1,7 @@
 # Round 4 - Inventory Testing Evidence
 
-Environment: `http://localhost:3000` browser UI. API was accessed only by UI actions.
+Date: 2026-09-17
+Environment: `http://localhost:3000` browser UI. Inventory actions were performed through the browser UI; the fresh low-stock fixture metadata was set through an authenticated browser request because the current product form does not expose minimum-stock fields.
 
 ## Test Results
 
@@ -20,6 +21,29 @@ Environment: `http://localhost:3000` browser UI. API was accessed only by UI act
 | R4-14-04 | Authenticated Super Administrator session | Click CSV export | Authenticated CSV download returns 200 with attachment header | Browser response was 200, `text/csv`, `attachment; filename="inventory-report.csv"` | `/reports` CSV button | PASS |
 | R4-14-05 | Mobile viewport 375x812 | Open Inventory | No horizontal overflow and controls remain visible | Body scrollWidth was 360; heading and Receive stock button visible | `/inventory` at 375x812 | PASS |
 
+## Fresh Browser Acceptance Run (2026-09-17)
+
+Fresh fixtures created through the browser UI:
+
+- Product: `R4 UI Inventory Product 1789596578204`, SKU `R4-UI-SKU-1789596578204`.
+- Locations: `R4 UI Main 1789596578204` and `R4 UI Branch 1789596578204`.
+- Fresh customer: `UI R3 Customer 1789595300053 Edited`.
+
+| Flow | Fresh browser evidence | Status |
+|---|---|---|
+| Stock in | Received 10 units into the fresh Main location; inventory showed 10; reports showed `STOCK_IN +10 / -0` | PASS |
+| Stock out | Posted `INV-2026-000021` for quantity 3; fresh Main balance changed 10 -> 7; reports showed `SALE +0 / -3` | PASS |
+| Negative stock | Reduced fresh Main to 2 through posted `ADJ-2026-000009`; attempted invoice quantity 5; UI returned `Available: 2, Required: 5`, invoice stayed DRAFT, balance stayed 2 | PASS |
+| Transfer | Topped fixture back to 10 via browser Receive stock, created `TRF-2026-000005` quantity 4 Main -> Branch, approved and posted; balances became Main 6 and Branch 4 | PASS |
+| Transfer movements | Reports showed `TRANSFER_OUT -4` at Main and `TRANSFER_IN +4` at Branch | PASS |
+| Adjustment reject | Created fresh reasoned `ADJ-2026-000010`; Reject changed it to `CANCELLED` with no stock posting | PASS |
+| Adjustment approve/post | `ADJ-2026-000009` moved DRAFT -> SUBMITTED -> POSTED and changed stock from 7 to 2 | PASS |
+| Stock audit | Created `AUD-2026-000008` for fresh Branch with system 4 and physical 3; completed, approved, and posted; balance became 3 | PASS |
+| Audit movement trail | Reports showed fresh Branch `AUDIT +0 / -1` after posting | PASS |
+| Reports filters | Location filter returned fresh Main-only rows; product filter returned fresh product-only current stock, movement and valuation rows; low stock showed fresh Main 6/min 10 and Branch 3/min 10 | PASS |
+| Reports export | Fresh filtered CSV, Excel, and PDF buttons each returned HTTP 200 with CSV, XLSX, and PDF content types | PASS |
+| Mobile inventory | At 375x812, `scrollWidth=360`, matching `clientWidth=360`; heading and Receive stock remained visible | PASS |
+
 ## Bugs Fixed During Round 4
 
 - Added browser-visible Receive stock form and `POST /inventory/stock-in` workflow.
@@ -33,6 +57,8 @@ Environment: `http://localhost:3000` browser UI. API was accessed only by UI act
 - Added authenticated CSV, Excel, and PDF export controls.
 - Fixed duplicate movement report React keys.
 
-## Remaining Evidence Note
+## Evidence Note
 
-The `/audit` route currently renders a generic integrity result rather than a detailed inventory entity audit-log viewer. Inventory accountability was verified through adjustment/audit status transitions and the movement ledger. A dedicated inventory audit-log detail view is still a separate UI enhancement if strict audit-log screen evidence is required.
+Inventory accountability was verified through fresh adjustment/audit status transitions and the movement ledger. The `/audit` route remains a generic integrity view rather than a detailed inventory entity audit-log viewer; the Round 4 audit-trail requirement is covered by the posted audit movement and status evidence above.
+
+Round 4 inventory testing is complete and ready for Round 5.

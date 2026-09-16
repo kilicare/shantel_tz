@@ -159,6 +159,38 @@ export class DocumentTemplateService {
     };
   }
 
+  async buildGenericTemplate(type: string, id: string) {
+    const documentType = type.toUpperCase();
+    const company = await this.getCompanyInfo();
+    const builders: Record<string, () => Promise<any>> = {
+      REQUISITIONS: async () => this.db.requisition.findUnique({ where: { id }, include: { items: { include: { product: true } } } }),
+      PAYMENTS: async () => this.db.payment.findUnique({ where: { id }, include: { customer: true, paymentMethod: true, invoice: true } }),
+      EXPENSES: async () => this.db.expense.findUnique({ where: { id }, include: { category: true, paymentMethod: true } }),
+      'PURCHASE-RETURNS': async () => this.db.purchaseReturn.findUnique({ where: { id }, include: { supplier: true, grn: true, items: { include: { product: true } } } }),
+      'STOCK-TRANSFERS': async () => this.db.stockTransfer.findUnique({ where: { id }, include: { sourceLocation: true, destLocation: true, items: { include: { product: true } } } }),
+      'STOCK-AUDITS': async () => this.db.stockAudit.findUnique({ where: { id }, include: { location: true, items: { include: { product: true } } } }),
+    };
+    const record = await builders[documentType]?.();
+    if (!record) throw new NotFoundException(`${documentType} document not found`);
+    const number = record.requisitionNumber ?? record.paymentNumber ?? record.expenseNumber ?? record.returnNumber ?? record.transferNumber ?? record.auditNumber;
+    const lines = (record.items ?? []).map((item: any) => ({
+      productName: item.product?.name,
+      sku: item.product?.sku,
+      quantity: item.quantity ?? item.physicalQuantity ?? item.returnedQuantity,
+      ...(item.lineTotal !== undefined && item.lineTotal !== null ? { lineTotal: item.lineTotal.toNumber?.() ?? item.lineTotal } : {}),
+    }));
+    const totalValue = record.totalAmount?.toNumber?.() ?? record.amount?.toNumber?.() ?? record.refundAmount?.toNumber?.();
+    return {
+      documentType, documentNumber: number, date: record.requestDate ?? record.paymentDate ?? record.expenseDate ?? record.returnDate ?? record.transferDate ?? record.auditDate,
+      status: record.status, company, customer: record.customer ? this.customer(record.customer) : undefined,
+      supplier: record.supplier ? this.customer(record.supplier) : undefined, items: lines,
+      ...(totalValue !== undefined ? { total: totalValue, totalAmount: totalValue } : {}),
+      paymentMethod: record.paymentMethod?.name, invoiceNumber: record.invoice?.invoiceNumber, location: record.location?.name,
+      sourceLocation: record.sourceLocation?.name, destinationLocation: record.destLocation?.name, notes: record.notes ?? record.reason,
+      footer: `${documentType} document - retain for your records`,
+    };
+  }
+
   private numberToWords(value: number) {
     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];

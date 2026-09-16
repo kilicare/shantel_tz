@@ -63,13 +63,20 @@ export class ExpensesService {
       throw new BadRequestException('Description is required');
     }
 
-    // Get next expense number
+    const currentYear = new Date().getFullYear();
     const seq = await this.db.documentSequence.findUnique({
       where: { documentType: 'EXPENSE' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
-    const expenseNumber = `EXP-2026-${String(nextNumber).padStart(6, '0')}`;
+    const latestExpense = await this.db.expense.findFirst({
+      where: { expenseNumber: { startsWith: `EXP-${currentYear}-` } },
+      orderBy: { expenseNumber: 'desc' },
+      select: { expenseNumber: true },
+    });
+    const latestNumber = Number(latestExpense?.expenseNumber?.split('-').pop() || 0);
+    const sequenceNumber = seq?.year === currentYear ? Number(seq.currentNumber) : 0;
+    const nextNumber = Math.max(sequenceNumber, latestNumber) + 1;
+    const expenseNumber = `EXP-${currentYear}-${String(nextNumber).padStart(6, '0')}`;
 
     // Create expense
     const expense = await this.db.expense.create({
@@ -97,8 +104,8 @@ export class ExpensesService {
     // Update document sequence
     await this.db.documentSequence.upsert({
       where: { documentType: 'EXPENSE' },
-      create: { documentType: 'EXPENSE', prefix: 'EXP', currentNumber: nextNumber },
-      update: { currentNumber: nextNumber },
+      create: { documentType: 'EXPENSE', prefix: 'EXP', currentNumber: nextNumber, padding: 6, year: currentYear, status: 'ACTIVE' },
+      update: { currentNumber: nextNumber, year: currentYear },
     });
 
     this.logger.log(`Expense created: ${expenseNumber}`);

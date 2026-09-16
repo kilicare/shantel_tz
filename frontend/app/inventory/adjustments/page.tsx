@@ -40,7 +40,7 @@ export default function AdjustmentsPage() {
   useEffect(() => {
     try {
       setPermissions(
-        JSON.parse(localStorage.getItem("shantel_user") ?? "null")
+        JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")
           ?.permissions ?? [],
       );
     } catch {
@@ -55,7 +55,7 @@ export default function AdjustmentsPage() {
     try {
       setError("");
       const userId = JSON.parse(
-        localStorage.getItem("shantel_user") ?? "null",
+        sessionStorage.getItem("shantel_user") ?? "null",
       )?.id;
       const response = await apiClient.patch(
         `/inventory/adjustments/${id}/${action}`,

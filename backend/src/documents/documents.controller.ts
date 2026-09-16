@@ -72,6 +72,12 @@ export class DocumentsController {
   @RequirePermission('sales_returns.view')
   previewSalesReturn(@Param('id') id: string) { return this.templateService.buildSalesReturnTemplate(id); }
 
+  @Get(':type/:id/preview')
+  @RequirePermission('documents.view')
+  previewGeneric(@Param('type') type: string, @Param('id') id: string) {
+    return this.templateService.buildGenericTemplate(type, id);
+  }
+
   @Get(':type/:id/print-pdf')
   @RequirePermission('documents.print')
   async printPDF(@Param('type') type: string, @Param('id') id: string, @Res() response: Response) {
@@ -83,6 +89,12 @@ export class DocumentsController {
       'purchase-orders': (value) => this.templateService.buildPurchaseOrderTemplate(value),
       grns: (value) => this.templateService.buildGRNTemplate(value),
       'sales-returns': (value) => this.templateService.buildSalesReturnTemplate(value),
+      requisitions: (value) => this.templateService.buildGenericTemplate('REQUISITIONS', value),
+      payments: (value) => this.templateService.buildGenericTemplate('PAYMENTS', value),
+      expenses: (value) => this.templateService.buildGenericTemplate('EXPENSES', value),
+      'purchase-returns': (value) => this.templateService.buildGenericTemplate('PURCHASE-RETURNS', value),
+      'stock-transfers': (value) => this.templateService.buildGenericTemplate('STOCK-TRANSFERS', value),
+      'stock-audits': (value) => this.templateService.buildGenericTemplate('STOCK-AUDITS', value),
     };
     const builder = builders[type.toLowerCase()];
     if (!builder) throw new BadRequestException(`Unsupported document type: ${type}`);

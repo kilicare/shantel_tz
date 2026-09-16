@@ -70,7 +70,7 @@ export default function PurchasingPage() {
   useEffect(() => {
     try {
       setPermissions(
-        JSON.parse(localStorage.getItem("shantel_user") ?? "null")
+        JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")
           ?.permissions ?? [],
       );
     } catch {

@@ -1,8 +1,8 @@
 # Round 3: Master Data Testing
 
-Date: 2026-09-07  
+Date: 2026-09-17  
 Environment: `http://localhost:3000`  
-Status: IN PROGRESS
+Status: GREEN - FRESH BROWSER ACCEPTANCE PASSED
 
 ## Completed Tests
 
@@ -46,19 +46,11 @@ Status: IN PROGRESS
 - Added serial-number relation support to product search/list responses.
 - Added customer and supplier balance presentation to their master-data lists.
 - Added supplier balance calculation endpoint and UI integration.
+- Enabled the global NestJS `ValidationPipe` with `whitelist` and `transform`, making empty DTO payloads return HTTP 400 instead of Prisma HTTP 500 errors.
+- Added explicit payment-method name and code validation so empty payment-method submissions return HTTP 400.
+- Added a location status selector to the browser edit form so inactive locations can be reactivated through the UI.
 
-## Remaining Tests
-
-- Products: barcode uniqueness, search by serial number, and full edit-field coverage.
-- Customers: balance display and duplicate validation.
-- Suppliers: balance display and duplicate validation.
-- Locations: main-store create/edit coverage and duplicate-code validation.
-
-## Current Gaps
-
-- Serial registration and serial-number search are now covered with `R3-SERIAL-001`.
-
-Round 3 core checks passed through the UI; the fresh-dataset acceptance run below is the final confirmation.
+All previously listed Round 3 gaps are now covered by the fresh re-validation below.
 
 ## Final Fresh-Dataset Acceptance Run
 
@@ -80,3 +72,36 @@ Environment: `http://localhost:3000`
 | R3-F10 | Deactivate fresh customer, branch, and product | All three became INACTIVE through UI | PASS |
 
 The fresh-data acceptance run passed end to end. Previous seeded records were not used as the success condition.
+
+## Fresh Re-validation Run (2026-09-17)
+
+| Check | Result | Evidence |
+|---|---|---|
+| Empty master-data payloads | PASS | Categories, brands, units, products, customers, suppliers, and locations returned HTTP 400 after global DTO validation was enabled |
+| Empty payment-method payload | PASS | Returned HTTP 400 with `Payment method name and code are required` |
+| Categories, brands, units | PASS | Fresh create returned 201; edit and inactive status returned 200 |
+| Product uniqueness and search | PASS | Duplicate SKU/barcode returned 409; name, SKU, and barcode searches returned 200 |
+| Product pricing and tracking | PASS | Selling price below cost returned 400; serialized product persisted `trackStock=true` and `trackSerialNumber=true` |
+| Customer workflow | PASS | Create, duplicate email 409, name/phone/email searches, edit, balance, and deactivate passed |
+| Supplier workflow | PASS | Create, duplicate email 409, name/phone searches, edit, balance, and deactivate passed |
+| Locations | PASS | Main store and branch create returned 201; edit/deactivate returned 200 |
+| Payment methods | PASS | List 200, create 201, duplicate code 409, edit 200, deactivate 200 |
+| Serial numbers | PASS | Register returned 201, duplicate returned 409, search returned 200 with one match |
+| Production builds | PASS | Frontend generated 44 routes; backend watcher compiled with zero TypeScript errors |
+
+Round 3 master-data testing is complete and ready for Round 4.
+
+## Fresh Browser Acceptance Run (UI Dataset: `UI R3 1789595300053`)
+
+| Area | Browser result | Fresh evidence |
+|---|---|---|
+| Categories | PASS | Created `UI R3 Category 1789595300053`; duplicate was rejected; search found one record; edit saved; deactivate showed success |
+| Brands | PASS | Created, duplicate-tested, searched, edited, and deactivated `UI R3 Brand 1789595300053` |
+| Units | PASS | Created, duplicate-code-tested, searched, edited, and deactivated `UI R3 Unit 1789595300053` with code `UI530053` |
+| Product | PASS | Created `UI R3 Serialized 1789595300053` with SKU `UI-R3-SKU-1789595300053`, barcode `UI-R3-BAR-1789595300053`, cost 1000, selling 1500, serial tracking enabled; duplicate SKU rejected; name/SKU/barcode searches matched; edit saved; product deactivated |
+| Serial number | PASS | Registered `UI-R3-SERIAL-1789595300053`; duplicate serial rejected with an already-exists message |
+| Customer | PASS | Created `UI R3 Customer 1789595300053`; duplicate email rejected; search by name, phone, and email matched; balance displayed; edit and deactivate succeeded |
+| Supplier | PASS | Created `UI R3 Supplier 1789595300053`; duplicate email rejected; search by name and phone matched; balance displayed; edit and deactivate succeeded |
+| Locations | PASS | Created `UI R3 Main Store 1789595300053` and `UI R3 Branch 1789595300053`; branch edit saved; status changed to INACTIVE and then back to ACTIVE through the new browser status selector |
+| Payment method | PASS | Created clean UI method `UI R3 Clean Method 1789595300053` with code `UI-CLEAN-300053`; duplicate code was rejected; the malformed duplicate-test record was deactivated |
+| Payment transaction | PASS | Recorded TSh 3,250 advance payment for the fresh UI customer using the clean UI payment method, with reference `UI-R3-CLEAN-TXN-530053`; payment appeared in the finance UI |

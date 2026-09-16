@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class StockAuditService {
@@ -15,6 +16,7 @@ export class StockAuditService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -57,11 +59,13 @@ export class StockAuditService {
       },
     });
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'STOCK_AUDIT' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber, year: new Date().getFullYear() },
+      create: { documentType: 'STOCK_AUDIT', prefix: 'AUD', currentNumber: nextNumber, padding: 6, year: new Date().getFullYear(), status: 'ACTIVE' },
     });
+
+    await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: audit.id, action: 'CREATE', afterData: { auditNumber, status: 'DRAFT' }, userId: data.userId });
 
     this.logger.log(`Stock Audit created: ${auditNumber}`);
     return audit;
@@ -77,6 +81,7 @@ export class StockAuditService {
       productId: string;
       physicalQuantity: number;
     }>,
+    userId?: string,
   ) {
     const audit = await this.db.stockAudit.findUnique({
       where: { id: auditId },
@@ -167,13 +172,15 @@ export class StockAuditService {
       });
     }
 
+    if (userId) await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'UPDATE', afterData: { itemCount: createdItems.length, status: 'IN_PROGRESS' }, userId });
+
     return createdItems;
   }
 
   /**
    * Complete audit (submit for approval)
    */
-  async complete(auditId: string) {
+  async complete(auditId: string, userId: string) {
     const audit = await this.db.stockAudit.findUnique({
       where: { id: auditId },
       include: {
@@ -189,10 +196,12 @@ export class StockAuditService {
       throw new BadRequestException(`Audit must have at least one item`);
     }
 
-    return this.db.stockAudit.update({
+    const completed = await this.db.stockAudit.update({
       where: { id: auditId },
       data: { status: 'COMPLETED' },
     });
+    await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'UPDATE', beforeData: { status: audit.status }, afterData: { status: 'COMPLETED' }, userId });
+    return completed;
   }
 
   /**
@@ -211,7 +220,7 @@ export class StockAuditService {
       throw new BadRequestException(`Only COMPLETED audits can be approved`);
     }
 
-    return this.db.stockAudit.update({
+    const approved = await this.db.stockAudit.update({
       where: { id: auditId },
       data: {
         status: 'APPROVED',
@@ -219,6 +228,23 @@ export class StockAuditService {
         approvedAt: new Date(),
       },
     });
+    await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'APPROVE', beforeData: { status: audit.status }, afterData: { status: 'APPROVED' }, userId });
+    return approved;
+  }
+
+  async cancel(auditId: string, userId: string) {
+    const audit = await this.db.stockAudit.findUnique({ where: { id: auditId } });
+    if (!audit) throw new NotFoundException(`Stock Audit ${auditId} not found`);
+    if (['POSTED', 'CANCELLED'].includes(audit.status)) throw new BadRequestException('Only an open audit can be cancelled');
+    const cancelled = await this.db.stockAudit.update({ where: { id: auditId }, data: { status: 'CANCELLED' } });
+    await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'CANCEL', beforeData: { status: audit.status }, afterData: { status: 'CANCELLED' }, userId });
+    return cancelled;
+  }
+
+  async reject(auditId: string, userId: string) {
+    const rejected = await this.cancel(auditId, userId);
+    await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'REJECT', afterData: { status: 'CANCELLED' }, userId });
+    return rejected;
   }
 
   /**
@@ -311,6 +337,7 @@ export class StockAuditService {
       });
 
       this.logger.log(`Stock Audit posted: ${audit.auditNumber}`);
+      await this.auditLogService.logAction({ entityType: 'STOCK_AUDIT', entityId: auditId, action: 'POST', beforeData: { status: 'APPROVED' }, afterData: { status: 'POSTED' }, userId });
       return result;
     } catch (error) {
       this.logger.error(`Stock Audit failed: ${error instanceof Error ? error.message : String(error)}`);

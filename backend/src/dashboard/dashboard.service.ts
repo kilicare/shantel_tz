@@ -17,13 +17,13 @@ export class DashboardService {
       await Promise.all([
         this.db.invoice.findMany({
           where: {
-            invoiceDate: { gte: today, lt: tomorrow },
+            postedAt: { gte: today, lt: tomorrow },
             status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] },
           },
           select: { totalAmount: true, amountPaid: true },
         }),
         this.db.invoice.findMany({
-          where: { status: { in: ['PARTIALLY_PAID', 'ISSUED'] } },
+          where: { status: { in: ['PARTIALLY_PAID', 'ISSUED', 'OVERDUE'] } },
           select: { balance: true },
         }),
         this.db.approval.count({ where: { approvalDecision: 'PENDING' } }),
@@ -34,6 +34,7 @@ export class DashboardService {
         this.db.invoice.findMany({
           take: 5,
           include: { customer: true },
+          where: { status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] } },
           orderBy: { invoiceDate: 'desc' },
         }),
         this.db.purchaseOrder.findMany({
@@ -95,7 +96,7 @@ export class DashboardService {
 
     const invoices = await this.db.invoice.findMany({
       where: {
-        invoiceDate: { gte: start, lte: end },
+        postedAt: { gte: start, lte: end },
         status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] },
       },
       select: { invoiceDate: true, totalAmount: true },

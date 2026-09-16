@@ -26,4 +26,5 @@ Environment: `http://localhost:3000`
 ## Notes
 
 - HTTP 401/403 events during invalid-login and expired-token tests are expected negative-test responses and were handled by the UI.
-- Round 1 is complete. No Round 2 testing was started.
+- Fresh browser re-validation on 2026-09-17 confirmed valid login, invalid-password rejection, logout cleanup, and protected-route behavior.
+- Round 1 is complete.

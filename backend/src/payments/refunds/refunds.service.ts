@@ -92,15 +92,19 @@ export class RefundsService {
       },
     });
 
-    // If invoice exists, update its balance
+    // If invoice exists, update its balance using the full payment ledger.
     if (originalPayment.invoiceId) {
       const invoice = await this.db.invoice.findUnique({
         where: { id: originalPayment.invoiceId },
       });
 
       if (invoice) {
-        const newAmountPaid = invoice.amountPaid.toNumber() - data.refundAmount;
-        const newBalance = invoice.totalAmount.toNumber() - newAmountPaid;
+        const paymentLedger = await this.db.payment.findMany({
+          where: { invoiceId: originalPayment.invoiceId, status: { not: 'CANCELLED' } },
+          select: { amount: true },
+        });
+        const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+        const newBalance = invoice.totalAmount.toNumber() - netAmountPaid;
         const newStatus =
           newBalance <= 0
             ? 'PAID'
@@ -111,7 +115,7 @@ export class RefundsService {
         await this.db.invoice.update({
           where: { id: originalPayment.invoiceId },
           data: {
-            amountPaid: new Prisma.Decimal(newAmountPaid),
+            amountPaid: new Prisma.Decimal(netAmountPaid),
             balance: new Prisma.Decimal(newBalance),
             status: newStatus,
           },

@@ -32,7 +32,7 @@ export function MasterResourceWorkspace({ kind }: Props) {
     catch (requestError: any) { const value = requestError?.response?.data?.message; setError(Array.isArray(value) ? value[0] : value || `${current.title} could not be loaded.`); }
     finally { setLoading(false); }
   }
-  useEffect(() => { try { setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void load(); }, [kind]);
+  useEffect(() => { try { setPermissions(JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void load(); }, [kind]);
 
   async function save(event: FormEvent) {
     event.preventDefault();

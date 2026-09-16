@@ -140,8 +140,8 @@ export class ReportsController {
   @RequirePermission('reports.export')
   async exportInventoryCsv(@Query('locationId') locationId: string, @Res() response: Response) {
     const report = await this.inventoryReportsService.getCurrentStock(locationId);
-    response.setHeader('Content-Disposition', 'attachment; filename="inventory-report.csv"');
-    response.type('text/csv').send(this.exportService.exportToCsv(report.details));
+    response.set({ 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="inventory-report.csv"' });
+    response.send(this.exportService.exportToCsv(report.details));
   }
 
   @Get('export/inventory-pdf')

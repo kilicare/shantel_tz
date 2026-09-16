@@ -5,6 +5,7 @@ import {
   Patch,
   Param,
   Body,
+  Request,
   UseGuards,
   Query,
 } from '@nestjs/common';
@@ -217,15 +218,15 @@ export class InventoryController {
   @Post('audits')
   @RequirePermission('inventory.audit')
   @ApiOperation({ summary: 'Create stock audit' })
-  async createAudit(@Body() body: any) {
-    return { success: true, data: await this.stockAuditService.create(body) };
+  async createAudit(@Body() body: any, @Request() req: any) {
+    return { success: true, data: await this.stockAuditService.create({ ...body, userId: req.user.sub }) };
   }
 
   @Post('audits/:id/items')
   @RequirePermission('inventory.audit')
   @ApiOperation({ summary: 'Add items to audit' })
-  async addAuditItems(@Param('id') id: string, @Body('items') items: any) {
-    const added = await this.stockAuditService.addItems(id, items);
+  async addAuditItems(@Param('id') id: string, @Body('items') items: any, @Request() req: any) {
+    const added = await this.stockAuditService.addItems(id, items, req.user.sub);
     return { success: true, data: added };
   }
 
@@ -248,8 +249,8 @@ export class InventoryController {
   @Patch('audits/:id/complete')
   @RequirePermission('inventory.audit')
   @ApiOperation({ summary: 'Complete stock audit' })
-  async completeAudit(@Param('id') id: string) {
-    const completed = await this.stockAuditService.complete(id);
+  async completeAudit(@Param('id') id: string, @Request() req: any) {
+    const completed = await this.stockAuditService.complete(id, req.user.sub);
     return { success: true, data: completed };
   }
 
@@ -267,5 +268,17 @@ export class InventoryController {
   async postAudit(@Param('id') id: string, @Body('userId') userId: string) {
     const posted = await this.stockAuditService.post(id, userId);
     return { success: true, data: posted };
+  }
+
+  @Patch('audits/:id/reject')
+  @RequirePermission('inventory.audit')
+  async rejectAudit(@Param('id') id: string, @Request() req: any) {
+    return { success: true, data: await this.stockAuditService.reject(id, req.user.sub) };
+  }
+
+  @Patch('audits/:id/cancel')
+  @RequirePermission('inventory.audit')
+  async cancelAudit(@Param('id') id: string, @Request() req: any) {
+    return { success: true, data: await this.stockAuditService.cancel(id, req.user.sub) };
   }
 }

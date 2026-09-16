@@ -32,7 +32,7 @@ export default function InvoicesPage() {
   }
   useEffect(() => {
     try {
-      const user = JSON.parse(localStorage.getItem("shantel_user") ?? "null");
+      const user = JSON.parse(sessionStorage.getItem("shantel_user") ?? "null");
       setPermissions(user?.permissions ?? []);
     } catch {
       setPermissions([]);

@@ -89,13 +89,20 @@ export class QuotationsService {
     const discountAmount = subtotal * ((data.discountPercent || 0) / 100);
     const totalAmount = subtotal - discountAmount + taxAmount;
 
-    // Get next quotation number
+    const currentYear = new Date().getFullYear();
     const seq = await this.db.documentSequence.findUnique({
       where: { documentType: 'QUOTATION' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
-    const quotationNumber = `QT-2026-${String(nextNumber).padStart(6, '0')}`;
+    const latestQuotation = await this.db.quotation.findFirst({
+      where: { quotationNumber: { startsWith: `QT-${currentYear}-` } },
+      orderBy: { quotationNumber: 'desc' },
+      select: { quotationNumber: true },
+    });
+    const latestNumber = Number(latestQuotation?.quotationNumber?.split('-').pop() || 0);
+    const sequenceNumber = seq?.year === currentYear ? Number(seq.currentNumber) : 0;
+    const nextNumber = Math.max(sequenceNumber, latestNumber) + 1;
+    const quotationNumber = `QT-${currentYear}-${String(nextNumber).padStart(6, '0')}`;
 
     // Create quotation
     const quotation = await this.db.quotation.create({
@@ -137,7 +144,7 @@ export class QuotationsService {
     await this.db.documentSequence.upsert({
       where: { documentType: 'QUOTATION' },
       update: { currentNumber: nextNumber },
-      create: { documentType: 'QUOTATION', prefix: 'QT', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      create: { documentType: 'QUOTATION', prefix: 'QT', currentNumber: nextNumber, padding: 6, year: currentYear, status: 'ACTIVE' },
     });
 
     this.logger.log(`Quotation created: ${quotationNumber}`);
@@ -208,13 +215,20 @@ export class QuotationsService {
       throw new BadRequestException(`Quotation must be DRAFT or ACCEPTED to convert`);
     }
 
-    // Get next sales order number
+    const currentYear = new Date().getFullYear();
     const seq = await this.db.documentSequence.findUnique({
       where: { documentType: 'SALES_ORDER' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
-    const orderNumber = `SO-2026-${String(nextNumber).padStart(6, '0')}`;
+    const latestOrder = await this.db.salesOrder.findFirst({
+      where: { orderNumber: { startsWith: `SO-${currentYear}-` } },
+      orderBy: { orderNumber: 'desc' },
+      select: { orderNumber: true },
+    });
+    const latestNumber = Number(latestOrder?.orderNumber?.split('-').pop() || 0);
+    const sequenceNumber = seq?.year === currentYear ? Number(seq.currentNumber) : 0;
+    const nextNumber = Math.max(sequenceNumber, latestNumber) + 1;
+    const orderNumber = `SO-${currentYear}-${String(nextNumber).padStart(6, '0')}`;
 
     // Create sales order
     const salesOrder = await this.db.salesOrder.create({
@@ -261,7 +275,7 @@ export class QuotationsService {
     await this.db.documentSequence.upsert({
       where: { documentType: 'SALES_ORDER' },
       update: { currentNumber: nextNumber },
-      create: { documentType: 'SALES_ORDER', prefix: 'SO', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      create: { documentType: 'SALES_ORDER', prefix: 'SO', currentNumber: nextNumber, padding: 6, year: currentYear, status: 'ACTIVE' },
     });
 
     this.logger.log(`Sales Order created from Quotation: ${orderNumber}`);

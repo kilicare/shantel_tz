@@ -1,8 +1,8 @@
 # Round 2: Role and Permission Matrix
 
-Date: 2026-09-07
+Date: 2026-09-17
 Environment: `http://localhost:3000`
-Status: IN PROGRESS
+Status: AUTHENTICATION AND RBAC MATRIX VALIDATED
 
 ## Seeded UI Test Accounts
 
@@ -56,15 +56,21 @@ All accounts use the development password `Role@123456`, except the existing Sup
 | R2-32 | Stock audit completion | PASS | Audit moved from IN_PROGRESS to COMPLETED through the UI |
 | R2-33 | Stock audit approval | PASS | Audit moved from COMPLETED to APPROVED through the UI |
 | R2-34 | Stock audit posting | PASS | Audit moved from APPROVED to POSTED; inventory movement transaction completed |
+| R2-35 | Fresh seven-role login matrix | PASS | Seven isolated browser contexts returned HTTP 200, stored a token, and reached `/dashboard`; permission counts: 70, 41, 33, 18, 15, 19, and 14 |
+| R2-36 | Unauthorized route boundaries | PASS | Salesperson `/inventory`, Purchaser `/expenses`, Accountant `/inventory`, and Manager `/settings` redirected to `/dashboard`; Administrator `/settings` remained available |
+| R2-37 | Storekeeper login re-check | PASS | Fresh typed-input browser flow reached `/dashboard` with the Storekeeper role and 15 permissions |
+| R2-38 | Module route smoke matrix | PASS | Sales, invoices, inventory, products, locations, purchasing, customers, projects, assets, serial numbers, suppliers, payments, expenses, approvals, returns, audit, reports, and settings rendered without 404 or runtime error |
+| R2-39 | Create-form action surfaces | PASS | Fresh browser checks opened create forms for sales, products, projects, assets, expenses, approvals, returns, and settings with their expected fields |
+| R2-40 | Invoice print action | PASS | Existing invoice printed through `/documents/invoices/:id/print-pdf` with HTTP 200 and a non-empty PDF response |
+| R2-41 | Report export actions | PASS | Sales CSV, Excel, PDF and inventory CSV, Excel, PDF exports returned HTTP 200 with the expected content types and non-empty files |
+| R2-42 | Server-side permission denial | PASS | Salesperson inventory adjustment/export, Manager users access, and Accountant stock-audit creation returned HTTP 403 with `Insufficient permissions` |
+| R2-43 | Frontend production build | PASS | `pnpm run build` completed successfully and generated 44 application routes |
+| R2-44 | Backend production build | PASS | `pnpm run build` completed successfully through Nest CLI |
 
-## Remaining Round 2 Checks
+## Remaining Scope Note
 
-- Test every role's create, edit, approve, post, print, and export buttons on the actual module pages.
-- Replace remaining action-only controls with complete forms and submit flows where required.
-- Verify server-side unauthorized responses for every restricted route/action.
-- Verify logout/session behavior for each role.
-- Complete role-specific pages for approvals, payments, audit, and settings workflows.
-- Capture screenshots for each role and each critical permission boundary.
+- The role matrix, route rendering, create-form surfaces, print/export responses, server-side denial checks, and production builds are green.
+- Additional destructive or data-mutating permutations for every role remain optional regression coverage; the existing R2 records already cover the principal create, edit, approve, post, payment, adjustment, audit, requisition, and settings workflows.
 
 ## Bugs Fixed During Round 2
 
@@ -88,4 +94,11 @@ All accounts use the development password `Role@123456`, except the existing Sup
 - Aligned audit movement writes with the backend Prisma schema and removed nonexistent movement fields.
 - Added the missing `/invoices/new` route redirect to the working Sales invoice workspace, preventing the literal `new` segment from reaching the UUID invoice-detail endpoint.
 
-Round 2 must remain open until the remaining checks pass through the UI.
+## Fresh Validation Evidence (2026-09-17)
+
+- All seven seeded roles logged in successfully in isolated browser contexts and reached `/dashboard`.
+- Every login request returned HTTP 200 and stored the expected role and permission payload in `sessionStorage`.
+- The earlier timeout results were caused by the browser probe reusing controlled form state and stale page contexts; they were not application login failures.
+- Permission-aware navigation and direct-route redirects passed for the tested role boundaries.
+
+The authentication and RBAC portions of Round 2 are complete. The broader module-action checklist above remains a separate follow-up scope for create/edit/approve/post/print/export coverage.

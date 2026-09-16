@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module.js';
+import { AuditModule } from '../audit/audit.module.js';
 import { PaginationService } from '../shared/services/pagination.service.js';
 
 import { InventoryController } from './inventory.controller.js';
@@ -10,7 +11,7 @@ import { StockAdjustmentService } from './adjustments/stock-adjustment.service.j
 import { StockAuditService } from './audits/stock-audit.service.js';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, AuditModule],
   providers: [
     PaginationService,
     StockBalanceService,

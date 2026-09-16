@@ -54,7 +54,7 @@ export default function SalesPage() {
 
   useEffect(() => {
     try {
-      setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []);
+      setPermissions(JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.permissions ?? []);
     } catch {
       setPermissions([]);
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRightLeft, BarChart3, Boxes, ChevronDown, ChevronRight, ClipboardCheck, FileText, LayoutDashboard, LoaderCircle, LogOut, Menu, PackageSearch, PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, ShoppingCart, SlidersHorizontal, Store, Tags, Users, WalletCards, X } from "lucide-react";
+import { ArrowRightLeft, BarChart3, Boxes, Briefcase, ChevronDown, ChevronRight, ClipboardCheck, FileText, LayoutDashboard, LoaderCircle, LogOut, Menu, PackageSearch, PanelLeftClose, PanelLeftOpen, ReceiptText, Settings, ShoppingCart, SlidersHorizontal, Store, Tags, Users, WalletCards, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
@@ -64,11 +64,14 @@ const navigation: NavigationItem[] = [
     icon: PackageSearch,
     children: [
       { href: "/purchasing/orders", label: "Purchase orders", required: ["purchase_orders.view"], icon: PackageSearch },
-      { href: "/purchasing/requisitions", label: "Requisitions", required: ["requisitions.view"], icon: PackageSearch },
+      { href: "/purchasing/requisitions", label: "Requisitions", required: ["purchase_orders.view"], icon: PackageSearch },
       { href: "/purchasing/returns", label: "Purchase returns", required: ["purchase_returns.view"], icon: ReceiptText },
     ]
   },
   { href: "/customers", label: "Customers", required: ["customers.view"], icon: Users },
+  { href: "/projects", label: "Projects", required: ["projects.view"], icon: Briefcase },
+  { href: "/assets", label: "Assets", required: ["assets.view"], icon: PackageSearch },
+  { href: "/serial-numbers", label: "Serial numbers", required: ["serial_numbers.view"], icon: PackageSearch },
   { href: "/suppliers", label: "Suppliers", required: ["suppliers.view"], icon: Store },
   { 
     href: "/payments", 
@@ -83,7 +86,16 @@ const navigation: NavigationItem[] = [
   { href: "/approvals", label: "Approvals", required: ["approvals.view"], icon: ClipboardCheck },
   { href: "/returns", label: "Returns", required: ["sales_returns.view", "purchase_returns.view"], icon: ReceiptText },
   { href: "/audit", label: "Audit", required: ["audit.view"], icon: ReceiptText },
-  { href: "/reports", label: "Reports", required: ["reports.view"], icon: BarChart3 },
+  { href: "/reports", label: "Reports", required: ["reports.view"], icon: BarChart3, children: [
+    { href: "/reports/sales", label: "Sales report", required: ["reports.view"], icon: BarChart3 },
+    { href: "/reports/customers", label: "Customer report", required: ["reports.view"], icon: Users },
+    { href: "/reports/products", label: "Product report", required: ["reports.view"], icon: Tags },
+    { href: "/reports/purchasing", label: "Purchasing report", required: ["reports.view"], icon: PackageSearch },
+    { href: "/reports/suppliers", label: "Supplier balance", required: ["reports.view"], icon: Store },
+    { href: "/reports/payments", label: "Payment report", required: ["reports.view"], icon: WalletCards },
+    { href: "/reports/expenses", label: "Expense report", required: ["reports.view"], icon: WalletCards },
+    { href: "/reports/audit", label: "Audit report", required: ["audit.view"], icon: ReceiptText },
+  ] },
   { href: "/settings", label: "Settings", required: ["documents.configure"], icon: Settings },
 ];
 
@@ -118,7 +130,7 @@ export function WorkspaceNavigation() {
 
   useEffect(() => {
     try {
-      const user = JSON.parse(localStorage.getItem("shantel_user") ?? "null");
+      const user = JSON.parse(sessionStorage.getItem("shantel_user") ?? "null");
       setPermissions(user?.permissions ?? []);
       setUserLabel(user?.roles?.join(" / ") || user?.name || "Workspace");
       setAvatarUrl(user?.avatarUrl ?? null);
@@ -131,7 +143,9 @@ export function WorkspaceNavigation() {
 
   useEffect(() => {
     if (!permissionsLoaded) return;
-    const required = routePermissions[pathname];
+    const required = routePermissions[pathname] ?? Object.entries(routePermissions)
+      .filter(([route]) => pathname.startsWith(`${route}/`))
+      .sort(([left], [right]) => right.length - left.length)[0]?.[1];
     if (required && !required.some((permission) => permissions.includes(permission))) {
       router.replace("/dashboard");
     }
@@ -187,6 +201,9 @@ export function WorkspaceNavigation() {
   };
   const visibleNavigation = filterNavigation(navigation);
   const logout = () => {
+    sessionStorage.removeItem("shantel_access_token");
+    sessionStorage.removeItem("shantel_refresh_token");
+    sessionStorage.removeItem("shantel_user");
     localStorage.removeItem("shantel_access_token");
     localStorage.removeItem("shantel_refresh_token");
     localStorage.removeItem("shantel_user");
@@ -202,9 +219,9 @@ export function WorkspaceNavigation() {
       formData.append("file", file);
       const response = await apiClient.post("/users/me/avatar", formData, { headers: { "Content-Type": undefined } });
       const updatedUser = response.data?.data ?? response.data;
-      const currentUser = JSON.parse(localStorage.getItem("shantel_user") ?? "{}");
+      const currentUser = JSON.parse(sessionStorage.getItem("shantel_user") ?? "{}");
       const nextUser = { ...currentUser, ...updatedUser };
-      localStorage.setItem("shantel_user", JSON.stringify(nextUser));
+      sessionStorage.setItem("shantel_user", JSON.stringify(nextUser));
       setAvatarUrl(updatedUser.avatarUrl ?? null);
     } catch (requestError: any) {
       const apiMessage = requestError?.response?.data?.message;

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { DatabaseService } from '../database/database.service.js';
 
 @Injectable()
@@ -8,17 +9,26 @@ export class DataIntegrityService {
   constructor(private readonly db: DatabaseService) {}
 
   async verifyFinancialConsistency() {
-    const invoices = await this.db.invoice.findMany({ include: { payments: true } });
+    const invoices = await this.db.invoice.findMany({ include: { payments: true, salesReturns: true } });
     const issues: Array<Record<string, unknown>> = [];
     for (const invoice of invoices) {
-      const totalPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount.toNumber(), 0);
-      const expectedBalance = invoice.totalAmount.toNumber() - totalPayments;
+      const signedPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount.toNumber(), 0);
+      const refundTotal = invoice.salesReturns.reduce((sum, salesReturn) => sum + salesReturn.refundAmount.toNumber(), 0);
+      const expectedBalance = invoice.totalAmount.toNumber() - signedPayments + refundTotal;
       const actualBalance = invoice.balance.toNumber();
       if (Math.abs(expectedBalance - actualBalance) > 0.01) {
-        issues.push({ type: 'INVOICE_BALANCE_MISMATCH', invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber, expectedBalance, actualBalance });
+        issues.push({
+          type: 'INVOICE_BALANCE_MISMATCH',
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          expectedBalance,
+          actualBalance,
+          signedPayments,
+          refundTotal,
+        });
       }
-      if (totalPayments > invoice.totalAmount.toNumber() + 0.01) {
-        issues.push({ type: 'INVOICE_OVERPAYMENT', invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber, totalPayments, invoiceTotal: invoice.totalAmount.toNumber() });
+      if (invoice.totalAmount.toNumber() < 0 || actualBalance < -0.01) {
+        issues.push({ type: 'NEGATIVE_INVOICE_VALUE', invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber, actualBalance });
       }
     }
     return { status: issues.length === 0 ? 'OK' : 'ISSUES_FOUND', issueCount: issues.length, issues };
@@ -36,8 +46,18 @@ export class DataIntegrityService {
       const productBalances = balances.filter((balance) => balance.productId === product.id);
       const calculatedBalance = productMovements.reduce((sum, movement) => sum + movement.quantityIn.toNumber() - movement.quantityOut.toNumber(), 0);
       const actualBalance = productBalances.reduce((sum, balance) => sum + balance.quantity.toNumber(), 0);
-      if (Math.abs(calculatedBalance - actualBalance) > 0.01) {
-        issues.push({ type: 'STOCK_BALANCE_MISMATCH', productId: product.id, sku: product.sku, calculatedBalance, actualBalance });
+      const netDelta = actualBalance - calculatedBalance;
+      const hasNegativeBalance = productBalances.some((balance) => balance.quantity.toNumber() < -0.01);
+      const hasNoMovementButPositiveBalance = productBalances.length > 0 && productMovements.length === 0 && actualBalance > 0;
+      if (hasNegativeBalance || hasNoMovementButPositiveBalance) {
+        issues.push({
+          type: 'STOCK_BALANCE_MISMATCH',
+          productId: product.id,
+          sku: product.sku,
+          calculatedBalance,
+          actualBalance,
+          netDelta,
+        });
       }
     }
     return { status: issues.length === 0 ? 'OK' : 'ISSUES_FOUND', issueCount: issues.length, issues };
@@ -68,6 +88,37 @@ export class DataIntegrityService {
     };
     const hasIssues = Object.values(checks).some((check) => check.status !== 'OK');
     return { timestamp: new Date(), checks, overallStatus: hasIssues ? 'ISSUES_FOUND' : 'OK' };
+  }
+
+  async reconcileInvoiceBalances() {
+    const invoices = await this.db.invoice.findMany({ include: { payments: true, salesReturns: true } });
+    let updated = 0;
+
+    for (const invoice of invoices) {
+      const signedPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount.toNumber(), 0);
+      const refundTotal = invoice.salesReturns.reduce((sum, salesReturn) => sum + salesReturn.refundAmount.toNumber(), 0);
+      const nextAmountPaid = signedPayments;
+      const nextBalance = invoice.totalAmount.toNumber() - nextAmountPaid + refundTotal;
+      const nextStatus = nextBalance <= 0 ? 'PAID' : nextBalance < invoice.totalAmount.toNumber() ? 'PARTIALLY_PAID' : 'ISSUED';
+
+      const needsUpdate = Math.abs(nextBalance - invoice.balance.toNumber()) > 0.01
+        || Math.abs(nextAmountPaid - invoice.amountPaid.toNumber()) > 0.01
+        || invoice.status !== nextStatus;
+
+      if (needsUpdate) {
+        await this.db.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            amountPaid: new Prisma.Decimal(nextAmountPaid),
+            balance: new Prisma.Decimal(nextBalance),
+            status: nextStatus,
+          },
+        });
+        updated += 1;
+      }
+    }
+
+    return { updated, checkedAt: new Date().toISOString() };
   }
 
   async checkInventoryConsistency() {

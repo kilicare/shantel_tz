@@ -100,15 +100,19 @@ export class PaymentsService {
       },
     });
 
-    // If invoice specified, update its balance
+    // If invoice specified, update its balance based on the full payment ledger.
     if (data.invoiceId) {
       const invoice = await this.db.invoice.findUnique({
         where: { id: data.invoiceId },
       });
 
       if (invoice) {
-        const newAmountPaid = invoice.amountPaid.toNumber() + data.amount;
-        const newBalance = invoice.totalAmount.toNumber() - newAmountPaid;
+        const paymentLedger = await this.db.payment.findMany({
+          where: { invoiceId: data.invoiceId, status: { not: 'CANCELLED' } },
+          select: { amount: true },
+        });
+        const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+        const newBalance = invoice.totalAmount.toNumber() - netAmountPaid;
         const newStatus =
           newBalance <= 0
             ? 'PAID'
@@ -119,8 +123,8 @@ export class PaymentsService {
         await this.db.invoice.update({
           where: { id: data.invoiceId },
           data: {
-            amountPaid: new Prisma.Decimal(newAmountPaid),
-            balance: new Prisma.Decimal(Math.max(0, newBalance)),
+            amountPaid: new Prisma.Decimal(netAmountPaid),
+            balance: new Prisma.Decimal(newBalance),
             status: newStatus,
           },
         });

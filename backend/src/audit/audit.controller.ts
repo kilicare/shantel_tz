@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RbacGuard } from '../common/guards/rbac.guard.js';
@@ -55,19 +55,23 @@ export class AuditController {
   @Get('integrity/financial-check')
   @RequirePermission('audit.view')
   @ApiOperation({ summary: 'Verify financial consistency' })
-  checkFinancialIntegrity() { return { success: true, data: this.integrityService.verifyFinancialConsistency() }; }
+  async checkFinancialIntegrity() { return { success: true, data: await this.integrityService.verifyFinancialConsistency() }; }
+
+  @Post('integrity/repair-invoices')
+  @RequirePermission('audit.view')
+  async repairInvoiceBalances() { return { success: true, data: await this.integrityService.reconcileInvoiceBalances() }; }
 
   @Get('integrity/inventory-check')
   @RequirePermission('audit.view')
-  checkInventoryIntegrity() { return { success: true, data: this.integrityService.verifyInventoryConsistency() }; }
+  async checkInventoryIntegrity() { return { success: true, data: await this.integrityService.verifyInventoryConsistency() }; }
 
   @Get('integrity/constraints-check')
   @RequirePermission('audit.view')
-  checkConstraints() { return { success: true, data: this.integrityService.verifyUniqueConstraints() }; }
+  async checkConstraints() { return { success: true, data: await this.integrityService.verifyUniqueConstraints() }; }
 
   @Get('integrity/full-check')
   @RequirePermission('audit.view')
-  fullIntegrityCheck() { return { success: true, data: this.integrityService.runFullIntegrityCheck() }; }
+  async fullIntegrityCheck() { return { success: true, data: await this.integrityService.runFullIntegrityCheck() }; }
 
   @Get('integrity/stock')
   @RequirePermission('audit.view')

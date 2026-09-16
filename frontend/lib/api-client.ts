@@ -9,7 +9,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("shantel_access_token");
+    const token = sessionStorage.getItem("shantel_access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,6 +28,9 @@ apiClient.interceptors.response.use(
         ["User not authenticated", "No authentication token provided", "Invalid or expired token"].includes(responseMessage));
 
     if (typeof window !== "undefined" && authenticationFailure) {
+      sessionStorage.removeItem("shantel_access_token");
+      sessionStorage.removeItem("shantel_refresh_token");
+      sessionStorage.removeItem("shantel_user");
       localStorage.removeItem("shantel_access_token");
       localStorage.removeItem("shantel_refresh_token");
       localStorage.removeItem("shantel_user");

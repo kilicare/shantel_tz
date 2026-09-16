@@ -47,7 +47,7 @@ export default function TransfersPage() {
 
   useEffect(() => {
     try {
-      setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []);
+      setPermissions(JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.permissions ?? []);
     } catch {
       setPermissions([]);
     }
@@ -69,7 +69,7 @@ export default function TransfersPage() {
     try {
       setSaving(true);
       setError("");
-      const userId = JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.id;
+      const userId = JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.id;
       const response = await apiClient.post("/inventory/transfers", {
         sourceLocationId: form.sourceLocationId,
         destLocationId: form.destLocationId,
@@ -92,7 +92,7 @@ export default function TransfersPage() {
   async function transition(id: string, action: "approve" | "post") {
     try {
       setError("");
-      const userId = JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.id;
+      const userId = JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.id;
       const response = await apiClient.patch(`/inventory/transfers/${id}/${action}`, { userId });
       const result = unwrap(response);
       setMessage(`${result.transferNumber ?? "Transfer"} is now ${result.status}.`);

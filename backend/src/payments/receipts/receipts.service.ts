@@ -50,13 +50,20 @@ export class ReceiptsService {
       throw new BadRequestException('Receipt amount must be greater than 0');
     }
 
-    // Get next receipt number
+    const currentYear = new Date().getFullYear();
     const seq = await this.db.documentSequence.findUnique({
       where: { documentType: 'RECEIPT' },
     });
 
-    const nextNumber = Number(seq?.currentNumber || 0) + 1;
-    const receiptNumber = `RCP-2026-${String(nextNumber).padStart(6, '0')}`;
+    const latestReceipt = await this.db.receipt.findFirst({
+      where: { receiptNumber: { startsWith: `RCP-${currentYear}-` } },
+      orderBy: { receiptNumber: 'desc' },
+      select: { receiptNumber: true },
+    });
+    const latestNumber = Number(latestReceipt?.receiptNumber?.split('-').pop() || 0);
+    const sequenceNumber = seq?.year === currentYear ? Number(seq.currentNumber) : 0;
+    const nextNumber = Math.max(sequenceNumber, latestNumber) + 1;
+    const receiptNumber = `RCP-${currentYear}-${String(nextNumber).padStart(6, '0')}`;
 
     // Create receipt
     const receipt = await this.db.receipt.create({
@@ -77,10 +84,10 @@ export class ReceiptsService {
       },
     });
 
-    // Update document sequence
-    await this.db.documentSequence.update({
+    await this.db.documentSequence.upsert({
       where: { documentType: 'RECEIPT' },
-      data: { currentNumber: nextNumber },
+      update: { currentNumber: nextNumber, year: currentYear },
+      create: { documentType: 'RECEIPT', prefix: 'RCP', currentNumber: nextNumber, padding: 6, year: currentYear, status: 'ACTIVE' },
     });
 
     this.logger.log(`Receipt generated: ${receiptNumber}`);

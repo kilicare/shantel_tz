@@ -94,7 +94,7 @@ export default function InventoryPage() {
   useEffect(() => {
     try {
       setPermissions(
-        JSON.parse(localStorage.getItem("shantel_user") ?? "null")
+        JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")
           ?.permissions ?? [],
       );
     } catch {
@@ -119,7 +119,7 @@ export default function InventoryPage() {
       setSaving(true);
       setError("");
       const userId = JSON.parse(
-        localStorage.getItem("shantel_user") ?? "null",
+        sessionStorage.getItem("shantel_user") ?? "null",
       )?.id;
       const response = await apiClient.post("/inventory/adjustments", {
         locationId: form.locationId,
@@ -177,7 +177,7 @@ export default function InventoryPage() {
       setSaving(true);
       setError("");
       const userId = JSON.parse(
-        localStorage.getItem("shantel_user") ?? "null",
+        sessionStorage.getItem("shantel_user") ?? "null",
       )?.id;
       const response = await apiClient.post("/inventory/stock-in", {
         ...receiveForm,

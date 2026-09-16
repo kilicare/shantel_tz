@@ -6,8 +6,9 @@ export const authService = {
     const result = response.data?.data ?? response.data;
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("shantel_access_token", result.accessToken);
-      localStorage.setItem("shantel_refresh_token", result.refreshToken);
+      sessionStorage.setItem("shantel_access_token", result.accessToken);
+      sessionStorage.setItem("shantel_refresh_token", result.refreshToken);
+      sessionStorage.setItem("shantel_user", JSON.stringify(result.user));
       localStorage.setItem("shantel_user", JSON.stringify(result.user));
     }
 

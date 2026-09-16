@@ -171,38 +171,84 @@ async function main() {
     }
 
     const rolePermissionMap: Record<string, string[]> = {
-      Administrator: allPermissions.map((permission) => permission.code),
+      Administrator: [
+        'dashboard.view',
+        'users.view', 'users.create', 'users.edit', 'users.deactivate',
+        'products.view', 'products.create', 'products.edit', 'products.view_cost',
+        'customers.view', 'customers.create', 'customers.edit',
+        'locations.view', 'locations.create', 'locations.edit',
+        'suppliers.view', 'suppliers.create', 'suppliers.edit',
+        'reports.view', 'reports.export',
+        'documents.view', 'documents.print', 'documents.configure',
+        'audit.view',
+        'approvals.view', 'approvals.create', 'approvals.approve',
+        'expenses.view', 'expenses.create', 'expenses.approve',
+        'purchase_orders.view', 'purchase_orders.create', 'purchase_orders.approve',
+        'grns.view', 'grns.create', 'grns.post',
+        'inventory.view', 'inventory.adjust', 'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit',
+      ],
       Manager: [
-        'dashboard.view', 'reports.view', 'reports.export', 'audit.view',
-        'approvals.view', 'approvals.approve',
-        'users.view', 'products.view', 'customers.view', 'suppliers.view', 'locations.view',
-        'quotations.view', 'sales_orders.view', 'sales_orders.approve', 'invoices.view', 'invoices.approve', 'invoices.post',
-        'payments.view', 'payments.record', 'sales_returns.view', 'sales_returns.approve',
-        'purchase_orders.view', 'purchase_orders.approve', 'grns.view', 'grns.post',
+        'dashboard.view',
+        'reports.view', 'reports.export',
+        'audit.view',
+        'approvals.view', 'approvals.create', 'approvals.approve',
+        'expenses.view', 'expenses.approve',
+        'products.view',
+        'customers.view',
+        'suppliers.view',
+        'locations.view',
+        'quotations.view',
+        'sales_orders.view', 'sales_orders.approve',
+        'invoices.view', 'invoices.approve', 'invoices.post',
+        'payments.view', 'payments.record',
+        'sales_returns.view', 'sales_returns.approve',
+        'purchase_orders.view', 'purchase_orders.approve',
+        'grns.view', 'grns.post',
         'inventory.view', 'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit',
         'documents.view', 'documents.print',
       ],
       Salesperson: [
-        'dashboard.view', 'products.view', 'customers.view', 'customers.create', 'customers.edit',
+        'dashboard.view',
+        'products.view',
+        'customers.view', 'customers.create', 'customers.edit',
         'locations.view',
-        'quotations.view', 'quotations.create', 'quotations.edit', 'sales_orders.view', 'sales_orders.create',
-        'invoices.view', 'invoices.create', 'invoices.post', 'payments.view', 'sales_returns.view', 'sales_returns.create',
+        'quotations.view', 'quotations.create', 'quotations.edit',
+        'sales_orders.view', 'sales_orders.create',
+        'invoices.view', 'invoices.create',
+        'payments.view',
+        'sales_returns.view', 'sales_returns.create',
         'documents.view', 'documents.print',
       ],
       Storekeeper: [
-        'dashboard.view', 'products.view', 'locations.view', 'inventory.view', 'inventory.adjust',
-        'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit', 'purchase_orders.view',
-        'grns.view', 'grns.create', 'grns.post', 'sales_returns.view', 'audit.view',
+        'dashboard.view',
+        'products.view',
+        'locations.view',
+        'inventory.view', 'inventory.adjust', 'inventory.approve_adjust', 'inventory.transfer', 'inventory.audit',
+        'purchase_orders.view',
+        'grns.view', 'grns.create', 'grns.post',
+        'audit.view',
         'documents.view', 'documents.print',
       ],
       Purchaser: [
-        'dashboard.view', 'products.view', 'products.create', 'products.edit', 'suppliers.view', 'suppliers.create', 'suppliers.edit',
-        'purchase_orders.view', 'purchase_orders.create', 'purchase_orders.approve', 'grns.view', 'grns.create', 'grns.post',
-        'purchase_returns.create', 'inventory.view', 'documents.view', 'documents.print',
+        'dashboard.view',
+        'products.view', 'products.create', 'products.edit',
+        'suppliers.view', 'suppliers.create', 'suppliers.edit',
+        'purchase_orders.view', 'purchase_orders.create', 'purchase_orders.approve',
+        'grns.view', 'grns.create', 'grns.post',
+        'purchase_returns.view', 'purchase_returns.create',
+        'inventory.view',
+        'locations.view',
+        'documents.view', 'documents.print',
       ],
       'Accountant/Finance': [
-        'dashboard.view', 'reports.view', 'reports.export', 'audit.view', 'customers.view', 'suppliers.view',
-        'invoices.view', 'payments.view', 'payments.record', 'expenses.view', 'expenses.create', 'expenses.approve',
+        'dashboard.view',
+        'reports.view', 'reports.export',
+        'audit.view',
+        'customers.view',
+        'suppliers.view',
+        'invoices.view',
+        'payments.view', 'payments.record',
+        'expenses.view', 'expenses.create', 'expenses.approve',
         'documents.view', 'documents.print',
       ],
     };
@@ -211,6 +257,15 @@ async function main() {
       const role = await prisma.role.findFirst({ where: { name: roleName } });
       if (!role) continue;
       const permissionsByCode = new Map(allPermissions.map((permission) => [permission.code, permission]));
+      const allowedPermissionIds = permissionCodes
+        .map((code) => permissionsByCode.get(code)?.id)
+        .filter((id): id is string => Boolean(id));
+      await prisma.rolePermission.deleteMany({
+        where: {
+          roleId: role.id,
+          permissionId: { notIn: allowedPermissionIds },
+        },
+      });
       for (const code of permissionCodes) {
         const permission = permissionsByCode.get(code);
         if (!permission) continue;

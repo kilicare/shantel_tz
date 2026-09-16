@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setTimeGreeting(getTimeGreeting());
-    if (!localStorage.getItem("shantel_access_token")) {
+    if (!sessionStorage.getItem("shantel_access_token")) {
       router.replace("/login");
       return;
     }
@@ -227,9 +227,9 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={() => {
-                  localStorage.removeItem("shantel_access_token");
-                  localStorage.removeItem("shantel_refresh_token");
-                  localStorage.removeItem("shantel_user");
+                  sessionStorage.removeItem("shantel_access_token");
+                  sessionStorage.removeItem("shantel_refresh_token");
+                  sessionStorage.removeItem("shantel_user");
                   router.push("/login");
                 }}
                 className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white"

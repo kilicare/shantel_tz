@@ -160,13 +160,13 @@ export default function ReportsPage() {
           <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
-                Inventory intelligence
+                Reporting hub
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
-                Inventory reports
+                Business reports
               </h1>
               <p className="mt-2 text-sm text-[#172B4D]/55">
-                Stock, low-stock, movement, valuation, and export views.
+                Sales, inventory, purchasing, payments, expenses, customers, suppliers, and audit coverage.
               </p>
             </div>
             <button
@@ -177,6 +177,30 @@ export default function ReportsPage() {
               <RefreshCw size={15} /> Refresh
             </button>
           </header>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["/reports/sales", "Sales", "Posted sales and invoice detail"],
+              ["/reports/customers", "Customers", "Balances and account activity"],
+              ["/reports/products", "Products", "Stock and product movement"],
+              ["/reports/purchasing", "Purchasing", "Purchases, GRNs, and spend"],
+              ["/reports/suppliers", "Suppliers", "Supplier liability and balances"],
+              ["/reports/payments", "Payments", "Cash flow and aging"],
+              ["/reports/expenses", "Expenses", "Operational spend tracking"],
+              ["/reports/audit", "Audit", "Trail and integrity"],
+              ["/reports", "Inventory", "Current stock and valuation"],
+            ].map(([href, title, desc]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-2xl border border-[#172B4D]/12 bg-white p-5 transition-colors hover:border-[#2563EB]/30 hover:bg-[#F8FAFF]"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">Report</p>
+                <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em]">{title}</h2>
+                <p className="mt-2 text-sm text-[#172B4D]/55">{desc}</p>
+              </a>
+            ))}
+          </div>
           {error && (
             <div
               role="alert"

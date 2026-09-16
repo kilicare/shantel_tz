@@ -102,6 +102,7 @@ export class ApprovalsService {
         documentType: data.documentType,
         documentId: data.documentId,
         approvalStep: data.approvalStep,
+        approvalDecision: 'PENDING',
       },
     });
 
@@ -144,6 +145,18 @@ export class ApprovalsService {
       },
     });
 
+    if (data.documentType === 'EXPENSE') {
+      const approvals = await this.db.approval.findMany({
+        where: { documentType: 'EXPENSE', documentId: data.documentId },
+      });
+      if (approvals.every((entry) => entry.approvalDecision === 'APPROVED')) {
+        await this.db.expense.update({
+          where: { id: data.documentId },
+          data: { status: 'APPROVED', approvedById: data.approverId, approvedAt: new Date() },
+        });
+      }
+    }
+
     this.logger.log(
       `Approval step ${data.approvalStep} approved by ${data.approverId} for ${data.documentType}`,
     );
@@ -165,6 +178,7 @@ export class ApprovalsService {
         documentType: data.documentType,
         documentId: data.documentId,
         approvalStep: data.approvalStep,
+        approvalDecision: 'PENDING',
       },
     });
 
@@ -196,9 +210,38 @@ export class ApprovalsService {
       },
     });
 
+    if (data.documentType === 'EXPENSE') {
+      await this.db.expense.update({ where: { id: data.documentId }, data: { status: 'REJECTED' } });
+    }
+
     this.logger.log(
       `Approval step ${data.approvalStep} rejected by ${data.approverId} for ${data.documentType}`,
     );
+    return updated;
+  }
+
+  async returnForCorrection(data: {
+    documentType: string;
+    documentId: string;
+    approvalStep: number;
+    approverId: string;
+    correctionReason: string;
+  }) {
+    const approval = await this.db.approval.findFirst({
+      where: { documentType: data.documentType, documentId: data.documentId, approvalStep: data.approvalStep, approvalDecision: 'PENDING' },
+    });
+    if (!approval) throw new NotFoundException(`Approval step ${data.approvalStep} not found`);
+    if (approval.approvalDecision !== 'PENDING') throw new BadRequestException(`Step ${data.approvalStep} already ${approval.approvalDecision.toLowerCase()}`);
+    if (approval.approverId !== data.approverId) throw new ForbiddenException('You are not assigned to this approval step');
+    if (!data.correctionReason.trim()) throw new BadRequestException('Correction reason is required');
+
+    const updated = await this.db.approval.update({
+      where: { id: approval.id },
+      data: { approvalDecision: 'RETURNED', approverComment: data.correctionReason, actedById: data.approverId, actedAt: new Date() },
+    });
+    if (data.documentType === 'EXPENSE') {
+      await this.db.expense.update({ where: { id: data.documentId }, data: { status: 'DRAFT' } });
+    }
     return updated;
   }
 

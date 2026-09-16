@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: shantel-backend
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: shantel-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 24h
+      - key: API_PORT
+        value: 3001
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.vercel.app
+
+databases:
+  - name: shantel-db
+    databaseName: shantel
+    user: shantel_user

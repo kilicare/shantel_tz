@@ -275,20 +275,25 @@ export class SalesReturnsService {
           });
         }
 
-        // 2. Adjust invoice balance
+        // 2. Recalculate balance from the invoice's payment ledger.
         const invoice = salesReturn.invoice;
-        const newInvoiceBalance =
-          invoice.balance.toNumber() + salesReturn.refundAmount.toNumber();
+        const paymentLedger = await tx.payment.findMany({
+          where: { invoiceId: salesReturn.invoiceId, status: { not: 'CANCELLED' } },
+          select: { amount: true },
+        });
+        const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+        const newInvoiceBalance = invoice.totalAmount.toNumber() - netAmountPaid;
         const newInvoiceStatus =
-          newInvoiceBalance > 0
-            ? invoice.status === 'PAID'
+          newInvoiceBalance <= 0
+            ? 'PAID'
+            : newInvoiceBalance < invoice.totalAmount.toNumber()
               ? 'PARTIALLY_PAID'
-              : invoice.status
-            : 'PAID';
+              : 'ISSUED';
 
         await tx.invoice.update({
           where: { id: salesReturn.invoiceId },
           data: {
+            amountPaid: new Prisma.Decimal(netAmountPaid),
             balance: new Prisma.Decimal(newInvoiceBalance),
             status: newInvoiceStatus,
           },

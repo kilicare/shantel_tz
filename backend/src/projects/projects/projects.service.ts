@@ -283,7 +283,7 @@ export class ProjectsService {
             quantityOut: new Prisma.Decimal(data.quantity),
             referenceType: 'PROJECT',
             referenceId: data.projectId,
-            createdById: data.userId,
+            projectId: data.projectId,
           },
         });
 

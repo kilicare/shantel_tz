@@ -8,6 +8,7 @@ import {
   UseGuards,
   Query,
   Request,
+  BadRequestException,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
@@ -47,6 +48,9 @@ export class PaymentsController {
   @RequirePermission('payments.record')
   @ApiOperation({ summary: 'Create payment method' })
   async createPaymentMethod(@Body() body: { name: string; code: string; description?: string }) {
+    if (!body.name?.trim() || !body.code?.trim()) {
+      throw new BadRequestException('Payment method name and code are required');
+    }
     const existing = await this.db.paymentMethod.findUnique({ where: { code: body.code } });
     if (existing) throw new ConflictException(`Payment method code ${body.code} already exists`);
     return { success: true, data: await this.db.paymentMethod.create({ data: { name: body.name, code: body.code, description: body.description, status: 'ACTIVE' } }) };

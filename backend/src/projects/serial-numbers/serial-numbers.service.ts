@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class SerialNumbersService {
@@ -104,6 +103,14 @@ export class SerialNumbersService {
         location: true,
         project: true,
         asset: true,
+      },
+    });
+
+    await this.db.serialNumberEvent.create({
+      data: {
+        serialNumberId: serialNumber.id,
+        event: 'REGISTERED',
+        details: `Serial number ${serialNumber.serialNumber} registered`,
       },
     });
 
@@ -305,7 +312,7 @@ export class SerialNumbersService {
       }
     }
 
-    return this.db.serialNumber.update({
+    const updated = await this.db.serialNumber.update({
       where: { id: data.serialNumberId },
       data: {
         projectId: data.projectId,
@@ -320,6 +327,16 @@ export class SerialNumbersService {
         asset: true,
       },
     });
+
+    await this.db.serialNumberEvent.create({
+      data: {
+        serialNumberId: data.serialNumberId,
+        event: 'ASSIGNED',
+        details: 'Serial assigned to project, asset, or location',
+      },
+    });
+
+    return updated;
   }
 
   /**
@@ -334,11 +351,25 @@ export class SerialNumbersService {
       throw new NotFoundException(`Serial number not found`);
     }
 
-    return this.db.serialNumber.update({
+    const statusAliases = {
+      NEW: 'NEW',
+      RECEIVED: 'NEW',
+      ASSIGNED: 'ASSIGNED',
+      SOLD: 'SOLD',
+      IN_PROJECT: 'IN_PROJECT',
+      RETURNED: 'RETURNED',
+      INACTIVE: 'INACTIVE',
+    } as const;
+    const normalizedStatus = statusAliases[status.trim().toUpperCase() as keyof typeof statusAliases];
+    if (!normalizedStatus) {
+      throw new BadRequestException(`Invalid serial status: ${status}`);
+    }
+
+    const updated = await this.db.serialNumber.update({
       where: { id: serialNumberId },
       data: {
-        serialStatus: status as any,
-        soldAt: status === 'SOLD' ? new Date() : undefined,
+        serialStatus: normalizedStatus,
+        soldAt: normalizedStatus === 'SOLD' ? new Date() : undefined,
       },
       include: {
         product: true,
@@ -347,6 +378,16 @@ export class SerialNumbersService {
         asset: true,
       },
     });
+
+    await this.db.serialNumberEvent.create({
+      data: {
+        serialNumberId,
+        event: normalizedStatus,
+        details: `Serial status changed to ${normalizedStatus}`,
+      },
+    });
+
+    return updated;
   }
 
   /**
@@ -360,6 +401,7 @@ export class SerialNumbersService {
         location: true,
         project: true,
         asset: true,
+        lifecycleEvents: { orderBy: { createdAt: 'asc' } },
       },
     });
 
@@ -368,37 +410,11 @@ export class SerialNumbersService {
     }
 
     // Build timeline based on available fields
-    const timeline = [
-      {
-        date: serialNumber.createdAt,
-        event: 'REGISTERED',
-        details: 'Serial number created',
-      },
-    ];
-
-    if (serialNumber.soldAt) {
-      timeline.push({
-        date: serialNumber.soldAt,
-        event: 'SOLD',
-        details: 'Serial number sold',
-      });
-    }
-
-    if (serialNumber.projectId) {
-      timeline.push({
-        date: serialNumber.updatedAt,
-        event: 'ASSIGNED_TO_PROJECT',
-        details: `Assigned to project ${serialNumber.projectId}`,
-      });
-    }
-
-    if (serialNumber.assetId) {
-      timeline.push({
-        date: serialNumber.updatedAt,
-        event: 'ASSIGNED_TO_ASSET',
-        details: `Assigned to asset ${serialNumber.assetId}`,
-      });
-    }
+    const timeline = serialNumber.lifecycleEvents.map((entry) => ({
+      date: entry.createdAt,
+      event: entry.event,
+      details: entry.details ?? '',
+    }));
 
     return {
       serialNumber: serialNumber.serialNumber,

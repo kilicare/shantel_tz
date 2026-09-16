@@ -14,7 +14,7 @@ export default function CustomersPage() {
     finally { setLoading(false); }
   }
 
-  useEffect(() => { try { setPermissions(JSON.parse(localStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void loadCustomers(); }, []);
+  useEffect(() => { try { setPermissions(JSON.parse(sessionStorage.getItem("shantel_user") ?? "null")?.permissions ?? []); } catch { setPermissions([]); } void loadCustomers(); }, []);
   const filtered = customers.filter((customer) => `${customer.name} ${customer.email ?? ""} ${customer.phone ?? ""}`.toLowerCase().includes(search.toLowerCase()));
   const canCreate = permissions.includes("customers.create");
 

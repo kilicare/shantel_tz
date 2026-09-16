@@ -114,6 +114,16 @@ main form input[type="number"]::placeholder {
   color: color-mix(in srgb, var(--brand-forest) 45%, transparent);
 }
 
+main button:focus,
+main button:focus-visible {
+  outline: 2px solid var(--interactive-focus);
+  outline-offset: 2px;
+}
+
+main button:active {
+  transform: translateY(1px);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

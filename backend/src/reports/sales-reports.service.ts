@@ -7,7 +7,7 @@ export class SalesReportsService {
 
   async getSalesByDateRange(startDate: Date, endDate: Date) {
     const invoices = await this.db.invoice.findMany({
-      where: { invoiceDate: { gte: startDate, lte: endDate }, status: { not: 'CANCELLED' } },
+      where: { postedAt: { gte: startDate, lte: endDate }, status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] } },
       include: { customer: true, items: { include: { product: true } } },
       orderBy: { invoiceDate: 'desc' },
     });
@@ -37,7 +37,7 @@ export class SalesReportsService {
 
   async getSalesBySalesperson(startDate: Date, endDate: Date) {
     const invoices = await this.db.invoice.findMany({
-      where: { invoiceDate: { gte: startDate, lte: endDate }, status: { not: 'CANCELLED' } },
+      where: { postedAt: { gte: startDate, lte: endDate }, status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] } },
       include: { createdBy: true },
     });
     const grouped = new Map<string, { invoiceCount: number; totalRevenue: number; totalPaid: number; totalOutstanding: number }>();
@@ -55,7 +55,7 @@ export class SalesReportsService {
 
   async getSalesByProduct(startDate: Date, endDate: Date) {
     const items = await this.db.invoiceItem.findMany({
-      where: { invoice: { invoiceDate: { gte: startDate, lte: endDate }, status: { not: 'CANCELLED' } } },
+      where: { invoice: { postedAt: { gte: startDate, lte: endDate }, status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] } } },
       include: { product: true },
     });
     const grouped = new Map<string, { name: string; quantity: number; totalSales: number }>();
@@ -70,7 +70,7 @@ export class SalesReportsService {
 
   async getSalesByCustomer(startDate: Date, endDate: Date) {
     const invoices = await this.db.invoice.findMany({
-      where: { invoiceDate: { gte: startDate, lte: endDate }, status: { not: 'CANCELLED' } },
+      where: { postedAt: { gte: startDate, lte: endDate }, status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] } },
       include: { customer: true },
     });
     const grouped = new Map<string, { name: string; invoiceCount: number; totalSales: number; totalPaid: number; balance: number }>();

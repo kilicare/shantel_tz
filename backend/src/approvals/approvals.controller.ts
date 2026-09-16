@@ -16,6 +16,7 @@ import { PaginationService } from '../shared/services/pagination.service.js';
 
 import { ApprovalsService } from './approvals.service.js';
 import { ExpensesService } from '../expenses/expenses.service.js';
+import { DatabaseService } from '../database/database.service.js';
 
 @ApiTags('Approvals & Expenses')
 @Controller('approvals')
@@ -25,6 +26,7 @@ export class ApprovalsController {
   constructor(
     private approvalsService: ApprovalsService,
     private expensesService: ExpensesService,
+    private db: DatabaseService,
     private paginationService: PaginationService,
   ) {}
 
@@ -93,6 +95,19 @@ export class ApprovalsController {
     };
   }
 
+  @Patch('return-for-correction')
+  @RequirePermission('approvals.approve')
+  @ApiOperation({ summary: 'Return document for correction at a step' })
+  async returnForCorrection(
+    @Body() body: { documentType: string; documentId: string; approvalStep: number; correctionReason: string },
+    @Request() req: any,
+  ) {
+    return {
+      success: true,
+      data: await this.approvalsService.returnForCorrection({ ...body, approverId: req.user.sub }),
+    };
+  }
+
   @Get('document/:documentType/:documentId/history')
   @RequirePermission('approvals.view')
   @ApiOperation({ summary: 'Get document approval history' })
@@ -118,6 +133,17 @@ export class ApprovalsController {
   }
 
   // ===== EXPENSE ENDPOINTS =====
+
+  @Get('expenses/options')
+  @RequirePermission('expenses.view')
+  @ApiOperation({ summary: 'Get expense form options' })
+  async getExpenseOptions() {
+    const [categories, paymentMethods] = await Promise.all([
+      this.db.expenseCategory.findMany({ orderBy: { name: 'asc' } }),
+      this.db.paymentMethod.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' } }),
+    ]);
+    return { success: true, data: { categories, paymentMethods } };
+  }
 
   @Post('expenses')
   @RequirePermission('expenses.create')
