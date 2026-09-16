@@ -2,7 +2,7 @@ services:
   - type: web
     name: shantel-backend
     env: node
-    buildCommand: pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm run build
+    buildCommand: pnpm install && pnpm prisma generate && pnpm prisma db push && pnpm prisma db seed && pnpm run build
     startCommand: pnpm run start:prod
     envVars:
       - key: NODE_ENV
