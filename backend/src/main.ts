@@ -17,7 +17,10 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL || 'https://frontend-mu-three-89.vercel.app',
+      'http://localhost:3000',
+    ],
     credentials: true,
   });
 
