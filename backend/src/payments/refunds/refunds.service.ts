@@ -7,6 +7,8 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { ApprovalsService } from '../../approvals/approvals.service.js';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class RefundsService {
@@ -15,6 +17,8 @@ export class RefundsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private approvalsService: ApprovalsService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -82,7 +86,7 @@ export class RefundsService {
         transactionReference: `REFUND-${data.paymentId}`,
         paymentDate: new Date(),
         notes: `${data.reason || 'Customer refund'}. ${data.notes || ''}`,
-        status: 'RECORDED',
+        status: 'PENDING',
         createdById: data.userId,
       },
       include: {
@@ -92,37 +96,6 @@ export class RefundsService {
       },
     });
 
-    // If invoice exists, update its balance using the full payment ledger.
-    if (originalPayment.invoiceId) {
-      const invoice = await this.db.invoice.findUnique({
-        where: { id: originalPayment.invoiceId },
-      });
-
-      if (invoice) {
-        const paymentLedger = await this.db.payment.findMany({
-          where: { invoiceId: originalPayment.invoiceId, status: { not: 'CANCELLED' } },
-          select: { amount: true },
-        });
-        const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
-        const newBalance = invoice.totalAmount.toNumber() - netAmountPaid;
-        const newStatus =
-          newBalance <= 0
-            ? 'PAID'
-            : newBalance < invoice.totalAmount.toNumber()
-              ? 'PARTIALLY_PAID'
-              : 'ISSUED';
-
-        await this.db.invoice.update({
-          where: { id: originalPayment.invoiceId },
-          data: {
-            amountPaid: new Prisma.Decimal(netAmountPaid),
-            balance: new Prisma.Decimal(newBalance),
-            status: newStatus,
-          },
-        });
-      }
-    }
-
     // Update document sequence
     await this.db.documentSequence.upsert({
       where: { documentType: 'REFUND' },
@@ -130,8 +103,40 @@ export class RefundsService {
       update: { currentNumber: nextNumber },
     });
 
+    await this.auditLogService.logAction({
+      entityType: 'REFUND', entityId: refund.id, action: 'CREATE',
+      afterData: { paymentNumber: refundNumber, amount: data.refundAmount, status: 'PENDING' }, userId: data.userId,
+    });
+
     this.logger.log(`Refund created: ${refundNumber}`);
     return refund;
+  }
+
+  async submitForApproval(data: { refundId: string; approverIds: string[]; notes?: string; userId: string }) {
+    const refund = await this.findById(data.refundId);
+    if (refund.status !== 'PENDING') throw new BadRequestException('Only pending refunds can be submitted for approval');
+    return this.approvalsService.submitForApproval({ documentType: 'REFUND', documentId: data.refundId, approverIds: data.approverIds, notes: data.notes, userId: data.userId });
+  }
+
+  async approve(refundId: string, approverId: string, comments?: string) {
+    const refund = await this.findById(refundId);
+    if (refund.status !== 'PENDING') throw new BadRequestException('Only pending refunds can be approved');
+    const pending = await this.db.approval.findMany({ where: { documentType: 'REFUND', documentId: refundId, approvalDecision: 'PENDING' }, orderBy: { approvalStep: 'asc' } });
+    if (pending.length === 0) throw new BadRequestException('No pending approvals found for this refund');
+    const result = await this.approvalsService.approve({ documentType: 'REFUND', documentId: refundId, approvalStep: pending[0].approvalStep, approverId, comments });
+    const approvals = await this.db.approval.findMany({ where: { documentType: 'REFUND', documentId: refundId } });
+    if (approvals.every((entry) => entry.approvalDecision === 'APPROVED')) await this.db.payment.update({ where: { id: refundId }, data: { status: 'RECORDED' } });
+    return result;
+  }
+
+  async reject(refundId: string, approverId: string, rejectionReason: string) {
+    const refund = await this.findById(refundId);
+    if (refund.status !== 'PENDING') throw new BadRequestException('Only pending refunds can be rejected');
+    const pending = await this.db.approval.findMany({ where: { documentType: 'REFUND', documentId: refundId, approvalDecision: 'PENDING' }, orderBy: { approvalStep: 'asc' } });
+    if (pending.length === 0) throw new BadRequestException('No pending approvals found for this refund');
+    const result = await this.approvalsService.reject({ documentType: 'REFUND', documentId: refundId, approvalStep: pending[0].approvalStep, approverId, rejectionReason });
+    await this.db.payment.update({ where: { id: refundId }, data: { status: 'CANCELLED' } });
+    return result;
   }
 
   /**

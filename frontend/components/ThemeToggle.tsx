@@ -13,9 +13,11 @@ export function ThemeToggle() {
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
       setIsDark(true);
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
     } else {
       setIsDark(false);
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
     }
   }, []);
 
@@ -25,9 +27,11 @@ export function ThemeToggle() {
     
     if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
       localStorage.setItem("shantel-theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
       localStorage.setItem("shantel-theme", "light");
     }
   };
@@ -35,10 +39,11 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-foreground"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      {isDark ? <Sun size={20} /> : <Moon size={20} />}
     </button>
   );
 }

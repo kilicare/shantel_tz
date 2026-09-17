@@ -127,48 +127,48 @@ export default function RequisitionsPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Procurement control</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Procurement control</p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Requisition decisions.</h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">Approve requests and convert them into purchase orders.</p>
+              <p className="mt-2 text-sm text-foreground/55">Approve requests and convert them into purchase orders.</p>
             </div>
-            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white">
+            <button type="button" onClick={() => void loadData()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card">
               <RefreshCw size={15} /> Refresh
             </button>
           </header>
 
-          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"><AlertCircle size={18} /> {error}</div>}
-          {message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">{message}</div>}
+          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-primary/8 px-4 py-3 text-sm text-muted-foreground"><AlertCircle size={18} /> {error}</div>}
+          {message && <div role="status" className="mt-6 border border-border-default bg-status-success-surface px-4 py-3 text-sm text-muted-foreground">{message}</div>}
 
           <section className="mt-8 space-y-3" aria-label="Requisition decisions">
-            {loading && <p className="bg-white p-5 text-sm text-[#172B4D]/55">Loading requisitions...</p>}
-            {!loading && requisitions.length === 0 && <p className="bg-white p-5 text-sm text-[#172B4D]/55">No requisitions found.</p>}
+            {loading && <p className="bg-card p-5 text-sm text-foreground/55">Loading requisitions...</p>}
+            {!loading && requisitions.length === 0 && <p className="bg-card p-5 text-sm text-foreground/55">No requisitions found.</p>}
             {requisitions.map((requisition) => (
               <Fragment key={requisition.id}>
-              <article className="flex flex-col gap-4 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+              <article className="flex flex-col gap-4 bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{requisition.requisitionNumber ?? "Requisition"}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{requisition.status ?? "UNKNOWN"}</p>
-                  <div className="mt-3 space-y-1 text-xs text-[#172B4D]/65">{requisition.items?.map((item) => <p key={item.id}>{item.product?.sku} · {item.product?.name} · Qty {item.quantity}</p>)}</div>
+                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-foreground/50">{requisition.status ?? "UNKNOWN"}</p>
+                  <div className="mt-3 space-y-1 text-xs text-foreground/65">{requisition.items?.map((item) => <p key={item.id}>{item.product?.sku} · {item.product?.name} · Qty {item.quantity}</p>)}</div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {(requisition.status === "DRAFT" || requisition.status === "RETURNED_FOR_CORRECTION") && <><select aria-label={`Add product to ${requisition.requisitionNumber ?? "requisition"}`} value={itemForms[requisition.id]?.productId ?? ""} onChange={(event) => setItemForms((current) => ({ ...current, [requisition.id]: { productId: event.target.value, quantity: current[requisition.id]?.quantity ?? "" } }))} className="max-w-full border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Add product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select><input aria-label={`Item quantity for ${requisition.requisitionNumber ?? "requisition"}`} type="number" min="0.01" step="0.01" value={itemForms[requisition.id]?.quantity ?? ""} onChange={(event) => setItemForms((current) => ({ ...current, [requisition.id]: { productId: current[requisition.id]?.productId ?? "", quantity: event.target.value } }))} className="w-24 border border-[#172B4D]/15 px-3 py-2.5 text-sm" placeholder="Qty" /><button type="button" onClick={() => void addItem(requisition)} className="border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Add item</button><button type="button" onClick={() => void submitRequisition(requisition)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Submit</button></>}
-                  {requisition.status === "SUBMITTED" && <><input aria-label={`Decision reason for ${requisition.requisitionNumber ?? "requisition"}`} value={reasons[requisition.id] ?? ""} onChange={(event) => setReasons((current) => ({ ...current, [requisition.id]: event.target.value }))} className="w-48 border border-[#172B4D]/15 px-3 py-2.5 text-sm" placeholder="Decision reason" /><button type="button" onClick={() => void approveRequisition(requisition)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button><button type="button" onClick={() => void transition(requisition, "reject", reasons[requisition.id] ?? "")} className="border border-[#C94A4A]/40 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#C94A4A]">Reject</button><button type="button" onClick={() => void transition(requisition, "return-for-correction", reasons[requisition.id] ?? "")} className="border border-[#D4A72C]/50 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A5A12]">Return</button></>}
+                  {(requisition.status === "DRAFT" || requisition.status === "RETURNED_FOR_CORRECTION") && <><select aria-label={`Add product to ${requisition.requisitionNumber ?? "requisition"}`} value={itemForms[requisition.id]?.productId ?? ""} onChange={(event) => setItemForms((current) => ({ ...current, [requisition.id]: { productId: event.target.value, quantity: current[requisition.id]?.quantity ?? "" } }))} className="max-w-full border border-border-default bg-card px-3 py-2.5 text-sm"><option value="">Add product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select><input aria-label={`Item quantity for ${requisition.requisitionNumber ?? "requisition"}`} type="number" min="0.01" step="0.01" value={itemForms[requisition.id]?.quantity ?? ""} onChange={(event) => setItemForms((current) => ({ ...current, [requisition.id]: { productId: current[requisition.id]?.productId ?? "", quantity: event.target.value } }))} className="w-24 border border-border-default px-3 py-2.5 text-sm" placeholder="Qty" /><button type="button" onClick={() => void addItem(requisition)} className="border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Add item</button><button type="button" onClick={() => void submitRequisition(requisition)} className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Submit</button></>}
+                  {requisition.status === "SUBMITTED" && <><input aria-label={`Decision reason for ${requisition.requisitionNumber ?? "requisition"}`} value={reasons[requisition.id] ?? ""} onChange={(event) => setReasons((current) => ({ ...current, [requisition.id]: event.target.value }))} className="w-48 border border-border-default px-3 py-2.5 text-sm" placeholder="Decision reason" /><button type="button" onClick={() => void approveRequisition(requisition)} className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button><button type="button" onClick={() => void transition(requisition, "reject", reasons[requisition.id] ?? "")} className="border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Reject</button><button type="button" onClick={() => void transition(requisition, "return-for-correction", reasons[requisition.id] ?? "")} className="border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Return</button></>}
                   {requisition.status === "APPROVED" && <>
-                    <select aria-label={`Supplier for ${requisition.requisitionNumber ?? "requisition"}`} value={selectedSuppliers[requisition.id] ?? ""} onChange={(event) => setSelectedSuppliers((current) => ({ ...current, [requisition.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm">
+                    <select aria-label={`Supplier for ${requisition.requisitionNumber ?? "requisition"}`} value={selectedSuppliers[requisition.id] ?? ""} onChange={(event) => setSelectedSuppliers((current) => ({ ...current, [requisition.id]: event.target.value }))} className="border border-border-default bg-card px-3 py-2.5 text-sm">
                       <option value="">Select supplier</option>
                       {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
                     </select>
-                    <button type="button" onClick={() => void convertToPurchaseOrder(requisition)} className="border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Convert to PO</button>
+                    <button type="button" onClick={() => void convertToPurchaseOrder(requisition)} className="border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">Convert to PO</button>
                   </>}
-                  {requisition.status === "CONVERTED_TO_PO" && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-[#16805C]">Converted</span>}
-                  <button type="button" onClick={() => void loadHistory(requisition)} className="border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">History</button>
+                  {requisition.status === "CONVERTED_TO_PO" && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">Converted</span>}
+                  <button type="button" onClick={() => void loadHistory(requisition)} className="border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]">History</button>
                 </div>
               </article>
-              {history[requisition.id] && <div className="border-t border-[#172B4D]/10 bg-[#F6F8FB] px-5 py-4 text-xs"><p className="font-semibold uppercase tracking-[0.1em]">Approval history</p>{history[requisition.id].map((entry) => <p key={entry.id} className="mt-2">Step {entry.approvalStep}: {entry.approvalDecision} · {entry.actedBy?.name ?? "Pending"}{entry.approverComment ? ` · ${entry.approverComment}` : ""}</p>)}</div>}
+              {history[requisition.id] && <div className="border-t border-border-default bg-background px-5 py-4 text-xs"><p className="font-semibold uppercase tracking-[0.1em]">Approval history</p>{history[requisition.id].map((entry) => <p key={entry.id} className="mt-2">Step {entry.approvalStep}: {entry.approvalDecision} · {entry.actedBy?.name ?? "Pending"}{entry.approverComment ? ` · ${entry.approverComment}` : ""}</p>)}</div>}
               </Fragment>
             ))}
           </section>

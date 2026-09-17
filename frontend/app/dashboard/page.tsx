@@ -109,13 +109,13 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#F6F8FB] p-6 text-[#172B4D] sm:p-10">
+      <main className="min-h-screen bg-background p-6 text-foreground sm:p-10">
         <div className="mx-auto max-w-7xl animate-pulse">
-          <div className="h-4 w-24 bg-[#172B4D]/10" />
-          <div className="mt-5 h-12 w-72 bg-[#172B4D]/10" />
+          <div className="h-4 w-24 bg-border-default" />
+          <div className="mt-5 h-12 w-72 bg-border-default" />
           <div className="mt-10 grid gap-4 md:grid-cols-4">
             {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="h-36 bg-white/70" />
+              <div key={item} className="h-36 bg-card/70" />
             ))}
           </div>
         </div>
@@ -125,16 +125,16 @@ export default function DashboardPage() {
 
   if (error || !data) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#F6F8FB] p-6">
-        <div className="max-w-md border border-[#2563EB]/25 bg-white p-7 text-[#172B4D]">
-          <AlertCircle className="mb-4 text-[#2563EB]" />
+      <main className="flex min-h-screen items-center justify-center bg-background p-6">
+        <div className="max-w-md border border-border-default bg-card p-7 text-foreground">
+          <AlertCircle className="mb-4 text-primary" />
           <h1 className="text-xl font-semibold">Dashboard unavailable</h1>
-          <p className="mt-2 text-sm text-[#172B4D]/60">
+          <p className="mt-2 text-sm text-muted-foreground">
             {error || "No dashboard data returned."}
           </p>
           <button
             onClick={() => void loadDashboard()}
-            className="mt-6 flex items-center gap-2 bg-[#172B4D] px-4 py-3 text-sm font-semibold text-white"
+            className="mt-6 flex items-center gap-2 bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
           >
             <RefreshCw size={16} /> Try again
           </button>
@@ -204,24 +204,24 @@ export default function DashboardPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-[1440px]">
-          <header className="flex flex-col justify-between gap-6 border-b border-[#172B4D]/12 pb-8 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-6 border-b border-border-default pb-8 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Operations overview
               </p>
               <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">
                 {timeGreeting}
               </h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Here is what is moving across Shantel today.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 self-start sm:self-auto">
               <button
                 onClick={() => void loadDashboard()}
-                className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-card"
               >
                 <RefreshCw size={15} /> Refresh data
               </button>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   sessionStorage.removeItem("shantel_user");
                   router.push("/login");
                 }}
-                className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-white"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-card"
                 aria-label="Log out"
               >
                 <LogOut size={15} /> Log out
@@ -254,27 +254,27 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-8 grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.75fr)]">
-            <article className="overflow-hidden rounded-2xl bg-[#172B4D] p-6 text-[#F6F8FB] shadow-[0_18px_50px_rgba(23,43,77,0.18)] sm:p-8">
+            <article className="overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground shadow-[0_18px_50px_rgba(23,43,77,0.18)] sm:p-8">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#D4A72C]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-amber">
                     Sales pulse
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
                     The rhythm of your revenue
                   </h2>
-                  <p className="mt-2 max-w-lg text-sm leading-6 text-[#F6F8FB]/55">
+                  <p className="mt-2 max-w-lg text-sm leading-6 text-primary-foreground/55">
                     A simple view of when sales are happening, how strong the
                     week is, and where the biggest day landed.
                   </p>
                 </div>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#D4A72C]/30 bg-[#D4A72C]/10">
-                  <TrendingUp className="text-[#D4A72C]" size={20} />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-amber/30 bg-brand-amber/10">
+                  <TrendingUp className="text-brand-amber" size={20} />
                 </div>
               </div>
-              <div className="mt-7 grid grid-cols-3 gap-3 border-y border-[#F6F8FB]/10 py-4">
+              <div className="mt-7 grid grid-cols-3 gap-3 border-y border-primary-foreground/10 py-4">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#F6F8FB]/40">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
                     30-day sales
                   </p>
                   <p className="mt-1 text-lg font-semibold">
@@ -282,18 +282,18 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#F6F8FB]/40">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
                     Active days
                   </p>
                   <p className="mt-1 text-lg font-semibold">
                     {activeDays}
-                    <span className="ml-1 text-xs font-normal text-[#F6F8FB]/40">
+                    <span className="ml-1 text-xs font-normal text-primary-foreground/40">
                       / 30
                     </span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#F6F8FB]/40">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
                     Best day
                   </p>
                   <p className="mt-1 text-lg font-semibold">
@@ -306,9 +306,9 @@ export default function DashboardPage() {
                 aria-label="Sales trend for the last 30 days"
                 role="img"
               >
-                <div className="absolute inset-x-0 top-0 border-t border-[#F6F8FB]/10" />
-                <div className="absolute inset-x-0 top-1/2 border-t border-[#F6F8FB]/10" />
-                <div className="absolute inset-x-0 bottom-0 border-t border-[#F6F8FB]/15" />
+                <div className="absolute inset-x-0 top-0 border-t border-primary-foreground/10" />
+                <div className="absolute inset-x-0 top-1/2 border-t border-primary-foreground/10" />
+                <div className="absolute inset-x-0 bottom-0 border-t border-primary-foreground/15" />
                 <svg
                   viewBox="0 0 500 180"
                   preserveAspectRatio="none"
@@ -354,22 +354,22 @@ export default function DashboardPage() {
                   )}
                 </svg>
               </div>
-              <div className="mt-3 flex justify-between text-[10px] uppercase tracking-[0.12em] text-[#F6F8FB]/35">
+              <div className="mt-3 flex justify-between text-[10px] uppercase tracking-[0.12em] text-primary-foreground/35">
                 <span>{trend[0]?.date}</span>
                 <span>{trend.at(-1)?.date}</span>
               </div>
               <div className="mt-6 grid grid-cols-5 gap-2">
                 {pulseWeeks.map((week) => (
                   <div key={week.label} className="min-w-0">
-                    <div className="h-1.5 bg-[#F6F8FB]/10">
+                    <div className="h-1.5 bg-background/10">
                       <div
-                        className="h-full bg-[#D4A72C]"
+                        className="h-full bg-card"
                         style={{
                           width: `${Math.max((week.total / maxSales / 7) * 100, week.total ? 8 : 0)}%`,
                         }}
                       />
                     </div>
-                    <p className="mt-2 truncate text-[10px] text-[#F6F8FB]/45">
+                    <p className="mt-2 truncate text-[10px] text-primary-foreground/45">
                       Week {week.label}
                     </p>
                     <p className="mt-1 truncate text-xs font-semibold">
@@ -379,10 +379,10 @@ export default function DashboardPage() {
                 ))}
               </div>
             </article>
-            <article className="rounded-2xl bg-[#f0e6d8] p-6 text-[#172B4D] shadow-[0_12px_35px_rgba(23,43,77,0.12)] sm:p-7">
+            <article className="rounded-2xl bg-card p-6 text-foreground shadow-[0_12px_35px_rgba(23,43,77,0.12)] sm:p-7">
               <div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                     Signal
                   </p>
                   <h2 className="mt-2 text-xl font-semibold">
@@ -393,7 +393,7 @@ export default function DashboardPage() {
               <div className="mt-8 space-y-5">
                 <div className="flex gap-3">
                   <CalendarDays
-                    className="mt-0.5 shrink-0 text-[#2563EB]"
+                    className="mt-0.5 shrink-0 text-primary"
                     size={18}
                   />
                   <div>
@@ -402,70 +402,70 @@ export default function DashboardPage() {
                         ? `Sales moved on ${activeDays} ${activeDays === 1 ? "day" : "days"}`
                         : "No sales recorded yet"}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-[#172B4D]/55">
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
                       Consistency is easier to improve when the team can see it.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <TrendingUp
-                    className="mt-0.5 shrink-0 text-[#2563EB]"
+                    className="mt-0.5 shrink-0 text-primary"
                     size={18}
                   />
                   <div>
                     <p className="text-sm font-semibold">
                       Peak: {peakDay.date}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-[#172B4D]/55">
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
                       That day contributed {currency.format(peakDay.sales)} to
                       the period.
                     </p>
                   </div>
                 </div>
-                <div className="border-t border-[#172B4D]/10 pt-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#172B4D]/45">
+                <div className="border-t border-border-default pt-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Momentum
                   </p>
                   <p className="mt-2 text-2xl font-semibold">
                     {pulseChange > 0 ? "+" : ""}
                     {pulseChange.toFixed(0)}%
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-[#172B4D]/55">
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     Second half compared with the first half of this period.
                   </p>
                 </div>
               </div>
             </article>
-            <article className="rounded-2xl bg-white p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)] sm:p-7">
+            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)] sm:p-7">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                     Attention
                   </p>
                   <h2 className="mt-2 text-xl font-semibold">Low stock</h2>
                 </div>
-                <Package size={20} className="text-[#2563EB]" />
+                <Package size={20} className="text-primary" />
               </div>
               <div className="mt-6 space-y-4">
                 {data.lowStockItems.length ? (
                   data.lowStockItems.slice(0, 4).map((item) => (
                     <div
                       key={`${item.sku}-${item.location}`}
-                      className="flex items-center justify-between border-b border-[#172B4D]/10 pb-3"
+                      className="flex items-center justify-between border-b border-border-default pb-3"
                     >
                       <div>
                         <p className="text-sm font-semibold">{item.product}</p>
-                        <p className="mt-1 text-xs text-[#172B4D]/45">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           {item.sku} · {item.location}
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-[#2563EB]">
+                      <span className="text-sm font-semibold text-primary">
                         {item.quantity} left
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-[#172B4D]/50">
+                  <p className="text-sm text-muted-foreground">
                     Stock levels are healthy.
                   </p>
                 )}
@@ -474,19 +474,19 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-5 grid gap-5 lg:grid-cols-2">
-            <article className="rounded-2xl bg-white p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
+            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                     Sales activity
                   </p>
                   <h2 className="mt-2 text-lg font-semibold">
                     Recent invoices
                   </h2>
                 </div>
-                <ArrowUpRight size={18} className="text-[#172B4D]/35" />
+                <ArrowUpRight size={18} className="text-muted-foreground" />
               </div>
-              <div className="mt-5 divide-y divide-[#172B4D]/10">
+              <div className="mt-5 divide-y divide-border-default">
                 {data.recentTransactions.invoices.map((invoice) => (
                   <div
                     key={invoice.number}
@@ -494,7 +494,7 @@ export default function DashboardPage() {
                   >
                     <div>
                       <p className="text-sm font-semibold">{invoice.number}</p>
-                      <p className="mt-1 text-xs text-[#172B4D]/45">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {invoice.customer}
                       </p>
                     </div>
@@ -505,17 +505,17 @@ export default function DashboardPage() {
                 ))}
               </div>
             </article>
-            <article className="rounded-2xl bg-white p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
+            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                     Procurement activity
                   </p>
                   <h2 className="mt-2 text-lg font-semibold">
                     Recent purchase orders
                   </h2>
                 </div>
-                <ArrowUpRight size={18} className="text-[#172B4D]/35" />
+                <ArrowUpRight size={18} className="text-foreground/35" />
               </div>
               <div className="mt-5 divide-y divide-[#172B4D]/10">
                 {data.recentTransactions.purchaseOrders.map((order) => (
@@ -525,7 +525,7 @@ export default function DashboardPage() {
                   >
                     <div>
                       <p className="text-sm font-semibold">{order.number}</p>
-                      <p className="mt-1 text-xs text-[#172B4D]/45">
+                      <p className="mt-1 text-xs text-foreground/45">
                         {order.supplier}
                       </p>
                     </div>

@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../database/database.service.js';
 import { PaginationService, PaginationParams } from '../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../audit/audit-log.service.js';
 
 @Injectable()
 export class PaymentsService {
@@ -15,6 +16,7 @@ export class PaymentsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -52,94 +54,75 @@ export class PaymentsService {
       throw new NotFoundException(`Payment method ${data.paymentMethodId} not found`);
     }
 
-    // If invoice specified, validate it
-    if (data.invoiceId) {
-      const invoice = await this.db.invoice.findUnique({
-        where: { id: data.invoiceId },
-      });
+    return this.db.$transaction(async (tx) => {
+      let invoice: { id: string; totalAmount: Prisma.Decimal; status: string } | null = null;
+      let netAmountPaid = 0;
 
-      if (!invoice) {
-        throw new NotFoundException(`Invoice ${data.invoiceId} not found`);
-      }
+      if (data.invoiceId) {
+        invoice = await tx.invoice.findUnique({ where: { id: data.invoiceId } });
+        if (!invoice) throw new NotFoundException(`Invoice ${data.invoiceId} not found`);
+        if (invoice.status === 'DRAFT') throw new BadRequestException(`Cannot record payment for DRAFT invoice`);
 
-      if (invoice.status === 'DRAFT') {
-        throw new BadRequestException(`Cannot record payment for DRAFT invoice`);
-      }
-    }
-
-    // Get next payment number
-    const seq = await this.db.documentSequence.findUnique({
-      where: { documentType: 'PAYMENT' },
-    });
-
-    const latestPayment = await this.db.payment.findFirst({
-      orderBy: { paymentNumber: 'desc' },
-      select: { paymentNumber: true },
-    });
-    const latestNumber = Number(latestPayment?.paymentNumber.split('-').pop() || 0);
-    const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
-    const paymentNumber = `PAY-2026-${String(nextNumber).padStart(6, '0')}`;
-
-    // Create payment (RECORDED status)
-    const payment = await this.db.payment.create({
-      data: {
-        paymentNumber,
-        customerId: data.customerId,
-        invoiceId: data.invoiceId,
-        amount: new Prisma.Decimal(data.amount),
-        paymentMethodId: data.paymentMethodId,
-        transactionReference: data.transactionReference,
-        paymentDate: new Date(),
-        notes: data.notes,
-        status: 'RECORDED',
-        createdById: data.userId,
-      },
-      include: {
-        customer: true,
-        paymentMethod: true,
-      },
-    });
-
-    // If invoice specified, update its balance based on the full payment ledger.
-    if (data.invoiceId) {
-      const invoice = await this.db.invoice.findUnique({
-        where: { id: data.invoiceId },
-      });
-
-      if (invoice) {
-        const paymentLedger = await this.db.payment.findMany({
+        const paymentLedger = await tx.payment.findMany({
           where: { invoiceId: data.invoiceId, status: { not: 'CANCELLED' } },
           select: { amount: true },
         });
-        const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
-        const newBalance = invoice.totalAmount.toNumber() - netAmountPaid;
-        const newStatus =
-          newBalance <= 0
-            ? 'PAID'
-            : newBalance < invoice.totalAmount.toNumber()
-              ? 'PARTIALLY_PAID'
-              : 'ISSUED';
+        netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+        const currentBalance = invoice.totalAmount.toNumber() - netAmountPaid;
+        if (data.amount > currentBalance) {
+          throw new BadRequestException(`Payment amount cannot exceed the invoice balance of ${currentBalance}`);
+        }
+      }
 
-        await this.db.invoice.update({
+      const seq = await tx.documentSequence.findUnique({ where: { documentType: 'PAYMENT' } });
+      const latestPayment = await tx.payment.findFirst({ orderBy: { paymentNumber: 'desc' }, select: { paymentNumber: true } });
+      const latestNumber = Number(latestPayment?.paymentNumber.split('-').pop() || 0);
+      const nextNumber = Math.max(Number(seq?.currentNumber || 0), latestNumber) + 1;
+      const paymentNumber = `PAY-2026-${String(nextNumber).padStart(6, '0')}`;
+
+      const payment = await tx.payment.create({
+        data: {
+          paymentNumber,
+          customerId: data.customerId,
+          invoiceId: data.invoiceId,
+          amount: new Prisma.Decimal(data.amount),
+          paymentMethodId: data.paymentMethodId,
+          transactionReference: data.transactionReference,
+          paymentDate: new Date(),
+          notes: data.notes,
+          status: 'RECORDED',
+          createdById: data.userId,
+        },
+        include: { customer: true, paymentMethod: true },
+      });
+
+      if (invoice && data.invoiceId) {
+        const newNetAmountPaid = netAmountPaid + data.amount;
+        const newBalance = invoice.totalAmount.toNumber() - newNetAmountPaid;
+        await tx.invoice.update({
           where: { id: data.invoiceId },
           data: {
-            amountPaid: new Prisma.Decimal(netAmountPaid),
+            amountPaid: new Prisma.Decimal(newNetAmountPaid),
             balance: new Prisma.Decimal(newBalance),
-            status: newStatus,
+            status: newBalance <= 0 ? 'PAID' : newBalance < invoice.totalAmount.toNumber() ? 'PARTIALLY_PAID' : 'ISSUED',
           },
         });
       }
-    }
 
-    // Update document sequence
-    await this.db.documentSequence.upsert({
-      where: { documentType: 'PAYMENT' },
-      update: { currentNumber: nextNumber },
-      create: { documentType: 'PAYMENT', prefix: 'PAY', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      await tx.documentSequence.upsert({
+        where: { documentType: 'PAYMENT' },
+        update: { currentNumber: nextNumber },
+        create: { documentType: 'PAYMENT', prefix: 'PAY', currentNumber: nextNumber, padding: 6, year: 2026, status: 'ACTIVE' },
+      });
+
+      await this.auditLogService.logAction({
+        entityType: 'PAYMENT', entityId: payment.id, action: 'CREATE',
+        afterData: { paymentNumber, amount: data.amount, invoiceId: data.invoiceId }, userId: data.userId,
+      });
+
+      this.logger.log(`Payment recorded: ${paymentNumber}`);
+      return payment;
     });
-
-    this.logger.log(`Payment recorded: ${paymentNumber}`);
-    return payment;
   }
 
   /**
@@ -216,13 +199,38 @@ export class PaymentsService {
       throw new BadRequestException(`Only RECORDED payments can be posted`);
     }
 
-    return this.db.payment.update({
-      where: { id: paymentId },
-      data: {
-        status: 'POSTED',
-        postedById: userId,
-        postedAt: new Date(),
-      },
+    return this.db.$transaction(async (tx) => {
+      const postedPayment = await tx.payment.update({
+        where: { id: paymentId },
+        data: { status: 'POSTED', postedById: userId, postedAt: new Date() },
+      });
+
+      await this.auditLogService.logAction({
+        entityType: postedPayment.amount.isNegative() ? 'REFUND' : 'PAYMENT', entityId: paymentId, action: 'POST',
+        beforeData: { status: payment.status }, afterData: { status: 'POSTED' }, userId,
+      });
+
+      if (postedPayment.amount.isNegative() && postedPayment.invoiceId) {
+        const invoice = await tx.invoice.findUnique({ where: { id: postedPayment.invoiceId } });
+        if (invoice) {
+          const paymentLedger = await tx.payment.findMany({
+            where: { invoiceId: postedPayment.invoiceId, status: { not: 'CANCELLED' } },
+            select: { amount: true },
+          });
+          const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
+          const balance = Math.max(0, invoice.totalAmount.toNumber() - netAmountPaid);
+          await tx.invoice.update({
+            where: { id: invoice.id },
+            data: {
+              amountPaid: new Prisma.Decimal(netAmountPaid),
+              balance: new Prisma.Decimal(balance),
+              status: balance <= 0 ? 'PAID' : balance < invoice.totalAmount.toNumber() ? 'PARTIALLY_PAID' : 'ISSUED',
+            },
+          });
+        }
+      }
+
+      return postedPayment;
     });
   }
 

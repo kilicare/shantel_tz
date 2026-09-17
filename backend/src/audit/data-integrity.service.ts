@@ -14,7 +14,7 @@ export class DataIntegrityService {
     for (const invoice of invoices) {
       const signedPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount.toNumber(), 0);
       const refundTotal = invoice.salesReturns.reduce((sum, salesReturn) => sum + salesReturn.refundAmount.toNumber(), 0);
-      const expectedBalance = invoice.totalAmount.toNumber() - signedPayments + refundTotal;
+      const expectedBalance = Math.max(0, invoice.totalAmount.toNumber() - signedPayments + refundTotal);
       const actualBalance = invoice.balance.toNumber();
       if (Math.abs(expectedBalance - actualBalance) > 0.01) {
         issues.push({
@@ -98,7 +98,7 @@ export class DataIntegrityService {
       const signedPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount.toNumber(), 0);
       const refundTotal = invoice.salesReturns.reduce((sum, salesReturn) => sum + salesReturn.refundAmount.toNumber(), 0);
       const nextAmountPaid = signedPayments;
-      const nextBalance = invoice.totalAmount.toNumber() - nextAmountPaid + refundTotal;
+      const nextBalance = Math.max(0, invoice.totalAmount.toNumber() - nextAmountPaid + refundTotal);
       const nextStatus = nextBalance <= 0 ? 'PAID' : nextBalance < invoice.totalAmount.toNumber() ? 'PARTIALLY_PAID' : 'ISSUED';
 
       const needsUpdate = Math.abs(nextBalance - invoice.balance.toNumber()) > 0.01

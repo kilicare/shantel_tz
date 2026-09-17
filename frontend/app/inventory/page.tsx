@@ -222,17 +222,17 @@ export default function InventoryPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Inventory control
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
                 Know what is on hand.
               </h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">
+              <p className="mt-2 text-sm text-foreground/55">
                 Balances and controlled stock adjustments in one place.
               </p>
             </div>
@@ -241,7 +241,7 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowReceiveForm(true)}
-                  className="flex items-center gap-2 bg-[#16805C] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                  className="flex items-center gap-2 bg-card px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
                 >
                   <PackagePlus size={15} /> Receive stock
                 </button>
@@ -249,7 +249,7 @@ export default function InventoryPage() {
               <button
                 type="button"
                 onClick={() => void loadInventory()}
-                className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
               >
                 <RefreshCw size={15} /> Refresh
               </button>
@@ -257,7 +257,7 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowForm(true)}
-                  className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                  className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
                 >
                   <SlidersHorizontal size={15} /> New adjustment
                 </button>
@@ -267,7 +267,7 @@ export default function InventoryPage() {
           {error && (
             <div
               role="alert"
-              className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"
+              className="mt-6 flex items-center gap-3 border border-border-default bg-primary/8 px-4 py-3 text-sm text-muted-foreground"
             >
               <AlertCircle size={18} /> {error}
             </div>
@@ -275,7 +275,7 @@ export default function InventoryPage() {
           {message && (
             <div
               role="status"
-              className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]"
+              className="mt-6 border border-border-default bg-status-success-surface px-4 py-3 text-sm text-muted-foreground"
             >
               {message}
             </div>
@@ -283,7 +283,7 @@ export default function InventoryPage() {
           {showReceiveForm && (
             <form
               onSubmit={receiveStock}
-              className="mt-8 bg-[#16805C] p-6 text-white sm:p-8"
+              className="mt-8 bg-card p-6 text-white sm:p-8"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -312,7 +312,7 @@ export default function InventoryPage() {
                         locationId: event.target.value,
                       })
                     }
-                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
                   >
                     <option value="">Select location</option>
                     {locations.map((location) => (
@@ -333,7 +333,7 @@ export default function InventoryPage() {
                         productId: event.target.value,
                       })
                     }
-                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
                   >
                     <option value="">Select product</option>
                     {products.map((product) => (
@@ -356,7 +356,7 @@ export default function InventoryPage() {
                         quantity: event.target.value,
                       })
                     }
-                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
                   />
                 </label>
                 <label className="text-xs uppercase tracking-[0.12em]">
@@ -372,7 +372,7 @@ export default function InventoryPage() {
                         unitCost: event.target.value,
                       })
                     }
-                    className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
                   />
                 </label>
               </div>
@@ -387,13 +387,13 @@ export default function InventoryPage() {
                       reason: event.target.value,
                     })
                   }
-                  className="mt-2 h-11 w-full bg-[#16805C] text-sm normal-case tracking-normal"
+                  className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
                 />
               </label>
               <button
                 type="submit"
                 disabled={saving}
-                className="mt-6 bg-white px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#16805C]"
+                className="mt-6 bg-card px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
               >
                 {saving ? "Receiving..." : "Receive stock"}
               </button>
@@ -402,11 +402,11 @@ export default function InventoryPage() {
           {showForm && (
             <form
               onSubmit={createAdjustment}
-              className="mt-8 bg-[#172B4D] p-6 text-[#F6F8FB] sm:p-8"
+              className="mt-8 bg-primary p-6 text-primary-foreground sm:p-8"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4A72C]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-amber">
                     Stock control
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">
@@ -422,7 +422,7 @@ export default function InventoryPage() {
                 </button>
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Location
                   <select
                     aria-label="Adjustment location"
@@ -430,7 +430,7 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, locationId: event.target.value })
                     }
-                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal outline-none"
                   >
                     <option value="">Select location</option>
                     {locations.map((location) => (
@@ -440,7 +440,7 @@ export default function InventoryPage() {
                     ))}
                   </select>
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Product
                   <select
                     aria-label="Adjustment product"
@@ -448,7 +448,7 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, productId: event.target.value })
                     }
-                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal outline-none"
                   >
                     <option value="">Select product</option>
                     {products.map((product) => (
@@ -458,7 +458,7 @@ export default function InventoryPage() {
                     ))}
                   </select>
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   System quantity
                   <input
                     aria-label="System quantity"
@@ -468,10 +468,10 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, systemQuantity: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Physical quantity
                   <input
                     aria-label="Physical quantity"
@@ -481,10 +481,10 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, physicalQuantity: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Reason
                   <input
                     aria-label="Adjustment reason"
@@ -492,10 +492,10 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, reason: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Notes
                   <input
                     aria-label="Adjustment notes"
@@ -503,48 +503,48 @@ export default function InventoryPage() {
                     onChange={(event) =>
                       setForm({ ...form, notes: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
               </div>
               <button
                 type="submit"
                 disabled={saving}
-                className="mt-6 bg-[#D4A72C] px-5 py-3 text-sm font-semibold text-[#172B4D] disabled:opacity-50"
+                className="mt-6 bg-card px-5 py-3 text-sm font-semibold text-foreground disabled:opacity-50"
               >
                 {saving ? "Creating..." : "Create adjustment"}
               </button>
             </form>
           )}
           <section className="mt-8 grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-            <article className="bg-white p-6">
+            <article className="bg-card p-6">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#2563EB]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
                     Stock balance
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">
                     By product and location
                   </h2>
                 </div>
-                <span className="text-xs text-[#172B4D]/45">
+                <span className="text-xs text-foreground/45">
                   {filteredBalances.length} rows
                 </span>
               </div>
               <div className="relative mt-5">
                 <Search
                   size={17}
-                  className="absolute left-0 top-3 text-[#172B4D]/35"
+                  className="absolute left-0 top-3 text-foreground/35"
                 />
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search product, SKU, or location"
-                  className="h-11 w-full border-b border-[#172B4D]/15 bg-transparent pl-7 text-sm outline-none focus:border-[#2563EB]"
+                  className="h-11 w-full border-b border-border-default bg-transparent pl-7 text-sm outline-none focus:border-primary"
                 />
               </div>
               {loading ? (
-                <p className="py-10 text-sm text-[#172B4D]/50">
+                <p className="py-10 text-sm text-foreground/50">
                   Loading stock...
                 </p>
               ) : (
@@ -558,7 +558,7 @@ export default function InventoryPage() {
                         <p className="text-sm font-semibold">
                           {balance.product?.name}
                         </p>
-                        <p className="mt-1 text-xs text-[#172B4D]/45">
+                        <p className="mt-1 text-xs text-foreground/45">
                           {balance.product?.sku} · {balance.location?.name}
                         </p>
                       </div>
@@ -570,10 +570,10 @@ export default function InventoryPage() {
                 </div>
               )}
             </article>
-            <article className="bg-white p-6">
+            <article className="bg-card p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Adjustments</h2>
-                <ClipboardCheck size={19} className="text-[#2563EB]" />
+                <ClipboardCheck size={19} className="text-primary" />
               </div>
               <div className="mt-4 divide-y divide-[#172B4D]/10">
                 {adjustments.length ? (
@@ -583,17 +583,17 @@ export default function InventoryPage() {
                         <p className="text-sm font-semibold">
                           {adjustment.adjustmentNumber}
                         </p>
-                        <span className="text-[10px] uppercase tracking-[0.1em] text-[#2563EB]">
+                        <span className="text-[10px] uppercase tracking-[0.1em] text-primary">
                           {adjustment.status}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-[#172B4D]/45">
+                      <p className="mt-1 text-xs text-foreground/45">
                         {adjustment.location?.name} · {adjustment.reason}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="py-8 text-sm text-[#172B4D]/50">
+                  <p className="py-8 text-sm text-foreground/50">
                     No adjustments found.
                   </p>
                 )}

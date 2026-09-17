@@ -7,6 +7,7 @@ import {
 import { DatabaseService } from '../../database/database.service.js';
 import { PaginationService, PaginationParams } from '../../shared/services/pagination.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../../audit/audit-log.service.js';
 
 @Injectable()
 export class ReceiptsService {
@@ -15,6 +16,7 @@ export class ReceiptsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -88,6 +90,11 @@ export class ReceiptsService {
       where: { documentType: 'RECEIPT' },
       update: { currentNumber: nextNumber, year: currentYear },
       create: { documentType: 'RECEIPT', prefix: 'RCP', currentNumber: nextNumber, padding: 6, year: currentYear, status: 'ACTIVE' },
+    });
+
+    await this.auditLogService.logAction({
+      entityType: 'RECEIPT', entityId: receipt.id, action: 'CREATE',
+      afterData: { receiptNumber, paymentId: data.paymentId, invoiceId: data.invoiceId, amount: data.amount }, userId: data.userId,
     });
 
     this.logger.log(`Receipt generated: ${receiptNumber}`);

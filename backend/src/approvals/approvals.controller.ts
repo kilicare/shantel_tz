@@ -232,4 +232,11 @@ export class ApprovalsController {
       data: await this.expensesService.reject(id, req.user.sub, body.rejectionReason),
     };
   }
+
+  @Patch('expenses/:id/post')
+  @RequirePermission('expenses.approve')
+  @ApiOperation({ summary: 'Post approved expense' })
+  async postExpense(@Param('id') id: string, @Request() req: any) {
+    return { success: true, data: await this.expensesService.post(id, req.user.sub) };
+  }
 }

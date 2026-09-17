@@ -155,24 +155,24 @@ export default function ReportsPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Reporting hub
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
                 Business reports
               </h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">
+              <p className="mt-2 text-sm text-foreground/55">
                 Sales, inventory, purchasing, payments, expenses, customers, suppliers, and audit coverage.
               </p>
             </div>
             <button
               type="button"
               onClick={() => void loadReports()}
-              className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"
             >
               <RefreshCw size={15} /> Refresh
             </button>
@@ -193,11 +193,11 @@ export default function ReportsPage() {
               <a
                 key={href}
                 href={href}
-                className="rounded-2xl border border-[#172B4D]/12 bg-white p-5 transition-colors hover:border-[#2563EB]/30 hover:bg-[#F8FAFF]"
+                className="rounded-2xl border border-border-default bg-card p-5 transition-colors hover:border-border-default hover:bg-card"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">Report</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Report</p>
                 <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em]">{title}</h2>
-                <p className="mt-2 text-sm text-[#172B4D]/55">{desc}</p>
+                <p className="mt-2 text-sm text-foreground/55">{desc}</p>
               </a>
             ))}
           </div>
@@ -219,7 +219,7 @@ export default function ReportsPage() {
                   setLocationId(event.target.value);
                   void loadReports(event.target.value);
                 }}
-                className="ml-3 border border-[#172B4D]/15 bg-white px-3 py-2 text-sm normal-case tracking-normal"
+                className="ml-3 border border-border-default bg-card px-3 py-2 text-sm normal-case tracking-normal"
               >
                 <option value="">All locations</option>
                 {locations.map((location) => (
@@ -238,7 +238,7 @@ export default function ReportsPage() {
                   setProductId(event.target.value);
                   void loadReports(locationId);
                 }}
-                className="ml-3 border border-[#172B4D]/15 bg-white px-3 py-2 text-sm normal-case tracking-normal"
+                className="ml-3 border border-border-default bg-card px-3 py-2 text-sm normal-case tracking-normal"
               >
                 <option value="">All products</option>
                 {products.map((product) => (
@@ -253,14 +253,14 @@ export default function ReportsPage() {
                 key={format}
                 type="button"
                 onClick={() => exportReport(format)}
-                className="flex items-center gap-2 border border-[#172B4D]/15 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"
+                className="flex items-center gap-2 border border-border-default px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"
               >
                 <Download size={14} /> {format.toUpperCase()}
               </button>
             ))}
           </div>
           {loading ? (
-            <p className="mt-8 bg-white p-6 text-sm text-[#172B4D]/55">
+            <p className="mt-8 bg-card p-6 text-sm text-foreground/55">
               Loading inventory reports...
             </p>
           ) : (
@@ -295,16 +295,16 @@ export default function ReportsPage() {
                   ),
                 ],
               ].map(([title, rows]) => (
-                <section key={title as string} className="bg-white p-5">
+                <section key={title as string} className="bg-card p-5">
                   <h2 className="text-xl font-semibold">{title}</h2>
-                  <p className="mt-1 text-sm text-[#172B4D]/55">
+                  <p className="mt-1 text-sm text-foreground/55">
                     {(rows as string[]).length} records
                   </p>
                   <div className="mt-4 space-y-3">
                     {(rows as string[]).slice(0, 100).map((row, index) => (
                       <p
                         key={`${title}-${index}`}
-                        className="border-b border-[#172B4D]/10 pb-3 text-sm"
+                        className="border-b border-border-default pb-3 text-sm"
                       >
                         {row}
                       </p>

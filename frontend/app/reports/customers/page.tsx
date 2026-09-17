@@ -51,18 +51,18 @@ export default function CustomerReportsPage() {
 
   return <>
     <WorkspaceNavigation />
-    <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+    <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
-        <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+        <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Customer balance</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Customer balance</p>
             <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Customer report</h1>
-            <p className="mt-2 text-sm text-[#172B4D]/55">Posted customer activity, paid totals, and outstanding balances.</p>
+            <p className="mt-2 text-sm text-foreground/55">Posted customer activity, paid totals, and outstanding balances.</p>
           </div>
-          <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"><RefreshCw size={15} /> Refresh</button>
+          <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"><RefreshCw size={15} /> Refresh</button>
         </header>
         {error && <div className="mt-6"><AlertBanner>{error}</AlertBanner></div>}
-        {loading ? <LoadingState message="Loading customer report..." /> : customers.length === 0 ? <div className="mt-8"><EmptyState title="No customer balances" description="No customer activity found for the current data set." /></div> : <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{customers.map((customer) => <ShantelCard key={customer.id} className="p-5"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#2563EB]">Customer</p><h2 className="mt-2 text-xl font-semibold">{customer.name}</h2><div className="mt-4 space-y-2 text-sm"><p>Total invoiced: <span className="font-semibold">{money.format(customer.totalInvoiced)}</span></p><p>Total paid: <span className="font-semibold">{money.format(customer.totalPaid)}</span></p><p>Total returned: <span className="font-semibold">{money.format(customer.totalReturned)}</span></p><p>Outstanding: <span className="font-semibold">{money.format(customer.totalBalance)}</span></p></div></ShantelCard>)}</section>}
+        {loading ? <LoadingState message="Loading customer report..." /> : customers.length === 0 ? <div className="mt-8"><EmptyState title="No customer balances" description="No customer activity found for the current data set." /></div> : <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{customers.map((customer) => <ShantelCard key={customer.id} className="p-5"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Customer</p><h2 className="mt-2 text-xl font-semibold">{customer.name}</h2><div className="mt-4 space-y-2 text-sm"><p>Total invoiced: <span className="font-semibold">{money.format(customer.totalInvoiced)}</span></p><p>Total paid: <span className="font-semibold">{money.format(customer.totalPaid)}</span></p><p>Total returned: <span className="font-semibold">{money.format(customer.totalReturned)}</span></p><p>Outstanding: <span className="font-semibold">{money.format(customer.totalBalance)}</span></p></div></ShantelCard>)}</section>}
       </div>
     </main>
   </>;

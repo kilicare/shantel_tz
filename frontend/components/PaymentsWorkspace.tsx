@@ -248,40 +248,40 @@ export function PaymentsWorkspace() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto w-full min-w-0 max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">Finance desk</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Finance desk</p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Payments & Finance</h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">Record payments, generate receipts, process refunds, and manage expenses.</p>
+              <p className="mt-2 text-sm text-foreground/55">Record payments, generate receipts, process refunds, and manage expenses.</p>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]">
+              <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]">
                 <RefreshCw size={15} /> Refresh
               </button>
               {permissions.includes("payments.record") && (
-                <button type="button" onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                <button type="button" onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white">
                   <CreditCard size={15} /> {showForm ? "Close" : "Record payment"}
                 </button>
               )}
             </div>
           </header>
 
-          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]">
+          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-primary/80 px-4 py-3 text-sm text-muted-foreground">
             <AlertCircle size={18} /> {error}
           </div>}
-          {message && <div role="status" className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]">
+          {message && <div role="status" className="mt-6 border border-border-default bg-primary/80 px-4 py-3 text-sm text-muted-foreground">
             <Check size={18} className="inline mr-2" /> {message}
           </div>}
 
           {/* Payment Recording Form */}
           {showForm && (
-            <form onSubmit={record} className="mt-8 grid gap-4 bg-[#172B4D] p-6 text-[#F6F8FB] sm:grid-cols-2">
+            <form onSubmit={record} className="mt-8 grid gap-4 bg-primary p-6 text-primary-foreground sm:grid-cols-2">
               <h2 className="text-xl font-semibold sm:col-span-2">Record Customer Payment</h2>
               
               <div className="sm:col-span-2">
-                <label className="block mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#F6F8FB]/55">Payment Type</label>
+                <label className="block mb-2 text-xs font-semibold uppercase tracking-[0.15em] text-primary-foreground/55">Payment Type</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -308,28 +308,28 @@ export function PaymentsWorkspace() {
                 </div>
               </div>
 
-              <select required aria-label="Payment customer" value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value, invoiceId: "" })} className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]">
+              <select required aria-label="Payment customer" value={form.customerId} onChange={(event) => setForm({ ...form, customerId: event.target.value, invoiceId: "" })} className="h-11 bg-background px-2 text-sm text-foreground">
                 <option value="">Select customer</option>
                 {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
               </select>
 
               {form.paymentType === "with_invoice" && (
-                <select required aria-label="Payment invoice" value={form.invoiceId} onChange={(event) => setForm({ ...form, invoiceId: event.target.value })} className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]">
+                <select required aria-label="Payment invoice" value={form.invoiceId} onChange={(event) => setForm({ ...form, invoiceId: event.target.value })} className="h-11 bg-background px-2 text-sm text-foreground">
                   <option value="">Select invoice</option>
                   {customerInvoices.map((invoice) => <option key={invoice.id} value={invoice.id}>{invoice.invoiceNumber} · balance TSh {Number(invoice.balance).toLocaleString()}</option>)}
                 </select>
               )}
 
-              <input required aria-label="Payment amount" type="number" min="0.01" step="0.01" placeholder="Amount" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} className="h-11 px-3 text-sm text-[#172B4D]" />
+              <input required aria-label="Payment amount" type="number" min="0.01" step="0.01" placeholder="Amount" value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} className="h-11 px-3 text-sm text-foreground" />
               
-              <select required aria-label="Payment method" value={form.paymentMethodId} onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })} className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]">
+              <select required aria-label="Payment method" value={form.paymentMethodId} onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })} className="h-11 bg-background px-2 text-sm text-foreground">
                 <option value="">Select payment method</option>
                 {methods.map((method) => <option key={method.id} value={method.id}>{method.name} ({method.code})</option>)}
               </select>
 
-              <input aria-label="Transaction reference" type="text" placeholder="Transaction reference (optional)" value={form.transactionReference} onChange={(event) => setForm({ ...form, transactionReference: event.target.value })} className="h-11 px-3 text-sm text-[#172B4D]" />
+              <input aria-label="Transaction reference" type="text" placeholder="Transaction reference (optional)" value={form.transactionReference} onChange={(event) => setForm({ ...form, transactionReference: event.target.value })} className="h-11 px-3 text-sm text-foreground" />
               
-              <input aria-label="Notes" type="text" placeholder="Notes (optional)" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} className="h-11 px-3 text-sm text-[#172B4D]" />
+              <input aria-label="Notes" type="text" placeholder="Notes (optional)" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} className="h-11 px-3 text-sm text-foreground" />
 
               {/* Payment Type Info */}
               {form.amount && (
@@ -348,25 +348,25 @@ export function PaymentsWorkspace() {
                 </div>
               )}
 
-              <button type="submit" className="bg-[#D4A72C] px-4 py-3 text-sm font-semibold text-[#172B4D] sm:col-span-2">Record payment</button>
+              <button type="submit" className="bg-card px-4 py-3 text-sm font-semibold text-foreground sm:col-span-2">Record payment</button>
             </form>
           )}
 
           {/* Recent Payments */}
-          <section className="mt-8 bg-white p-5">
+          <section className="mt-8 bg-card p-5">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">Recent payments</h2>
-                <p className="text-xs text-[#172B4D]/50 mt-1">Customer payments with status tracking</p>
+                <p className="text-xs text-foreground/50 mt-1">Customer payments with status tracking</p>
               </div>
               <div className="flex gap-2">
                 {permissions.includes("payments.record") && (
-                  <button type="button" onClick={() => setShowReceiptForm(!showReceiptForm)} className="flex items-center gap-2 border border-[#172B4D]/15 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
+                  <button type="button" onClick={() => setShowReceiptForm(!showReceiptForm)} className="flex items-center gap-2 border border-border-default px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
                     <FileText size={14} /> Generate Receipt
                   </button>
                 )}
                 {permissions.includes("payments.record") && (
-                  <button type="button" onClick={() => setShowRefundForm(!showRefundForm)} className="flex items-center gap-2 border border-[#172B4D]/15 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
+                  <button type="button" onClick={() => setShowRefundForm(!showRefundForm)} className="flex items-center gap-2 border border-border-default px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em]">
                     <DollarSign size={14} /> Process Refund
                   </button>
                 )}
@@ -374,22 +374,22 @@ export function PaymentsWorkspace() {
             </div>
 
             <div className="relative mt-6">
-              <Search size={17} className="absolute left-0 top-3 text-[#172B4D]/35" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search payment or customer" className="h-11 w-full border-b border-[#172B4D]/15 bg-transparent pl-7 text-sm outline-none focus:border-[#2563EB]" />
+              <Search size={17} className="absolute left-0 top-3 text-foreground/35" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search payment or customer" className="h-11 w-full border-b border-border-default bg-transparent pl-7 text-sm outline-none focus:border-primary" />
             </div>
 
             {loading ? (
-              <p className="py-8 text-sm text-[#172B4D]/50">Loading payments...</p>
+              <p className="py-8 text-sm text-foreground/50">Loading payments...</p>
             ) : (
-              <div className="mt-4 divide-y divide-[#172B4D]/10">
+              <div className="mt-4 divide-y divide-border-default">
                 {filteredPayments.map((payment) => (
                   <div key={payment.id} className="flex items-center justify-between py-4">
                     <div className="flex items-center gap-3">
                       {payment.paymentMethod && getPaymentMethodIcon(payment.paymentMethod.code)}
                       <div>
                         <p className="text-sm font-semibold">{payment.paymentNumber}</p>
-                        <p className="text-xs text-[#172B4D]/50">{payment.customer?.name} · {payment.paymentMethod?.name}</p>
-                        {payment.transactionReference && <p className="text-xs text-[#172B4D]/35">Ref: {payment.transactionReference}</p>}
+                        <p className="text-xs text-foreground/50">{payment.customer?.name} · {payment.paymentMethod?.name}</p>
+                        {payment.transactionReference && <p className="text-xs text-foreground/35">Ref: {payment.transactionReference}</p>}
                       </div>
                     </div>
                     <div className="text-right">
@@ -397,16 +397,16 @@ export function PaymentsWorkspace() {
                       <StatusBadge status={payment.status ?? "RECORDED"} />
                       <div className="mt-2 flex gap-2 justify-end">
                         {payment.status === "RECORDED" && permissions.includes("payments.record") && (
-                          <button type="button" onClick={() => postPayment(payment.id)} className="text-xs text-[#2563EB] hover:underline">Post</button>
+                          <button type="button" onClick={() => postPayment(payment.id)} className="text-xs text-primary hover:underline">Post</button>
                         )}
-                        <button type="button" onClick={() => { setSelectedPayment(payment); setReceiptForm({ ...receiptForm, paymentId: payment.id, amount: String(payment.amount) }); setShowReceiptForm(true); }} className="text-xs text-[#2563EB] hover:underline">Receipt</button>
+                        <button type="button" onClick={() => { setSelectedPayment(payment); setReceiptForm({ ...receiptForm, paymentId: payment.id, amount: String(payment.amount) }); setShowReceiptForm(true); }} className="text-xs text-primary hover:underline">Receipt</button>
                       </div>
                     </div>
                   </div>
                 ))}
                 {filteredPayments.length === 0 && (
                   <div className="py-10 text-center">
-                    <p className="text-sm text-[#172B4D]/50">No payments found.</p>
+                    <p className="text-sm text-foreground/50">No payments found.</p>
                   </div>
                 )}
               </div>
@@ -415,55 +415,55 @@ export function PaymentsWorkspace() {
 
           {/* Receipt Generation Form */}
           {showReceiptForm && (
-            <form onSubmit={generateReceipt} className="mt-8 grid gap-4 bg-white p-6 sm:grid-cols-2">
+            <form onSubmit={generateReceipt} className="mt-8 grid gap-4 bg-card p-6 sm:grid-cols-2">
               <h2 className="text-xl font-semibold sm:col-span-2">Generate Receipt</h2>
-              <select required aria-label="Payment for receipt" value={receiptForm.paymentId} onChange={(event) => setReceiptForm({ ...receiptForm, paymentId: event.target.value })} className="h-11 border border-[#172B4D]/15 px-2 text-sm text-[#172B4D]">
+              <select required aria-label="Payment for receipt" value={receiptForm.paymentId} onChange={(event) => setReceiptForm({ ...receiptForm, paymentId: event.target.value })} className="h-11 border border-border-default px-2 text-sm text-foreground">
                 <option value="">Select payment</option>
                 {payments.filter((p) => p.status === "POSTED").map((payment) => (
                   <option key={payment.id} value={payment.id}>{payment.paymentNumber} · TSh {Number(payment.amount || 0).toLocaleString()}</option>
                 ))}
               </select>
-              <input required aria-label="Receipt amount" type="number" min="0.01" step="0.01" placeholder="Amount" value={receiptForm.amount} onChange={(event) => setReceiptForm({ ...receiptForm, amount: event.target.value })} className="h-11 border border-[#172B4D]/15 px-3 text-sm text-[#172B4D]" />
-              <input aria-label="Receipt notes" type="text" placeholder="Notes (optional)" value={receiptForm.notes} onChange={(event) => setReceiptForm({ ...receiptForm, notes: event.target.value })} className="h-11 border border-[#172B4D]/15 px-3 text-sm text-[#172B4D] sm:col-span-2" />
-              <button type="submit" className="bg-[#172B4D] px-4 py-3 text-sm font-semibold text-white sm:col-span-2">Generate Receipt</button>
+              <input required aria-label="Receipt amount" type="number" min="0.01" step="0.01" placeholder="Amount" value={receiptForm.amount} onChange={(event) => setReceiptForm({ ...receiptForm, amount: event.target.value })} className="h-11 border border-border-default px-3 text-sm text-foreground" />
+              <input aria-label="Receipt notes" type="text" placeholder="Notes (optional)" value={receiptForm.notes} onChange={(event) => setReceiptForm({ ...receiptForm, notes: event.target.value })} className="h-11 border border-border-default px-3 text-sm text-foreground sm:col-span-2" />
+              <button type="submit" className="bg-primary px-4 py-3 text-sm font-semibold text-white sm:col-span-2">Generate Receipt</button>
             </form>
           )}
 
           {/* Refund Form */}
           {showRefundForm && (
-            <form onSubmit={createRefund} className="mt-8 grid gap-4 bg-white p-6 sm:grid-cols-2">
+            <form onSubmit={createRefund} className="mt-8 grid gap-4 bg-card p-6 sm:grid-cols-2">
               <h2 className="text-xl font-semibold sm:col-span-2">Process Refund</h2>
-              <select required aria-label="Original payment" value={refundForm.paymentId} onChange={(event) => setRefundForm({ ...refundForm, paymentId: event.target.value })} className="h-11 border border-[#172B4D]/15 px-2 text-sm text-[#172B4D]">
+              <select required aria-label="Original payment" value={refundForm.paymentId} onChange={(event) => setRefundForm({ ...refundForm, paymentId: event.target.value })} className="h-11 border border-border-default px-2 text-sm text-foreground">
                 <option value="">Select original payment</option>
                 {payments.filter((p) => p.status === "POSTED").map((payment) => (
                   <option key={payment.id} value={payment.id}>{payment.paymentNumber} · TSh {Number(payment.amount || 0).toLocaleString()}</option>
                 ))}
               </select>
-              <input required aria-label="Refund amount" type="number" min="0.01" step="0.01" placeholder="Refund amount" value={refundForm.refundAmount} onChange={(event) => setRefundForm({ ...refundForm, refundAmount: event.target.value })} className="h-11 border border-[#172B4D]/15 px-3 text-sm text-[#172B4D]" />
-              <select required aria-label="Refund payment method" value={refundForm.paymentMethodId} onChange={(event) => setRefundForm({ ...refundForm, paymentMethodId: event.target.value })} className="h-11 border border-[#172B4D]/15 px-2 text-sm text-[#172B4D]">
+              <input required aria-label="Refund amount" type="number" min="0.01" step="0.01" placeholder="Refund amount" value={refundForm.refundAmount} onChange={(event) => setRefundForm({ ...refundForm, refundAmount: event.target.value })} className="h-11 border border-border-default px-3 text-sm text-foreground" />
+              <select required aria-label="Refund payment method" value={refundForm.paymentMethodId} onChange={(event) => setRefundForm({ ...refundForm, paymentMethodId: event.target.value })} className="h-11 border border-border-default px-2 text-sm text-foreground">
                 <option value="">Select refund method</option>
                 {methods.map((method) => <option key={method.id} value={method.id}>{method.name}</option>)}
               </select>
-              <input aria-label="Refund reason" type="text" placeholder="Reason for refund" value={refundForm.reason} onChange={(event) => setRefundForm({ ...refundForm, reason: event.target.value })} className="h-11 border border-[#172B4D]/15 px-3 text-sm text-[#172B4D]" />
-              <input aria-label="Refund notes" type="text" placeholder="Additional notes (optional)" value={refundForm.notes} onChange={(event) => setRefundForm({ ...refundForm, notes: event.target.value })} className="h-11 border border-[#172B4D]/15 px-3 text-sm text-[#172B4D] sm:col-span-2" />
-              <button type="submit" className="bg-[#172B4D] px-4 py-3 text-sm font-semibold text-white sm:col-span-2">Process Refund</button>
+              <input aria-label="Refund reason" type="text" placeholder="Reason for refund" value={refundForm.reason} onChange={(event) => setRefundForm({ ...refundForm, reason: event.target.value })} className="h-11 border border-border-default px-3 text-sm text-foreground" />
+              <input aria-label="Refund notes" type="text" placeholder="Additional notes (optional)" value={refundForm.notes} onChange={(event) => setRefundForm({ ...refundForm, notes: event.target.value })} className="h-11 border border-border-default px-3 text-sm text-foreground sm:col-span-2" />
+              <button type="submit" className="bg-primary px-4 py-3 text-sm font-semibold text-white sm:col-span-2">Process Refund</button>
             </form>
           )}
 
           {/* Recent Receipts */}
           {receipts.length > 0 && (
-            <section className="mt-8 bg-white p-5">
+            <section className="mt-8 bg-card p-5">
               <h2 className="text-xl font-semibold">Recent receipts</h2>
-              <div className="mt-4 divide-y divide-[#172B4D]/10">
+              <div className="mt-4 divide-y divide-border-default">
                 {receipts.slice(0, 5).map((receipt) => (
                   <div key={receipt.id} className="flex items-center justify-between py-4">
                     <div>
                       <p className="text-sm font-semibold">{receipt.receiptNumber}</p>
-                      <p className="text-xs text-[#172B4D]/50">{new Date(receipt.receiptDate).toLocaleDateString()}</p>
+                      <p className="text-xs text-foreground/50">{new Date(receipt.receiptDate).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold">TSh {Number(receipt.amount).toLocaleString()}</p>
-                      <button type="button" onClick={() => setViewReceipt(receipt)} className="text-xs text-[#2563EB] hover:underline flex items-center gap-1 mt-1">
+                      <button type="button" onClick={() => setViewReceipt(receipt)} className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
                         <Eye size={12} /> View
                       </button>
                     </div>
@@ -475,15 +475,15 @@ export function PaymentsWorkspace() {
 
           {/* Recent Refunds */}
           {refunds.length > 0 && (
-            <section className="mt-8 bg-white p-5">
+            <section className="mt-8 bg-card p-5">
               <h2 className="text-xl font-semibold">Recent refunds</h2>
-              <div className="mt-4 divide-y divide-[#172B4D]/10">
+              <div className="mt-4 divide-y divide-border-default">
                 {refunds.slice(0, 5).map((refund) => (
                   <div key={refund.id} className="flex items-center justify-between py-4">
                     <div>
                       <p className="text-sm font-semibold">{refund.paymentNumber}</p>
-                      <p className="text-xs text-[#172B4D]/50">{refund.customer?.name} · {refund.paymentMethod?.name}</p>
-                      {refund.transactionReference && <p className="text-xs text-[#172B4D]/35">Ref: {refund.transactionReference}</p>}
+                      <p className="text-xs text-foreground/50">{refund.customer?.name} · {refund.paymentMethod?.name}</p>
+                      {refund.transactionReference && <p className="text-xs text-foreground/35">Ref: {refund.transactionReference}</p>}
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-red-600">TSh {Number(refund.amount || 0).toLocaleString()}</p>
@@ -497,48 +497,48 @@ export function PaymentsWorkspace() {
 
           {/* Receipt View Modal */}
           {viewReceipt && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#172B4D]/55 px-4" role="dialog" aria-modal="true">
-              <div className="w-full max-w-md bg-white p-6 text-[#172B4D] shadow-2xl">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/55 px-4" role="dialog" aria-modal="true">
+              <div className="w-full max-w-md bg-card p-6 text-foreground shadow-2xl">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#2563EB]">Receipt</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Receipt</p>
                     <h2 className="mt-2 text-xl font-semibold">{viewReceipt.receiptNumber}</h2>
                   </div>
-                  <button type="button" onClick={() => setViewReceipt(null)} className="rounded-lg p-2 text-[#172B4D]/50 hover:bg-[#F6F8FB]">
+                  <button type="button" onClick={() => setViewReceipt(null)} className="rounded-lg p-2 text-foreground/50 hover:bg-background">
                     ×
                   </button>
                 </div>
                 <div className="mt-6 space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-[#172B4D]/70">Date:</span>
+                    <span className="text-sm text-foreground/70">Date:</span>
                     <span className="text-sm font-semibold">{new Date(viewReceipt.receiptDate).toLocaleDateString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-[#172B4D]/70">Amount:</span>
+                    <span className="text-sm text-foreground/70">Amount:</span>
                     <span className="text-sm font-semibold">TSh {Number(viewReceipt.amount).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-[#172B4D]/70">Customer:</span>
+                    <span className="text-sm text-foreground/70">Customer:</span>
                     <span className="text-sm font-semibold">{viewReceipt.customer?.name ?? viewReceipt.customerId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-[#172B4D]/70">Invoice:</span>
+                    <span className="text-sm text-foreground/70">Invoice:</span>
                     <span className="text-sm font-semibold">{viewReceipt.invoice?.invoiceNumber ?? "Advance / no invoice"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-[#172B4D]/70">In words:</span>
+                    <span className="text-sm text-foreground/70">In words:</span>
                     <span className="text-sm font-semibold">{amountInWords(Number(viewReceipt.amount))}</span>
                   </div>
                   {viewReceipt.notes && (
-                    <div className="border-t border-[#172B4D]/10 pt-3">
-                      <span className="text-sm text-[#172B4D]/70">Notes:</span>
+                    <div className="border-t border-border-default pt-3">
+                      <span className="text-sm text-foreground/70">Notes:</span>
                       <p className="text-sm mt-1">{viewReceipt.notes}</p>
                     </div>
                   )}
                 </div>
                 <div className="mt-6 flex gap-2">
-                  <button type="button" onClick={() => setViewReceipt(null)} className="flex-1 bg-[#172B4D] px-4 py-3 text-sm font-semibold text-white">Close</button>
-                  <button type="button" onClick={() => void printReceipt(viewReceipt.id)} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-3 text-sm font-semibold">
+                  <button type="button" onClick={() => setViewReceipt(null)} className="flex-1 bg-primary px-4 py-3 text-sm font-semibold text-white">Close</button>
+                  <button type="button" onClick={() => void printReceipt(viewReceipt.id)} className="flex items-center gap-2 border border-border-default px-4 py-3 text-sm font-semibold">
                     <Printer size={16} /> Print PDF
                   </button>
                 </div>

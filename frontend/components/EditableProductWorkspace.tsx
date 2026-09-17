@@ -154,15 +154,15 @@ export function EditableProductWorkspace() {
       .includes(search.toLowerCase()),
   );
   const input =
-    "h-11 border-b border-white/25 bg-transparent text-sm outline-none";
+    "h-11 border-b border-border-default/25 bg-transparent text-sm outline-none";
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen min-w-0 bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen min-w-0 bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto min-w-0 max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Product master
               </p>
               <h1 className="mt-2 text-4xl font-semibold">Products</h1>
@@ -171,7 +171,7 @@ export function EditableProductWorkspace() {
               <button
                 type="button"
                 onClick={() => void load()}
-                className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"
               >
                 <RefreshCw size={15} /> Refresh
               </button>
@@ -182,7 +182,7 @@ export function EditableProductWorkspace() {
                   setForm(blank);
                   setOpen(!open);
                 }}
-                className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"
+                className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"
               >
                 <Plus size={15} /> New product
               </button>
@@ -191,7 +191,7 @@ export function EditableProductWorkspace() {
           {error && (
             <div
               role="alert"
-              className="mt-6 flex items-center gap-3 text-sm text-[#5B3A0F]"
+              className="mt-6 flex items-center gap-3 text-sm text-muted-foreground"
             >
               <AlertCircle size={18} /> {error}
             </div>
@@ -199,7 +199,7 @@ export function EditableProductWorkspace() {
           {message && (
             <div
               role="status"
-              className="mt-6 flex items-center gap-2 text-sm text-[#16805C]"
+              className="mt-6 flex items-center gap-2 text-sm text-muted-foreground"
             >
               <Check size={16} /> {message}
             </div>
@@ -207,7 +207,7 @@ export function EditableProductWorkspace() {
           {open && (
             <form
               onSubmit={save}
-              className="mt-8 grid gap-4 bg-[#172B4D] p-6 text-[#F6F8FB] sm:grid-cols-2"
+              className="mt-8 grid gap-4 bg-primary p-6 text-primary-foreground sm:grid-cols-2"
             >
               <h2 className="text-xl font-semibold sm:col-span-2">
                 {editingId ? "Edit Product" : "New Product"}
@@ -242,7 +242,7 @@ export function EditableProductWorkspace() {
                 onChange={(e) =>
                   setForm({ ...form, categoryId: e.target.value })
                 }
-                className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]"
+                className="h-11 bg-background px-2 text-sm text-foreground"
               >
                 <option value="">Category</option>
                 {categories.map((v) => (
@@ -255,7 +255,7 @@ export function EditableProductWorkspace() {
                 aria-label="Brand"
                 value={form.brandId}
                 onChange={(e) => setForm({ ...form, brandId: e.target.value })}
-                className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]"
+                className="h-11 bg-background px-2 text-sm text-foreground"
               >
                 <option value="">Brand</option>
                 {brands.map((v) => (
@@ -269,7 +269,7 @@ export function EditableProductWorkspace() {
                 aria-label="Unit"
                 value={form.unitId}
                 onChange={(e) => setForm({ ...form, unitId: e.target.value })}
-                className="h-11 bg-[#F6F8FB] px-2 text-sm text-[#172B4D]"
+                className="h-11 bg-background px-2 text-sm text-foreground"
               >
                 <option value="">Unit</option>
                 {units.map((v) => (
@@ -312,16 +312,16 @@ export function EditableProductWorkspace() {
               </label>
               <button
                 type="submit"
-                className="bg-[#D4A72C] px-4 py-2.5 text-xs font-semibold text-[#172B4D] sm:col-span-2"
+                className="bg-card px-4 py-2.5 text-xs font-semibold text-foreground sm:col-span-2"
               >
                 {editingId ? "Save changes" : "Create product"}
               </button>
             </form>
           )}
-          <section className="mt-8 bg-white p-6">
+          <section className="mt-8 bg-card p-6">
             <div className="flex items-end justify-between">
               <h2 className="text-2xl font-semibold">Products</h2>
-              <span className="text-xs text-[#172B4D]/45">
+              <span className="text-xs text-foreground/45">
                 {filtered.length} records
               </span>
             </div>
@@ -330,12 +330,12 @@ export function EditableProductWorkspace() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, SKU or barcode"
-              className="mt-5 h-11 w-full border-b border-[#172B4D]/15 bg-transparent text-sm outline-none"
+              className="mt-5 h-11 w-full border-b border-border-default bg-transparent text-sm outline-none"
             />
             {loading ? (
-              <p className="py-10 text-sm text-[#172B4D]/50">Loading...</p>
+              <p className="py-10 text-sm text-foreground/50">Loading...</p>
             ) : (
-              <div className="mt-4 divide-y divide-[#172B4D]/10">
+              <div className="mt-4 divide-y divide-border-default">
                 {filtered.map((product) => (
                   <div
                     key={product.id}
@@ -343,7 +343,7 @@ export function EditableProductWorkspace() {
                   >
                     <div>
                       <p className="text-sm font-semibold">{product.name}</p>
-                      <p className="text-xs text-[#172B4D]/45">
+                      <p className="text-xs text-foreground/45">
                         {product.sku}
                         {product.barcode ? ` · ${product.barcode}` : ""} ·{" "}
                         {product.status}
@@ -362,7 +362,7 @@ export function EditableProductWorkspace() {
                         type="button"
                         aria-label={`Deactivate ${product.name}`}
                         onClick={() => void deactivate(product)}
-                        className="p-2 text-[#2563EB]"
+                        className="p-2 text-primary"
                       >
                         <Trash2 size={15} />
                       </button>

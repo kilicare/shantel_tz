@@ -79,17 +79,17 @@ export default function AdjustmentsPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <header className="flex items-end justify-between border-b border-[#172B4D]/12 pb-7">
+          <header className="flex items-end justify-between border-b border-border-default pb-7">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Inventory control
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
                 Stock adjustments
               </h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">
+              <p className="mt-2 text-sm text-foreground/55">
                 Approve and post physical-count corrections with an accountable
                 trail.
               </p>
@@ -97,7 +97,7 @@ export default function AdjustmentsPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
             >
               <RefreshCw size={15} /> Refresh
             </button>
@@ -105,7 +105,7 @@ export default function AdjustmentsPage() {
           {error && (
             <div
               role="alert"
-              className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"
+              className="mt-6 flex items-center gap-3 border border-border-default bg-primary/8 px-4 py-3 text-sm text-muted-foreground"
             >
               <AlertCircle size={18} /> {error}
             </div>
@@ -113,12 +113,12 @@ export default function AdjustmentsPage() {
           {message && (
             <div
               role="status"
-              className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]"
+              className="mt-6 border border-border-default bg-status-success-surface px-4 py-3 text-sm text-muted-foreground"
             >
               {message}
             </div>
           )}
-          <section className="mt-8 bg-white p-6">
+          <section className="mt-8 bg-card p-6">
             <div className="divide-y divide-[#172B4D]/10">
               {adjustments.length ? (
                 adjustments.map((adjustment) => (
@@ -130,12 +130,12 @@ export default function AdjustmentsPage() {
                       <p className="text-sm font-semibold">
                         {adjustment.adjustmentNumber}
                       </p>
-                      <p className="mt-1 text-xs text-[#172B4D]/45">
+                      <p className="mt-1 text-xs text-foreground/45">
                         {adjustment.location?.name} · {adjustment.reason}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#2563EB]">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
                         {adjustment.status}
                       </span>
                       {canApprove && adjustment.status === "DRAFT" && (
@@ -154,7 +154,7 @@ export default function AdjustmentsPage() {
                             onClick={() =>
                               void changeStatus(adjustment.id, "approve")
                             }
-                            className="flex items-center gap-2 bg-[#172B4D] px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white"
+                            className="flex items-center gap-2 bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white"
                           >
                             <Check size={14} /> Approve
                           </button>
@@ -166,7 +166,7 @@ export default function AdjustmentsPage() {
                           onClick={() =>
                             void changeStatus(adjustment.id, "post")
                           }
-                          className="flex items-center gap-2 border border-[#172B4D]/20 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"
+                          className="flex items-center gap-2 border border-border-default px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"
                         >
                           <Upload size={14} /> Post
                         </button>
@@ -175,7 +175,7 @@ export default function AdjustmentsPage() {
                   </div>
                 ))
               ) : (
-                <p className="py-10 text-center text-sm text-[#172B4D]/50">
+                <p className="py-10 text-center text-sm text-foreground/50">
                   No adjustments found.
                 </p>
               )}

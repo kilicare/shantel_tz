@@ -10,6 +10,7 @@ import { DatabaseService } from '../database/database.service.js';
 import { PaginationService, PaginationParams } from '../shared/services/pagination.service.js';
 import { ApprovalsService } from '../approvals/approvals.service.js';
 import { Prisma } from '@prisma/client';
+import { AuditLogService } from '../audit/audit-log.service.js';
 
 @Injectable()
 export class ExpensesService {
@@ -20,6 +21,7 @@ export class ExpensesService {
     private paginationService: PaginationService,
     @Inject(forwardRef(() => ApprovalsService))
     private approvalsService: ApprovalsService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -254,6 +256,25 @@ export class ExpensesService {
     });
 
     return result;
+  }
+
+  async post(expenseId: string, userId: string) {
+    const expense = await this.db.expense.findUnique({ where: { id: expenseId } });
+    if (!expense) throw new NotFoundException(`Expense not found`);
+    if (expense.status !== 'APPROVED') throw new BadRequestException(`Only APPROVED expenses can be posted`);
+
+    const posted = await this.db.expense.update({
+      where: { id: expenseId },
+      data: { status: 'POSTED', postedById: userId, postedAt: new Date() },
+      include: { category: true, paymentMethod: true, project: true },
+    });
+
+    await this.auditLogService.logAction({
+      entityType: 'EXPENSE', entityId: expenseId, action: 'POST',
+      beforeData: { status: expense.status }, afterData: { status: posted.status }, userId,
+    });
+
+    return posted;
   }
 
   /**

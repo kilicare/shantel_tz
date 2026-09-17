@@ -138,17 +138,17 @@ export default function PurchasingPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-[#F6F8FB] px-4 py-5 text-[#172B4D] sm:px-6 sm:py-8 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-[#172B4D]/12 pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#2563EB]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Procurement desk
               </p>
               <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
                 Move purchases into stock.
               </h1>
-              <p className="mt-2 text-sm text-[#172B4D]/55">
+              <p className="mt-2 text-sm text-foreground/55">
                 Requisitions, purchase orders, and receiving in one controlled
                 flow.
               </p>
@@ -156,7 +156,7 @@ export default function PurchasingPage() {
             <button
               type="button"
               onClick={() => void loadPurchasing()}
-              className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
             >
               <RefreshCw size={15} /> Refresh data
             </button>
@@ -164,7 +164,7 @@ export default function PurchasingPage() {
           {error && (
             <div
               role="alert"
-              className="mt-6 flex items-center gap-3 border border-[#2563EB]/30 bg-[#2563EB]/8 px-4 py-3 text-sm text-[#5B3A0F]"
+              className="mt-6 flex items-center gap-3 border border-border-default bg-primary/8 px-4 py-3 text-sm text-muted-foreground"
             >
               <AlertCircle size={18} /> {error}
             </div>
@@ -172,19 +172,19 @@ export default function PurchasingPage() {
           {message && (
             <div
               role="status"
-              className="mt-6 border border-[#16805C]/30 bg-[#16805C]/10 px-4 py-3 text-sm text-[#16805C]"
+              className="mt-6 border border-border-default bg-status-success-surface px-4 py-3 text-sm text-muted-foreground"
             >
               {message}
             </div>
           )}
           <section className="mt-8 grid gap-4 md:grid-cols-3">
             {lists.map(({ title, icon: Icon, items }) => (
-              <article key={title} className="bg-white p-5">
+              <article key={title} className="bg-card p-5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#172B4D]/48">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/48">
                     {title}
                   </p>
-                  <Icon size={18} className="text-[#2563EB]" />
+                  <Icon size={18} className="text-primary" />
                 </div>
                 <p className="mt-7 text-3xl font-semibold">
                   {loading ? "..." : items.length}
@@ -200,7 +200,7 @@ export default function PurchasingPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 bg-[#172B4D] px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-white"
+                className="flex items-center gap-2 bg-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em] text-white"
               >
                 <Plus size={15} /> New requisition
               </button>
@@ -209,7 +209,7 @@ export default function PurchasingPage() {
               <button
                 type="button"
                 onClick={() => window.location.assign("/approvals")}
-                className="border border-[#172B4D]/20 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]"
+                className="border border-border-default bg-card px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]"
               >
                 Review approvals
               </button>
@@ -218,7 +218,7 @@ export default function PurchasingPage() {
                 <button
                   type="button"
                   onClick={() => window.location.assign("/purchasing/orders")}
-                  className="border border-[#172B4D]/20 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]"
+                  className="border border-border-default bg-card px-4 py-3 text-xs font-semibold uppercase tracking-[0.1em]"
                 >
                   Post GRN
                 </button>
@@ -227,11 +227,11 @@ export default function PurchasingPage() {
           {showForm && (
             <form
               onSubmit={createRequisition}
-              className="mt-8 bg-[#172B4D] p-6 text-[#F6F8FB] sm:p-8"
+              className="mt-8 bg-primary p-6 text-primary-foreground sm:p-8"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D4A72C]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-amber">
                     Purchase request
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">
@@ -247,7 +247,7 @@ export default function PurchasingPage() {
                 </button>
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Product
                   <select
                     aria-label="Requisition product"
@@ -255,7 +255,7 @@ export default function PurchasingPage() {
                     onChange={(event) =>
                       setForm({ ...form, productId: event.target.value })
                     }
-                    className="mt-2 h-11 w-full bg-[#172B4D] text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal outline-none"
                   >
                     <option value="">Select product</option>
                     {products.map((product) => (
@@ -265,7 +265,7 @@ export default function PurchasingPage() {
                     ))}
                   </select>
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
                   Quantity
                   <input
                     aria-label="Requisition quantity"
@@ -275,10 +275,10 @@ export default function PurchasingPage() {
                     onChange={(event) =>
                       setForm({ ...form, quantity: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
-                <label className="text-xs uppercase tracking-[0.12em] text-[#F6F8FB]/60 sm:col-span-2">
+                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60 sm:col-span-2">
                   Notes
                   <input
                     aria-label="Requisition notes"
@@ -286,14 +286,14 @@ export default function PurchasingPage() {
                     onChange={(event) =>
                       setForm({ ...form, notes: event.target.value })
                     }
-                    className="mt-2 h-11 w-full border-b border-[#F6F8FB]/20 bg-transparent text-sm normal-case tracking-normal outline-none"
+                    className="mt-2 h-11 w-full border-b border-border-default bg-transparent text-sm normal-case tracking-normal outline-none"
                   />
                 </label>
               </div>
               <button
                 type="submit"
                 disabled={saving}
-                className="mt-6 bg-[#D4A72C] px-5 py-3 text-sm font-semibold text-[#172B4D] disabled:opacity-50"
+                className="mt-6 bg-card px-5 py-3 text-sm font-semibold text-foreground disabled:opacity-50"
               >
                 {saving ? "Creating..." : "Create requisition"}
               </button>
@@ -301,7 +301,7 @@ export default function PurchasingPage() {
           )}
           <section className="mt-8 grid gap-5 lg:grid-cols-3">
             {lists.map(({ title, items, number }) => (
-              <article key={title} className="bg-white p-6">
+              <article key={title} className="bg-card p-6">
                 <h2 className="text-lg font-semibold">{title}</h2>
                 <div className="mt-4 divide-y divide-[#172B4D]/10">
                   {items.length ? (
@@ -311,17 +311,17 @@ export default function PurchasingPage() {
                           <p className="text-sm font-semibold">
                             {(item as any)[number] ?? "Unnumbered document"}
                           </p>
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#2563EB]">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
                             {item.status ?? "UNKNOWN"}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-[#172B4D]/45">
+                        <p className="mt-1 text-xs text-foreground/45">
                           {item.supplier?.name ?? "Supplier pending"}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <p className="py-7 text-sm text-[#172B4D]/50">
+                    <p className="py-7 text-sm text-foreground/50">
                       No {title.toLowerCase()} found.
                     </p>
                   )}

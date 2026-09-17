@@ -135,6 +135,7 @@ export class SalesReturnsService {
         customerId: data.customerId,
         invoiceId: data.invoiceId,
         returnDate: new Date(),
+        reason: data.items.map((item) => item.reason).filter(Boolean).join('; ') || undefined,
         refundAmount: new Prisma.Decimal(totalRefund),
         notes: data.notes,
         status: 'DRAFT',
@@ -282,7 +283,15 @@ export class SalesReturnsService {
           select: { amount: true },
         });
         const netAmountPaid = paymentLedger.reduce((sum, entry) => sum + entry.amount.toNumber(), 0);
-        const newInvoiceBalance = invoice.totalAmount.toNumber() - netAmountPaid;
+        const previousReturns = await tx.salesReturn.aggregate({
+          where: { invoiceId: salesReturn.invoiceId, status: 'POSTED', id: { not: returnId } },
+          _sum: { refundAmount: true },
+        });
+        const postedRefunds = previousReturns._sum.refundAmount?.toNumber() ?? 0;
+        const newInvoiceBalance = Math.max(
+          0,
+          invoice.totalAmount.toNumber() - netAmountPaid - postedRefunds - salesReturn.refundAmount.toNumber(),
+        );
         const newInvoiceStatus =
           newInvoiceBalance <= 0
             ? 'PAID'

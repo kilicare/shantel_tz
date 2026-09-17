@@ -2,11 +2,12 @@ import { forwardRef, Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module.js';
 import { ApprovalsModule } from '../approvals/approvals.module.js';
 import { PaginationService } from '../shared/services/pagination.service.js';
+import { AuditModule } from '../audit/audit.module.js';
 
 import { ExpensesService } from './expenses.service.js';
 
 @Module({
-  imports: [DatabaseModule, forwardRef(() => ApprovalsModule)],
+  imports: [DatabaseModule, forwardRef(() => ApprovalsModule), AuditModule],
   providers: [PaginationService, ExpensesService],
   exports: [ExpensesService],
 })

@@ -183,6 +183,27 @@ export class PaymentsController {
     };
   }
 
+  @Post('refunds/:id/submit')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Submit refund for approval' })
+  async submitRefund(@Param('id') id: string, @Body() body: { approverIds: string[]; notes?: string }, @Request() req: any) {
+    return { success: true, data: await this.refundsService.submitForApproval({ refundId: id, approverIds: body.approverIds, notes: body.notes, userId: req.user.sub }) };
+  }
+
+  @Patch('refunds/:id/approve')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Approve refund' })
+  async approveRefund(@Param('id') id: string, @Body() body: { comments?: string }, @Request() req: any) {
+    return { success: true, data: await this.refundsService.approve(id, req.user.sub, body.comments) };
+  }
+
+  @Patch('refunds/:id/reject')
+  @RequirePermission('payments.record')
+  @ApiOperation({ summary: 'Reject refund' })
+  async rejectRefund(@Param('id') id: string, @Body() body: { rejectionReason: string }, @Request() req: any) {
+    return { success: true, data: await this.refundsService.reject(id, req.user.sub, body.rejectionReason) };
+  }
+
   @Get('refunds/all')
   @RequirePermission('payments.view')
   @ApiOperation({ summary: 'Get all refunds' })

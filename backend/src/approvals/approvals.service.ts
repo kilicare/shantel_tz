@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service.js';
 import { PaginationService, PaginationParams } from '../shared/services/pagination.service.js';
+import { AuditLogService } from '../audit/audit-log.service.js';
 
 @Injectable()
 export class ApprovalsService {
@@ -15,6 +16,7 @@ export class ApprovalsService {
   constructor(
     private db: DatabaseService,
     private paginationService: PaginationService,
+    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -145,6 +147,11 @@ export class ApprovalsService {
       },
     });
 
+    await this.auditLogService.logAction({
+      entityType: data.documentType, entityId: data.documentId, action: 'APPROVE',
+      afterData: { approvalStep: data.approvalStep, approvalDecision: 'APPROVED' }, userId: data.approverId,
+    });
+
     if (data.documentType === 'EXPENSE') {
       const approvals = await this.db.approval.findMany({
         where: { documentType: 'EXPENSE', documentId: data.documentId },
@@ -153,6 +160,18 @@ export class ApprovalsService {
         await this.db.expense.update({
           where: { id: data.documentId },
           data: { status: 'APPROVED', approvedById: data.approverId, approvedAt: new Date() },
+        });
+      }
+    }
+
+    if (data.documentType === 'REFUND') {
+      const approvals = await this.db.approval.findMany({
+        where: { documentType: 'REFUND', documentId: data.documentId },
+      });
+      if (approvals.every((entry) => entry.approvalDecision === 'APPROVED')) {
+        await this.db.payment.update({
+          where: { id: data.documentId },
+          data: { status: 'RECORDED' },
         });
       }
     }
@@ -210,8 +229,16 @@ export class ApprovalsService {
       },
     });
 
+    await this.auditLogService.logAction({
+      entityType: data.documentType, entityId: data.documentId, action: 'REJECT',
+      afterData: { approvalStep: data.approvalStep, approvalDecision: 'REJECTED' }, userId: data.approverId,
+    });
+
     if (data.documentType === 'EXPENSE') {
       await this.db.expense.update({ where: { id: data.documentId }, data: { status: 'REJECTED' } });
+    }
+    if (data.documentType === 'REFUND') {
+      await this.db.payment.update({ where: { id: data.documentId }, data: { status: 'CANCELLED' } });
     }
 
     this.logger.log(

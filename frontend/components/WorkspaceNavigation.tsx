@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { apiClient } from "@/lib/api-client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type NavigationItem = {
   href: string;
@@ -343,7 +344,7 @@ export function WorkspaceNavigation() {
             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-forest text-sm text-brand-amber">S</span>
             {!desktopCollapsed && <span>SHANTEL</span>}
           </Link>
-          {!desktopCollapsed && <button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"><PanelLeftClose size={17} /></button>}
+          {!desktopCollapsed && <div className="flex items-center gap-2"><ThemeToggle /><button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"><PanelLeftClose size={17} /></button></div>}
         </div>
 
         <nav aria-label="Workspace navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
@@ -363,6 +364,7 @@ export function WorkspaceNavigation() {
         <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
           <Link href="/dashboard" className="shrink-0 text-sm font-semibold tracking-[0.2em] text-brand-amber">SHANTEL</Link>
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-paper text-brand-forest ring-2 ring-brand-amber/60">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button>
             <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-inverse hover:bg-interactive-primary-hover">{mobileMenuOpen ? <X size={15} /> : <Menu size={15} />} Menu</button>
           </div>
