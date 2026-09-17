@@ -7,7 +7,7 @@ import { apiClient } from "@/lib/api-client";
 
 type Invoice = { id: string; invoiceNumber?: string; customerId?: string; customer?: { name?: string } };
 type InvoiceItem = { productId: string; product?: { name?: string } };
-type SalesReturn = { id: string; returnNumber?: string; status?: string; invoice?: { invoiceNumber?: string } };
+type SalesReturn = { id: string; returnNumber?: string; status?: string; refundAmount?: number | string; reason?: string; invoice?: { invoiceNumber?: string } };
 type Location = { id: string; name: string };
 
 function unwrap(response: any) {
@@ -23,6 +23,7 @@ export default function ReturnsPage() {
   const [invoiceId, setInvoiceId] = useState("");
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState("1");
+  const [reason, setReason] = useState("");
   const [returnLocations, setReturnLocations] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -65,21 +66,23 @@ export default function ReturnsPage() {
 
   async function createReturn() {
     const invoice = invoices.find((item) => item.id === invoiceId);
-    if (!invoice?.customerId || !productId || Number(quantity) <= 0) {
-      setError("Choose a posted invoice, product, and valid quantity.");
+    if (!invoice?.customerId || !productId || Number(quantity) <= 0 || !reason.trim()) {
+      setError("Choose a posted invoice, product, quantity, and return reason.");
       return;
     }
     try {
       const created = unwrap(await apiClient.post("/sales/returns", {
         customerId: invoice.customerId,
         invoiceId,
-        items: [{ productId, quantity: Number(quantity), reason: "Round 2 UI return test" }],
-        notes: "Round 2 UI return test",
+        reason: reason.trim(),
+        items: [{ productId, quantity: Number(quantity), reason: reason.trim() }],
+        notes: reason.trim(),
       }));
       setMessage(`${created.returnNumber ?? "Sales return"} created successfully.`);
       setInvoiceId("");
       setProductId("");
       setInvoiceItems([]);
+      setReason("");
       await loadData();
     } catch (requestError: any) {
       const value = requestError?.response?.data?.message;
@@ -135,6 +138,7 @@ export default function ReturnsPage() {
               <select aria-label="Return invoice" value={invoiceId} onChange={(event) => void selectInvoice(event.target.value)} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select invoice</option>{invoices.map((invoice) => <option key={invoice.id} value={invoice.id}>{invoice.invoiceNumber} · {invoice.customer?.name ?? "Customer"}</option>)}</select>
               <select aria-label="Return product" value={productId} onChange={(event) => setProductId(event.target.value)} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select product</option>{invoiceItems.map((item) => <option key={item.productId} value={item.productId}>{item.product?.name ?? "Product"}</option>)}</select>
               <input aria-label="Return quantity" type="number" min="1" value={quantity} onChange={(event) => setQuantity(event.target.value)} className="border border-[#172B4D]/15 px-3 py-2.5 text-sm" />
+              <input aria-label="Return reason" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason" className="border border-[#172B4D]/15 px-3 py-2.5 text-sm" />
               <button type="button" onClick={() => void createReturn()} className="flex items-center justify-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><PackagePlus size={15} /> Create return</button>
             </div>
           </section>
@@ -142,7 +146,7 @@ export default function ReturnsPage() {
             <h2 className="text-xl font-semibold">Sales returns</h2>
             {loading && <p className="bg-white p-5 text-sm text-[#172B4D]/55">Loading returns...</p>}
             {!loading && returns.length === 0 && <p className="bg-white p-5 text-sm text-[#172B4D]/55">No sales returns found.</p>}
-            {returns.map((item) => <article key={item.id} className="flex flex-col gap-3 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{item.returnNumber ?? "Sales return"}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{item.status} · {item.invoice?.invoiceNumber ?? "Invoice"}</p></div>{item.status === "DRAFT" && <button type="button" onClick={() => void approveReturn(item)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button>}{item.status === "SUBMITTED" && <div className="flex flex-wrap gap-2"><select aria-label={`Return posting location for ${item.returnNumber ?? "return"}`} value={returnLocations[item.id] ?? ""} onChange={(event) => setReturnLocations((current) => ({ ...current, [item.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void postReturn(item)} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post</button></div>}</article>)}
+            {returns.map((item) => <article key={item.id} className="flex flex-col gap-3 bg-white p-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{item.returnNumber ?? "Sales return"}</p><p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#172B4D]/50">{item.status} · {item.invoice?.invoiceNumber ?? "Invoice"} · Refund TSh {Number(item.refundAmount ?? 0).toLocaleString()}</p>{item.reason && <p className="mt-1 text-xs text-[#172B4D]/55">{item.reason}</p>}</div>{item.status === "DRAFT" && <button type="button" onClick={() => void approveReturn(item)} className="flex items-center gap-2 bg-[#172B4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"><Check size={15} /> Approve</button>}{item.status === "SUBMITTED" && <div className="flex flex-wrap gap-2"><select aria-label={`Return posting location for ${item.returnNumber ?? "return"}`} value={returnLocations[item.id] ?? ""} onChange={(event) => setReturnLocations((current) => ({ ...current, [item.id]: event.target.value }))} className="border border-[#172B4D]/15 bg-white px-3 py-2.5 text-sm"><option value="">Select location</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void postReturn(item)} className="flex items-center gap-2 border border-[#172B4D]/20 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em]"><Send size={15} /> Post</button></div>}</article>)}
           </section>
         </div>
       </main>

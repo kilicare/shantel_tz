@@ -1,14 +1,20 @@
 {
-  "name": "SHANTEL Sales & Store System",
+  "name": "SHANTEL",
   "short_name": "SHANTEL",
-  "description": "Sales, inventory, purchasing and financial operations.",
+  "description": "Sales operations",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f4f1ec",
+  "background_color": "#172B4D",
   "theme_color": "#172B4D",
   "categories": ["business", "productivity"],
-  "icons": [{ "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }],
-  "shortcuts": [{ "name": "Create Invoice", "short_name": "Invoice", "url": "/invoices/new", "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }] }, { "name": "View Dashboard", "short_name": "Dashboard", "url": "/dashboard", "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }] }]
+  "icons": [
+    {"src": "/shantel-icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/shantel-icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Create Invoice", "short_name": "Invoice", "url": "/invoices/new", "icons": [{"src": "/shantel-icon-192x192.png", "sizes": "192x192"}]},
+    {"name": "View Dashboard", "short_name": "Dashboard", "url": "/dashboard", "icons": [{"src": "/shantel-icon-192x192.png", "sizes": "192x192"}]}
+  ]
 }

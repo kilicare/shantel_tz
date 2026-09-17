@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Shantel | Sales Operations",
-  description: "Sales, inventory and purchasing operations for Shantel teams.",
+  title: "SHANTEL | Sales Operations",
+  description: "Sales operations for Shantel teams.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "SHANTEL" },
-  icons: { icon: "/icons/icon.svg", apple: "/icons/icon.svg" },
+  icons: { icon: "/shantel-icon-192x192.png", apple: "/shantel-icon-192x192.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#172B4D" };

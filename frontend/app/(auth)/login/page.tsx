@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
   AlertCircle,
   ArrowRight,
   Eye,
@@ -13,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { authService } from "@/services/auth.service";
+import { ShantelLogo } from "@/components/ShantelLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function LoginPage() {
 
           <div className="relative z-10 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D4A72C] text-[#172B4D]">
-              <Activity size={21} strokeWidth={2.5} />
+              <ShantelLogo variant="icon-full" size={40} className="h-10 w-10" />
             </div>
             <div>
               <p className="text-sm font-semibold tracking-[0.2em]">SHANTEL</p>
@@ -87,7 +87,7 @@ export default function LoginPage() {
               <p>Built for accountable teams</p>
             </div>
             <div>
-              <Activity size={17} className="mb-3 text-[#D4A72C]" />
+              <ShantelLogo variant="icon-full" size={34} className="mb-3 h-[34px] w-[34px] text-[#D4A72C]" />
               <p>Live operational signals</p>
               <p>Decisions without guesswork</p>
             </div>
@@ -97,7 +97,7 @@ export default function LoginPage() {
         <section className="flex min-h-screen items-center justify-center bg-[#ECEDEF] px-6 py-10 sm:px-12 lg:px-16 xl:px-20">
           <div className="w-full max-w-sm">
             <div className="mb-12 flex items-center gap-3 lg:hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172B4D] text-[#D4A72C]"><Activity size={21} /></div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#172B4D] text-[#D4A72C]"><ShantelLogo variant="icon-full" size={40} className="h-10 w-10" /></div>
               <p className="text-sm font-semibold tracking-[0.2em]">SHANTEL</p>
             </div>
 

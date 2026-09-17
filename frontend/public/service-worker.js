@@ -1,8 +1,8 @@
-const CACHE_NAME = "shantel-v2";
+const CACHE_NAME = "shantel-v3-branded";
 const OFFLINE_URL = "/offline.html";
 self.addEventListener("install", (event) => {
 	event.waitUntil(caches.open(CACHE_NAME).then(async (cache) => {
-		for (const asset of [OFFLINE_URL, "/manifest.json", "/icons/icon.svg"]) {
+		for (const asset of [OFFLINE_URL, "/manifest.json", "/logos/shantel-icon-full.svg", "/shantel-icon-192x192.png", "/shantel-icon-512x512.png"]) {
 			try {
 				const response = await fetch(asset);
 				if (response.ok) await cache.put(asset, response);

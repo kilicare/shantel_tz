@@ -10,8 +10,8 @@ import { StatusBadge } from "@/components/ShantelPrimitives";
 type Customer = { id: string; name: string };
 type Method = { id: string; name: string; code: string; description?: string };
 type Invoice = { id: string; invoiceNumber: string; customerId: string; totalAmount: number | string; balance: number | string; status: string };
-type Payment = { id: string; paymentNumber?: string; amount?: number | string; status?: string; customer?: { id?: string; name?: string }; paymentMethod?: { name?: string; code?: string }; transactionReference?: string; paymentDate?: string; notes?: string };
-type Receipt = { id: string; receiptNumber: string; amount: number | string; paymentId: string; customerId: string; invoiceId?: string; receiptDate: string; notes?: string };
+type Payment = { id: string; paymentNumber?: string; amount?: number | string; status?: string; invoiceId?: string; customer?: { id?: string; name?: string }; paymentMethod?: { name?: string; code?: string }; transactionReference?: string; paymentDate?: string; notes?: string };
+type Receipt = { id: string; receiptNumber: string; amount: number | string; paymentId: string; customerId: string; invoiceId?: string; receiptDate: string; notes?: string; customer?: { name?: string; email?: string }; invoice?: { invoiceNumber?: string } };
 type Refund = { id: string; paymentNumber?: string; amount?: number | string; status?: string; customer?: { name?: string }; paymentMethod?: { name?: string }; notes?: string; transactionReference?: string };
 
 function unwrap(response: any) { const payload = response?.data?.data ?? response?.data ?? response; return payload?.data ?? payload ?? []; }
@@ -114,6 +114,11 @@ export function PaymentsWorkspace() {
       return;
     }
 
+    if (Number(form.amount) <= 0) {
+      setError("Payment amount must be greater than 0.");
+      return;
+    }
+
     if (!paymentTypeInfo.valid) {
       setError(paymentTypeInfo.error || "Invalid payment amount");
       return;
@@ -171,6 +176,7 @@ export function PaymentsWorkspace() {
       const receipt = unwrap(await apiClient.post("/payments/receipts", {
         paymentId: receiptForm.paymentId,
         customerId: payment.customer?.id || "",
+        invoiceId: payment.invoiceId,
         amount: Number(receiptForm.amount),
         notes: receiptForm.notes,
       }));
@@ -226,8 +232,17 @@ export function PaymentsWorkspace() {
   }
 
   function amountInWords(amount: number): string {
-    // Simple implementation for amount in words
-    return `${amount.toLocaleString()} TZS`;
+    const small = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+    const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    const underThousand = (value: number): string => value < 20 ? small[value] : value < 100 ? `${tens[Math.floor(value / 10)]}${value % 10 ? `-${small[value % 10]}` : ""}` : `${small[Math.floor(value / 100)]} hundred${value % 100 ? ` and ${underThousand(value % 100)}` : ""}`;
+    const whole = Math.floor(amount);
+    const words = whole < 1000 ? underThousand(whole) : whole < 1000000 ? `${underThousand(Math.floor(whole / 1000))} thousand${whole % 1000 ? ` ${underThousand(whole % 1000)}` : ""}` : `${underThousand(Math.floor(whole / 1000000))} million${whole % 1000000 ? ` ${underThousand(Math.floor((whole % 1000000) / 1000))} thousand` : ""}${whole % 1000 ? ` ${underThousand(whole % 1000)}` : ""}`;
+    return `${words} Tanzanian shillings`;
+  }
+
+  async function printReceipt(receiptId: string) {
+    const response = await apiClient.get(`/documents/receipts/${receiptId}/print-pdf`, { responseType: "blob" });
+    window.open(URL.createObjectURL(response.data), "_blank");
   }
 
   return (
@@ -503,6 +518,14 @@ export function PaymentsWorkspace() {
                     <span className="text-sm font-semibold">TSh {Number(viewReceipt.amount).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-sm text-[#172B4D]/70">Customer:</span>
+                    <span className="text-sm font-semibold">{viewReceipt.customer?.name ?? viewReceipt.customerId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-[#172B4D]/70">Invoice:</span>
+                    <span className="text-sm font-semibold">{viewReceipt.invoice?.invoiceNumber ?? "Advance / no invoice"}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-sm text-[#172B4D]/70">In words:</span>
                     <span className="text-sm font-semibold">{amountInWords(Number(viewReceipt.amount))}</span>
                   </div>
@@ -515,7 +538,7 @@ export function PaymentsWorkspace() {
                 </div>
                 <div className="mt-6 flex gap-2">
                   <button type="button" onClick={() => setViewReceipt(null)} className="flex-1 bg-[#172B4D] px-4 py-3 text-sm font-semibold text-white">Close</button>
-                  <button type="button" className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-3 text-sm font-semibold">
+                  <button type="button" onClick={() => void printReceipt(viewReceipt.id)} className="flex items-center gap-2 border border-[#172B4D]/15 px-4 py-3 text-sm font-semibold">
                     <Printer size={16} /> Print PDF
                   </button>
                 </div>
