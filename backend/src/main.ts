@@ -19,6 +19,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       process.env.FRONTEND_URL || 'https://frontend-mu-three-89.vercel.app',
+      'https://shantellelite.vercel.app',
       'http://localhost:3000',
     ],
     credentials: true,
