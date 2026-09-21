@@ -232,7 +232,7 @@ export function WorkspaceNavigation() {
     }
   };
 
-  const avatar = avatarUrl ? <img src={avatarUrl} alt="" className="size-full object-cover" /> : <span className="text-sm font-semibold">{userLabel.charAt(0).toUpperCase()}</span>;
+  const avatar = avatarUrl ? <img src={avatarUrl} alt="" className="size-full object-cover" /> : <span className="text-body font-semibold">{userLabel.charAt(0).toUpperCase()}</span>;
 
   const renderNavigationItem = (item: NavigationItem, level: number = 0) => {
     const hasChildren = item.children && item.children.length > 0;
@@ -247,9 +247,9 @@ export function WorkspaceNavigation() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               title={desktopCollapsed ? item.label : undefined}
-              className={`flex flex-1 items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-forest text-text-inverse shadow-sm" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
+              className={`flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-small font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
             >
-              <item.icon size={17} />
+              <item.icon size={18} />
               {!desktopCollapsed && <span className="flex-1 text-left">{item.label}</span>}
             </Link>
             {!desktopCollapsed && (
@@ -258,7 +258,7 @@ export function WorkspaceNavigation() {
                 onClick={() => toggleExpanded(item.href)}
                 aria-expanded={isExpanded}
                 aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
-                className={`flex items-center justify-center rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary`}
+                className={`flex items-center justify-center rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary`}
               >
                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
@@ -279,9 +279,9 @@ export function WorkspaceNavigation() {
         href={item.href}
         aria-current={active ? "page" : undefined}
         title={desktopCollapsed ? item.label : undefined}
-        className={`flex items-center gap-3 rounded-xl px-3 py-3 text-xs font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-forest text-text-inverse shadow-sm" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-small font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
       >
-        <item.icon size={17} />
+        <item.icon size={18} />
         {!desktopCollapsed && <span>{item.label}</span>}
       </Link>
     );
@@ -299,9 +299,9 @@ export function WorkspaceNavigation() {
             <Link
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-1 items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] ${active ? "bg-interactive-active text-brand-forest" : "text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse"}`}
+              className={`flex flex-1 items-center gap-3 rounded-md px-3 py-2.5 text-label font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
             >
-              <item.icon size={15} />
+              <item.icon size={16} />
               <span className="flex-1 text-left">{item.label}</span>
             </Link>
             <button
@@ -309,7 +309,7 @@ export function WorkspaceNavigation() {
               onClick={() => toggleExpanded(item.href)}
               aria-expanded={isExpanded}
               aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
-              className={`flex items-center justify-center rounded-md p-2 text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse`}
+              className={`flex items-center justify-center rounded-md p-2 text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground`}
             >
               {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
@@ -328,9 +328,9 @@ export function WorkspaceNavigation() {
         key={item.href}
         href={item.href}
         aria-current={active ? "page" : undefined}
-        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] ${active ? "bg-interactive-active text-brand-forest" : "text-text-inverse/70 hover:bg-interactive-primary-hover hover:text-text-inverse"}`}
+        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-label font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
       >
-        <item.icon size={15} />
+        <item.icon size={16} />
         <span>{item.label}</span>
       </Link>
     );
@@ -338,13 +338,13 @@ export function WorkspaceNavigation() {
 
   return (
     <div className={`workspace-navigation-shell ${desktopCollapsed ? "workspace-collapsed" : "workspace-expanded"}`}>
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border-default bg-surface-card text-text-primary shadow-[8px_0_30px_rgba(23,34,31,0.04)] transition-[width] duration-200 md:flex ${desktopCollapsed ? "w-[76px]" : "w-64"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border-subtle bg-surface text-text-primary shadow-elevation-1 transition-[width] duration-200 md:flex ${desktopCollapsed ? "w-[76px]" : "w-64"}`}>
         <div className={`flex h-20 items-center border-b border-border-subtle ${desktopCollapsed ? "justify-center px-3" : "justify-between px-5"}`}>
-          <Link href="/dashboard" className={`flex items-center gap-3 text-sm font-semibold tracking-[0.2em] text-brand-forest ${desktopCollapsed ? "justify-center" : ""}`} title="SHANTEL dashboard">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-forest text-sm text-brand-amber">S</span>
+          <Link href="/dashboard" className={`flex items-center gap-3 text-body font-semibold tracking-wider text-brand-primary ${desktopCollapsed ? "justify-center" : ""}`} title="SHANTEL dashboard">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-primary text-body text-brand-amber">S</span>
             {!desktopCollapsed && <span>SHANTEL</span>}
           </Link>
-          {!desktopCollapsed && <div className="flex items-center gap-2"><ThemeToggle /><button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"><PanelLeftClose size={17} /></button></div>}
+          {!desktopCollapsed && <div className="flex items-center gap-2"><ThemeToggle /><button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftClose size={18} /></button></div>}
         </div>
 
         <nav aria-label="Workspace navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
@@ -352,38 +352,38 @@ export function WorkspaceNavigation() {
         </nav>
 
         <div className={`border-t border-border-subtle p-3 ${desktopCollapsed ? "flex flex-col items-center gap-2" : ""}`}>
-          {!desktopCollapsed && <button type="button" onClick={() => setProfileOpen(true)} className="mb-3 flex w-full items-center gap-3 rounded-xl px-2 py-1 text-left hover:bg-surface-muted" title="Open profile"><span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-forest text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</span><span className="min-w-0"><span className="block truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">{userLabel}</span><span className="block text-[10px] text-text-muted/70">Profile & picture</span></span></button>}
-          {desktopCollapsed && <><button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-forest text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button><button type="button" onClick={() => setDesktopCollapsed(false)} aria-label="Expand navigation" className="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"><PanelLeftOpen size={17} /></button></>}
-          <button type="button" onClick={logout} aria-label="Log out" title="Log out" className={`flex w-full items-center gap-2 rounded-xl border border-border-default px-3 py-2.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-surface-muted hover:text-text-primary ${desktopCollapsed ? "justify-center" : ""}`}><LogOut size={16} />{!desktopCollapsed && "Logout"}</button>
+          {!desktopCollapsed && <button type="button" onClick={() => setProfileOpen(true)} className="mb-3 flex w-full items-center gap-3 rounded-lg px-2 py-1 text-left hover:bg-surface-hover" title="Open profile"><span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</span><span className="min-w-0"><span className="block truncate text-caption font-semibold uppercase tracking-wide text-text-muted">{userLabel}</span><span className="block text-caption text-text-muted/70">Profile & picture</span></span></button>}
+          {desktopCollapsed && <><button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button><button type="button" onClick={() => setDesktopCollapsed(false)} aria-label="Expand navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftOpen size={18} /></button></>}
+          <button type="button" onClick={logout} aria-label="Log out" title="Log out" className={`flex w-full items-center gap-2 rounded-lg border border-border-subtle px-3 py-2.5 text-label font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary ${desktopCollapsed ? "justify-center" : ""}`}><LogOut size={16} />{!desktopCollapsed && "Logout"}</button>
         </div>
       </aside>
 
       <div aria-hidden="true" className={`hidden shrink-0 md:block transition-[width] duration-200 ${desktopCollapsed ? "w-[76px]" : "w-64"}`} />
 
-      <div className="border-b border-border-inverse bg-brand-forest text-text-inverse md:hidden">
+      <div className="border-b border-border-subtle bg-brand-primary text-primary-foreground md:hidden">
         <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-          <Link href="/dashboard" className="shrink-0 text-sm font-semibold tracking-[0.2em] text-brand-amber">SHANTEL</Link>
+          <Link href="/dashboard" className="shrink-0 text-body font-semibold tracking-wider text-brand-amber">SHANTEL</Link>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-paper text-brand-forest ring-2 ring-brand-amber/60">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button>
-            <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-inverse hover:bg-interactive-primary-hover">{mobileMenuOpen ? <X size={15} /> : <Menu size={15} />} Menu</button>
+            <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-surface text-brand-primary ring-2 ring-brand-amber/60">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button>
+            <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-subtle px-3 py-2 text-caption font-semibold uppercase tracking-wide text-primary-foreground hover:bg-brand-primary-hover">{mobileMenuOpen ? <X size={16} /> : <Menu size={16} />} Menu</button>
           </div>
         </div>
-        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-inverse px-4 py-3 sm:px-6">{visibleNavigation.map((item) => renderMobileNavigationItem(item))}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-inverse pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-paper text-xs text-brand-forest">{avatar}</span><span className="truncate text-[10px] uppercase tracking-[0.12em] text-text-inverse/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-inverse px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] hover:bg-interactive-primary-hover"><LogOut size={15} /> Logout</button></div></nav>}
+        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 sm:px-6">{visibleNavigation.map((item) => renderMobileNavigationItem(item))}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-subtle pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-caption text-brand-primary">{avatar}</span><span className="truncate text-caption uppercase tracking-wide text-primary-foreground/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-subtle px-3 py-2 text-caption font-semibold uppercase tracking-wide hover:bg-brand-primary-hover"><LogOut size={16} /> Logout</button></div></nav>}
       </div>
       <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void updateAvatar(event.target.files?.[0]); event.currentTarget.value = ""; }} />
-      {profileOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-forest/55 px-4" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
-        <div className="w-full max-w-sm bg-surface-card p-6 text-text-primary shadow-2xl">
+      {profileOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-primary/55 px-4" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
+        <div className="w-full max-w-sm bg-surface p-6 text-text-primary shadow-elevation-3">
           <div className="flex items-start justify-between gap-4">
-            <div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-interactive-active">Your account</p><h2 id="profile-dialog-title" className="mt-2 text-xl font-semibold">Profile picture</h2><p className="mt-1 text-sm text-text-muted">This picture appears in your workspace navigation.</p></div>
-            <button type="button" onClick={() => setProfileOpen(false)} aria-label="Close profile" className="rounded-lg p-2 text-text-muted hover:bg-surface-muted hover:text-text-primary"><X size={18} /></button>
+            <div><p className="text-caption font-semibold uppercase tracking-wide text-blue-primary">Your account</p><h2 id="profile-dialog-title" className="mt-2 text-h3 font-semibold">Profile picture</h2><p className="mt-1 text-body text-text-muted">This picture appears in your workspace navigation.</p></div>
+            <button type="button" onClick={() => setProfileOpen(false)} aria-label="Close profile" className="rounded-md p-2 text-text-muted hover:bg-surface-hover hover:text-text-primary"><X size={18} /></button>
           </div>
           <div className="mt-6 flex flex-col items-center">
-            <span className="flex size-24 items-center justify-center overflow-hidden rounded-full bg-brand-forest text-3xl text-brand-amber ring-4 ring-brand-amber/30">{avatarUploading ? <LoaderCircle size={28} className="animate-spin" /> : avatar}</span>
-            <p className="mt-4 text-sm font-semibold">{userLabel}</p>
-            <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading} className="mt-5 w-full bg-interactive-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-text-inverse hover:bg-interactive-primary-hover disabled:opacity-60">{avatarUploading ? "Uploading..." : "Choose profile picture"}</button>
-            <p className="mt-3 text-center text-[11px] text-text-muted">JPG, PNG, or WebP. Maximum 2 MB.</p>
-            {avatarError && <p role="alert" className="mt-3 text-center text-xs text-status-danger-text">{avatarError}</p>}
+            <span className="flex size-24 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-h2 text-brand-amber ring-4 ring-brand-amber/30">{avatarUploading ? <LoaderCircle size={28} className="animate-spin" /> : avatar}</span>
+            <p className="mt-4 text-body font-semibold">{userLabel}</p>
+            <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading} className="mt-5 w-full bg-brand-primary px-4 py-3 text-label font-semibold uppercase tracking-wide text-primary-foreground hover:bg-brand-primary-hover disabled:opacity-60">{avatarUploading ? "Uploading..." : "Choose profile picture"}</button>
+            <p className="mt-3 text-center text-caption text-text-muted">JPG, PNG, or WebP. Maximum 2 MB.</p>
+            {avatarError && <p role="alert" className="mt-3 text-center text-caption text-danger">{avatarError}</p>}
           </div>
         </div>
       </div>}

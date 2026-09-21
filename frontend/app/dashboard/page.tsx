@@ -179,28 +179,28 @@ export default function DashboardPage() {
       value: currency.format(data.todaySales.totalAmount),
       note: `${data.todaySales.count} invoices`,
       icon: CircleDollarSign,
-      accent: "#D4A72C",
+      accent: "amber",
     },
     {
       label: "Outstanding",
       value: currency.format(data.openInvoices.totalBalance),
       note: `${data.openInvoices.count} open invoices`,
       icon: TrendingUp,
-      accent: "#8aa39a",
+      accent: "teal",
     },
     {
       label: "Pending approvals",
       value: data.pendingApprovals.toString(),
       note: "Needs your attention",
       icon: FileCheck2,
-      accent: "#d77e5a",
+      accent: "gold",
     },
     {
       label: "Stock on hand",
       value: data.stock.totalQuantity.toLocaleString(),
       note: `${data.stock.totalItems} products tracked`,
       icon: Boxes,
-      accent: "#D4A72C",
+      accent: "amber",
     },
   ];
 
@@ -257,49 +257,49 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-8 grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(300px,0.75fr)]">
-            <article className="overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground shadow-[0_18px_50px_rgba(23,43,77,0.18)] sm:p-8">
+            <article className="overflow-hidden rounded-lg bg-brand-primary p-6 text-primary-foreground shadow-elevation-2 sm:p-8">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-amber">
+                  <p className="text-label font-semibold uppercase tracking-wide text-brand-amber">
                     Sales pulse
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+                  <h2 className="mt-2 text-h2 font-semibold tracking-tight">
                     The rhythm of your revenue
                   </h2>
-                  <p className="mt-2 max-w-lg text-sm leading-6 text-primary-foreground/55">
+                  <p className="mt-2 max-w-lg text-body leading-relaxed text-primary-foreground/70">
                     A simple view of when sales are happening, how strong the
                     week is, and where the biggest day landed.
                   </p>
                 </div>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-amber/30 bg-brand-amber/10">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-brand-amber/30 bg-brand-amber/10">
                   <TrendingUp className="text-brand-amber" size={20} />
                 </div>
               </div>
               <div className="mt-7 grid grid-cols-3 gap-3 border-y border-primary-foreground/10 py-4">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
                     30-day sales
                   </p>
-                  <p className="mt-1 text-lg font-semibold">
+                  <p className="mt-1 text-body font-semibold">
                     {currency.format(pulseTotal)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
                     Active days
                   </p>
-                  <p className="mt-1 text-lg font-semibold">
+                  <p className="mt-1 text-body font-semibold">
                     {activeDays}
-                    <span className="ml-1 text-xs font-normal text-primary-foreground/40">
+                    <span className="ml-1 text-small font-normal text-primary-foreground/40">
                       / 30
                     </span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
                     Best day
                   </p>
-                  <p className="mt-1 text-lg font-semibold">
+                  <p className="mt-1 text-body font-semibold">
                     {currency.format(peakDay.sales)}
                   </p>
                 </div>
@@ -321,10 +321,10 @@ export default function DashboardPage() {
                     <linearGradient id="pulseFill" x1="0" x2="0" y1="0" y2="1">
                       <stop
                         offset="0%"
-                        stopColor="#D4A72C"
+                        stopColor="var(--brand-amber)"
                         stopOpacity="0.32"
                       />
-                      <stop offset="100%" stopColor="#D4A72C" stopOpacity="0" />
+                      <stop offset="100%" stopColor="var(--brand-amber)" stopOpacity="0" />
                     </linearGradient>
                   </defs>
                   <path
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                   <path
                     d={`M ${trend.map((item, index) => `${(index / Math.max(trend.length - 1, 1)) * 500},${174 - (item.sales / maxSales) * 150}`).join(" L ")}`}
                     fill="none"
-                    stroke="#D4A72C"
+                    stroke="var(--brand-amber)"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="3"
@@ -347,8 +347,8 @@ export default function DashboardPage() {
                         cx={(index / Math.max(trend.length - 1, 1)) * 500}
                         cy={174 - (item.sales / maxSales) * 150}
                         r="5"
-                        fill="#172B4D"
-                        stroke="#D4A72C"
+                        fill="var(--brand-primary)"
+                        stroke="var(--brand-amber)"
                         strokeWidth="3"
                       >
                         <title>{`${item.date}: ${currency.format(item.sales)}`}</title>
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                   )}
                 </svg>
               </div>
-              <div className="mt-3 flex justify-between text-[10px] uppercase tracking-[0.12em] text-primary-foreground/35">
+              <div className="mt-3 flex justify-between text-caption uppercase tracking-wide text-primary-foreground/35">
                 <span>{trend[0]?.date}</span>
                 <span>{trend.at(-1)?.date}</span>
               </div>
@@ -366,16 +366,16 @@ export default function DashboardPage() {
                   <div key={week.label} className="min-w-0">
                     <div className="h-1.5 bg-background/10">
                       <div
-                        className="h-full bg-card"
+                        className="h-full bg-surface"
                         style={{
                           width: `${Math.max((week.total / maxSales / 7) * 100, week.total ? 8 : 0)}%`,
                         }}
                       />
                     </div>
-                    <p className="mt-2 truncate text-[10px] text-primary-foreground/45">
+                    <p className="mt-2 truncate text-caption text-primary-foreground/45">
                       Week {week.label}
                     </p>
-                    <p className="mt-1 truncate text-xs font-semibold">
+                    <p className="mt-1 truncate text-small font-semibold">
                       {currency.format(week.total)}
                     </p>
                   </div>

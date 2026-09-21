@@ -1,3 +1,3 @@
 export function PageContainer(props: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-7xl px-6 py-6">{props.children}</div>;
+  return <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{props.children}</div>;
 }

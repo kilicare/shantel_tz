@@ -229,10 +229,10 @@ export default function InventoryPage() {
         <div className="mx-auto max-w-7xl">
           <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">
                 Inventory control
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">
                 Know what is on hand.
               </h1>
               <p className="mt-2 text-sm text-foreground/55">

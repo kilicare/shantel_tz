@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   icons: { icon: "/shantel-icon-192x192.png", apple: "/shantel-icon-192x192.png" },
 };
 
-export const viewport: Viewport = { themeColor: "#172B4D" };
+export const viewport: Viewport = { themeColor: "#163A35" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
