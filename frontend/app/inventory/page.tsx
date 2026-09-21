@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Product = { id: string; name: string; sku: string };
 type Location = { id: string; name: string };
@@ -60,6 +62,7 @@ export default function InventoryPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function loadInventory() {
     try {
@@ -602,6 +605,8 @@ export default function InventoryPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

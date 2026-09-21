@@ -12,11 +12,14 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 import { apiClient } from "@/lib/api-client";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { StatusBadge } from "@/components/ShantelPrimitives";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Invoice = { id: string; invoiceNumber: string; customer?: { name: string }; invoiceDate: string; totalAmount: number | string; balance: number | string; status: string };
 export default function InvoicesPage() {
   const router = useRouter();
   const [permissions, setPermissions] = useState<string[]>([]);
+  const isNavigating = useNavigationLoading();
   async function openAuthenticatedDocument(path: string, fileName?: string) {
     const response = await apiClient.get(path, { responseType: "blob" });
     const url = URL.createObjectURL(response.data);
@@ -57,5 +60,5 @@ export default function InvoicesPage() {
     { key: "id" as const, label: "Actions", render: (_: string, row: Invoice) => <div className="flex gap-1"><Button variant="ghost" size="icon-sm" aria-label="View invoice" onClick={(event) => { event.stopPropagation(); router.push(`/invoices/${row.id}`); }}><Eye /></Button><Button variant="ghost" size="icon-sm" aria-label="Print invoice" onClick={(event) => { event.stopPropagation(); void openAuthenticatedDocument(`/documents/invoices/${row.id}/print-pdf`); }}><Printer /></Button></div> },
   ];
   const currentYear = new Date().getFullYear();
-  return <><WorkspaceNavigation /><div className="mx-auto w-full min-w-0 max-w-7xl space-y-5 px-4 py-5 sm:px-6 sm:py-8 lg:px-8"><header className="flex flex-col gap-4 border-b border-border-default pb-5 sm:flex-row sm:items-end sm:justify-between"><div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">Sales desk</p><h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground sm:text-3xl">Invoices</h1><p className="mt-2 text-sm text-muted-foreground">Search, inspect and print customer invoices.</p></div>{canCreate ? <Button onClick={() => router.push("/invoices/new")} className="w-full sm:w-auto"><FilePlus2 className="size-4" /> New invoice</Button> : null}</header><ErrorAlert error={error?.message ?? null} onDismiss={() => void refetch()} />{loading ? <LoadingSpinner message="Loading invoices" /> : <div className="rounded-2xl border border-border-default bg-card p-2 shadow-sm sm:p-3"><DataTable columns={columns} data={invoices} searchFields={["invoiceNumber", "customer.name", "status"]} onRowClick={(row) => router.push(`/invoices/${row.id}`)} exportable={canExport} onExport={() => { void openAuthenticatedDocument(`/reports/export/sales-excel?startDate=${currentYear}-01-01&endDate=${currentYear}-12-31`, "sales-invoices.xlsx"); }} /></div>}</div></>;
+  return <><WorkspaceNavigation /><div className="mx-auto w-full min-w-0 max-w-7xl space-y-5 px-4 py-5 sm:px-6 sm:py-8 lg:px-8"><header className="flex flex-col gap-4 border-b border-border-default pb-5 sm:flex-row sm:items-end sm:justify-between"><div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">Sales desk</p><h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-foreground sm:text-3xl">Invoices</h1><p className="mt-2 text-sm text-muted-foreground">Search, inspect and print customer invoices.</p></div>{canCreate ? <Button onClick={() => router.push("/invoices/new")} className="w-full sm:w-auto"><FilePlus2 className="size-4" /> New invoice</Button> : null}</header><ErrorAlert error={error?.message ?? null} onDismiss={() => void refetch()} />{loading ? <LoadingSpinner message="Loading invoices" /> : <div className="rounded-2xl border border-border-default bg-card p-2 shadow-sm sm:p-3"><DataTable columns={columns} data={invoices} searchFields={["invoiceNumber", "customer.name", "status"]} onRowClick={(row) => router.push(`/invoices/${row.id}`)} exportable={canExport} onExport={() => { void openAuthenticatedDocument(`/reports/export/sales-excel?startDate=${currentYear}-01-01&endDate=${currentYear}-12-31`, "sales-invoices.xlsx"); }} /></div>}</div><ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." /></>;
 }

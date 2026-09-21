@@ -18,6 +18,22 @@ export class ProjectsService {
     private paginationService: PaginationService,
   ) {}
 
+  private normalizeOptionalDate(
+    value: Date | string | undefined | null,
+    fieldName: string,
+  ): Date | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid ${fieldName} value`);
+    }
+
+    return date;
+  }
+
   /**
    * Create project
    */
@@ -25,10 +41,13 @@ export class ProjectsService {
     name: string;
     customerId?: string;
     description?: string;
-    startDate?: Date;
-    endDate?: Date;
+    startDate?: Date | string;
+    endDate?: Date | string;
     userId: string;
   }) {
+    const normalizedStartDate = this.normalizeOptionalDate(data.startDate, 'startDate');
+    const normalizedEndDate = this.normalizeOptionalDate(data.endDate, 'endDate');
+
     // If customer specified, validate exists
     if (data.customerId) {
       const customer = await this.db.customer.findUnique({
@@ -73,8 +92,8 @@ export class ProjectsService {
         name: data.name,
         customerId: data.customerId,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
+        startDate: normalizedStartDate,
+        endDate: normalizedEndDate,
         status: 'PLANNING' as any,
         createdById: data.userId,
       },

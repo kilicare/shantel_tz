@@ -7,6 +7,8 @@ import { useParams } from "next/navigation";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { AlertBanner, EmptyState, LoadingState, ShantelCard, StatusBadge } from "@/components/ShantelPrimitives";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Product = { id: string; name: string; sku?: string | null };
 type Location = { id: string; name: string };
@@ -43,6 +45,7 @@ export default function ProjectDetailPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function load() {
     try {
@@ -152,5 +155,7 @@ export default function ProjectDetailPage() {
         </>}
       </div>
     </main>
+    
+    <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
   </>;
 }

@@ -5,7 +5,6 @@ import "../styles/responsive.css";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
-import { SplashScreen } from "@/components/SplashScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SplashScreen />
         <PWAInstallPrompt />
         <OfflineIndicator />
         <UpdatePrompt />

@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { authService } from "@/services/auth.service";
 import { ShantelLogo } from "@/components/ShantelLogo";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { InitialSplashScreen } from "@/components/InitialSplashScreen";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
   useEffect(() => {
     if (!sessionStorage.getItem("shantel_access_token")) localStorage.removeItem("shantel_user");
@@ -37,11 +40,16 @@ export default function LoginPage() {
 
     try {
       setIsSubmitting(true);
+      setShowLoadingOverlay(true);
       await authService.login({ email: email.trim(), password });
-      router.push("/dashboard");
+      // Keep overlay visible while navigating
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 500);
     } catch (requestError: any) {
       const message = requestError?.response?.data?.message;
       setError(Array.isArray(message) ? message[0] : message || "We could not sign you in. Check your details and try again.");
+      setShowLoadingOverlay(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -158,6 +166,9 @@ export default function LoginPage() {
           </div>
         </section>
       </div>
+      
+      <InitialSplashScreen />
+      <ShantelLoadingOverlay isVisible={showLoadingOverlay} message="Signing you in..." />
     </main>
   );
 }

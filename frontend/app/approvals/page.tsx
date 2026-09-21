@@ -5,6 +5,8 @@ import { Check, RefreshCw, RotateCcw, X } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { AlertBanner, EmptyState, LoadingState, ShantelCard, StatusBadge } from "@/components/ShantelPrimitives";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Approval = { id: string; documentType: string; documentId: string; approvalStep: number; approvalDecision: string };
 type User = { id: string; name: string; email: string };
@@ -36,6 +38,7 @@ export default function ApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function load() {
     setLoading(true);
@@ -126,5 +129,7 @@ export default function ApprovalsPage() {
         </section>
       </div>
     </main>
+    
+    <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
   </>;
 }

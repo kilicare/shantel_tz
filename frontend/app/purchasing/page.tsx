@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type RecordItem = {
   id?: string;
@@ -39,6 +41,7 @@ export default function PurchasingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function loadPurchasing() {
     try {
@@ -331,6 +334,8 @@ export default function PurchasingPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

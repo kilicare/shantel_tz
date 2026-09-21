@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Kind = "customers" | "suppliers" | "locations";
 type Item = {
@@ -60,6 +62,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
   const [editingId, setEditingId] = useState("");
   const [permissions, setPermissions] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const isNavigating = useNavigationLoading();
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -411,6 +414,8 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

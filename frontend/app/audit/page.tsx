@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, RefreshCw, Search, ShieldCheck, XCircle } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type AuditLog = { id: string; timestamp: string; entityType: string; entityId: string; action: string; user?: { name?: string; email?: string } | null; metadata?: unknown };
 type IntegrityResult = { checkedAt?: string; status?: string; isHealthy?: boolean; issueCount?: number; issues?: unknown[]; invalidSequences?: unknown[]; usersWithoutRole?: unknown[] };
@@ -29,6 +31,7 @@ export default function AuditPage() {
   const [loading, setLoading] = useState(true);
   const [traceLoading, setTraceLoading] = useState(false);
   const [error, setError] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function load() {
     try {
@@ -46,9 +49,7 @@ export default function AuditPage() {
       setChecks({ inventory: unwrap(inventoryResponse), documents: unwrap(documentsResponse), users: unwrap(usersResponse) });
     } catch (requestError: any) { setError(errorMessage(requestError, "Audit data could not be loaded.")); } finally { setLoading(false); }
   }
-
-  useEffect(() => { void load(); }, []);
-
+  useEffect(() => { void load(); }, [filters]);
   async function loadTrace() {
     if (!traceForm.productId) return;
     try { setTraceLoading(true); setError(""); const query = traceForm.locationId ? `?locationId=${traceForm.locationId}` : ""; let tracePayload = unwrap(await apiClient.get(`/audit/trace/stock/${traceForm.productId}${query}`)); while (tracePayload?.data && !("product" in tracePayload)) tracePayload = tracePayload.data; setTrace(tracePayload); }
@@ -56,11 +57,84 @@ export default function AuditPage() {
   }
 
   const checkCards = [{ key: "inventory", label: "Inventory integrity" }, { key: "documents", label: "Document integrity" }, { key: "users", label: "User integrity" }];
-  return <><WorkspaceNavigation /><main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8"><div className="mx-auto max-w-7xl">
-    <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7"><div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Control centre</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Audit & integrity</h1><p className="mt-2 text-sm text-foreground/55">Evidence from system activity, consistency checks, and stock movement history.</p></div><button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default bg-card px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"><RefreshCw size={15} /> Refresh</button></header>
-    {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-card px-4 py-3 text-sm text-muted-foreground"><AlertCircle size={18} /> {error}</div>}
-    <section className="mt-8 grid gap-4 md:grid-cols-3">{checkCards.map((card) => { const result = checks[card.key]; const healthy = result && (result.status === "OK" || result.isHealthy === true); return <article key={card.key} className="border border-border-default bg-card p-5"><div className="flex items-center justify-between"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/55">{card.label}</p>{healthy ? <CheckCircle2 className="text-muted-foreground" size={20} /> : result ? <XCircle className="text-muted-foreground" size={20} /> : <ShieldCheck className="text-brand-amber" size={20} />}</div><p className="mt-4 text-2xl font-semibold">{!result ? "Checking" : healthy ? "Healthy" : `${result.issueCount ?? (result.issues?.length ?? result.invalidSequences?.length ?? result.usersWithoutRole?.length ?? 0)} issue(s)`}</p><p className="mt-1 text-xs text-foreground/50">{result?.checkedAt ? new Date(result.checkedAt).toLocaleString() : "Live check"}</p></article>; })}</section>
-    <section className="mt-8 border border-border-default bg-card p-5 sm:p-6"><div className="flex items-center gap-3"><Search size={19} className="text-primary" /><h2 className="text-xl font-semibold">Audit log evidence</h2></div><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><input aria-label="Entity type filter" placeholder="Entity type" value={filters.entityType} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} className="h-11 border border-border-default px-3 text-sm" /><input aria-label="Action filter" placeholder="Action" value={filters.action} onChange={(event) => setFilters({ ...filters, action: event.target.value })} className="h-11 border border-border-default px-3 text-sm" /><input aria-label="Start date filter" type="date" value={filters.startDate} onChange={(event) => setFilters({ ...filters, startDate: event.target.value })} className="h-11 border border-border-default px-3 text-sm" /><div className="flex gap-2"><input aria-label="End date filter" type="date" value={filters.endDate} onChange={(event) => setFilters({ ...filters, endDate: event.target.value })} className="h-11 min-w-0 flex-1 border border-border-default px-3 text-sm" /><button type="button" onClick={() => void load()} className="h-11 bg-primary px-4 text-xs font-semibold uppercase tracking-[0.1em] text-white">Apply</button></div></div><div className="mt-6 overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead className="border-b border-border-default text-xs uppercase tracking-[0.1em] text-foreground/50"><tr><th className="pb-3">When</th><th className="pb-3">Entity</th><th className="pb-3">Action</th><th className="pb-3">Actor</th><th className="pb-3">Reference</th></tr></thead><tbody>{logs.map((log) => <tr key={log.id} className="border-b border-border-default"><td className="py-3 whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td><td className="py-3">{log.entityType}</td><td className="py-3 font-semibold">{log.action}</td><td className="py-3">{log.user?.name || log.user?.email || "System"}</td><td className="py-3 font-mono text-xs">{log.entityId}</td></tr>)}{!loading && logs.length === 0 && <tr><td colSpan={5} className="py-8 text-center text-sm text-foreground/50">No audit events match the selected filters.</td></tr>}</tbody></table></div></section>
-    <section className="mt-8 border border-border-default bg-primary p-5 text-white sm:p-6"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-amber">Movement trace</p><h2 className="mt-2 text-xl font-semibold">Product and location history</h2></div><div className="mt-5 flex flex-wrap gap-3"><select aria-label="Trace product" value={traceForm.productId} onChange={(event) => setTraceForm({ ...traceForm, productId: event.target.value })} className="h-11 min-w-56 bg-card px-3 text-sm text-foreground"><option value="">Select product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select><select aria-label="Trace location" value={traceForm.locationId} onChange={(event) => setTraceForm({ ...traceForm, locationId: event.target.value })} className="h-11 min-w-48 bg-card px-3 text-sm text-foreground"><option value="">All locations</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><button type="button" onClick={() => void loadTrace()} disabled={!traceForm.productId || traceLoading} className="flex h-11 items-center gap-2 bg-card px-4 text-xs font-semibold uppercase tracking-[0.1em] text-foreground disabled:opacity-50">{traceLoading && <RefreshCw size={15} className="animate-spin" />} Trace stock</button></div>{trace && <div className="mt-6 overflow-x-auto"><p className="mb-3 text-sm text-white/65">{trace.product} · {trace.location} · {trace.movements?.length ?? 0} movements</p><table className="w-full min-w-[650px] text-left text-sm"><thead className="border-b border-border-default/15 text-xs uppercase tracking-[0.1em] text-white/55"><tr><th className="pb-3">Date</th><th className="pb-3">Type</th><th className="pb-3">Direction</th><th className="pb-3">Quantity</th><th className="pb-3">Balance</th><th className="pb-3">Reference</th></tr></thead><tbody>{trace.movements?.map((movement, index) => <tr key={`${movement.date}-${index}`} className="border-b border-border-default/10"><td className="py-3">{new Date(movement.date).toLocaleString()}</td><td className="py-3">{movement.type}</td><td className="py-3">{movement.direction}</td><td className="py-3">{movement.quantity}</td><td className="py-3 font-semibold">{movement.balance}</td><td className="py-3 text-white/65">{movement.referenceType || "-"} {movement.referenceId || ""}</td></tr>)}{!trace.movements?.length && <tr><td colSpan={6} className="py-8 text-center text-white/55">No stock movements found for this selection.</td></tr>}</tbody></table></div>}</section>
-  </div></main></>;
+  return (
+    <>
+      <WorkspaceNavigation />
+      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Control centre</p>
+              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Audit & integrity</h1>
+              <p className="mt-2 text-sm text-foreground/55">Evidence from system activity, consistency checks, and stock movement history.</p>
+            </div>
+            <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default bg-card px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"><RefreshCw size={15} /> Refresh</button>
+          </header>
+          {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-card px-4 py-3 text-sm text-muted-foreground"><AlertCircle size={18} /> {error}</div>}
+          <section className="mt-8 grid gap-4 md:grid-cols-3">
+            {checkCards.map((card) => {
+              const result = checks[card.key];
+              const healthy = result && (result.status === "OK" || result.isHealthy === true);
+              return (
+                <article key={card.key} className="border border-border-default bg-card p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/55">{card.label}</p>
+                    {healthy ? <CheckCircle2 className="text-muted-foreground" size={20} /> : result ? <XCircle className="text-muted-foreground" size={20} /> : <ShieldCheck className="text-brand-amber" size={20} />}
+                  </div>
+                  <p className="mt-4 text-2xl font-semibold">{!result ? "Checking" : healthy ? "Healthy" : `${result.issueCount ?? (result.issues?.length ?? result.invalidSequences?.length ?? result.usersWithoutRole?.length ?? 0)} issue(s)`}</p>
+                  <p className="mt-1 text-xs text-foreground/50">{result?.checkedAt ? new Date(result.checkedAt).toLocaleString() : "Live check"}</p>
+                </article>
+              );
+            })}
+          </section>
+          <section className="mt-8 border border-border-default bg-card p-5 sm:p-6">
+            <div className="flex items-center gap-3"><Search size={19} className="text-primary" /><h2 className="text-xl font-semibold">Audit log evidence</h2></div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <input aria-label="Entity type filter" placeholder="Entity type" value={filters.entityType} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
+              <input aria-label="Action filter" placeholder="Action" value={filters.action} onChange={(event) => setFilters({ ...filters, action: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
+              <input aria-label="Start date filter" type="date" value={filters.startDate} onChange={(event) => setFilters({ ...filters, startDate: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
+              <div className="flex gap-2">
+                <input aria-label="End date filter" type="date" value={filters.endDate} onChange={(event) => setFilters({ ...filters, endDate: event.target.value })} className="h-11 min-w-0 flex-1 border border-border-default px-3 text-sm" />
+                <button type="button" onClick={() => void load()} className="h-11 bg-primary px-4 text-xs font-semibold uppercase tracking-[0.1em] text-white">Apply</button>
+              </div>
+            </div>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="border-b border-border-default text-xs uppercase tracking-[0.1em] text-foreground/50">
+                  <tr><th className="pb-3">When</th><th className="pb-3">Entity</th><th className="pb-3">Action</th><th className="pb-3">Actor</th><th className="pb-3">Reference</th></tr>
+                </thead>
+                <tbody>
+                  {logs.map((log) => <tr key={log.id} className="border-b border-border-default"><td className="py-3 whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td><td className="py-3">{log.entityType}</td><td className="py-3 font-medium">{log.action}</td><td className="py-3">{log.user?.name ?? "System"}</td><td className="py-3 text-foreground/55">{log.entityId}</td></tr>)}
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section className="mt-8 border border-border-default bg-primary p-5 text-white sm:p-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-amber">Movement trace</p>
+              <h2 className="mt-2 text-xl font-semibold">Product and location history</h2>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <select aria-label="Trace product" value={traceForm.productId} onChange={(event) => setTraceForm({ ...traceForm, productId: event.target.value })} className="h-11 min-w-56 bg-card px-3 text-sm text-foreground"><option value="">Select product</option>{products.map((product) => <option key={product.id} value={product.id}>{product.sku} · {product.name}</option>)}</select>
+              <select aria-label="Trace location" value={traceForm.locationId} onChange={(event) => setTraceForm({ ...traceForm, locationId: event.target.value })} className="h-11 min-w-48 bg-card px-3 text-sm text-foreground"><option value="">All locations</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select>
+              <button type="button" onClick={() => void loadTrace()} disabled={!traceForm.productId || traceLoading} className="flex h-11 items-center gap-2 bg-card px-4 text-xs font-semibold uppercase tracking-[0.1em] text-foreground disabled:opacity-50">{traceLoading && <RefreshCw size={15} className="animate-spin" />} Trace stock</button>
+            </div>
+            {trace && <div className="mt-6 overflow-x-auto">
+              <p className="mb-3 text-sm text-white/65">{trace.product} · {trace.location} · {trace.movements?.length ?? 0} movements</p>
+              <table className="w-full min-w-[650px] text-left text-sm">
+                <thead className="border-b border-border-default/15 text-xs uppercase tracking-[0.1em] text-white/55">
+                  <tr><th className="pb-3">Date</th><th className="pb-3">Type</th><th className="pb-3">Direction</th><th className="pb-3">Quantity</th><th className="pb-3">Balance</th><th className="pb-3">Reference</th></tr>
+                </thead>
+                <tbody>
+                  {trace.movements?.map((movement, index) => <tr key={`${movement.date}-${index}`} className="border-b border-border-default/15"><td className="py-3">{new Date(movement.date).toLocaleString()}</td><td className="py-3">{movement.type}</td><td className="py-3">{movement.direction}</td><td className="py-3">{movement.quantity}</td><td className="py-3">{movement.balance}</td><td className="py-3 text-white/65">{movement.referenceType} · {movement.referenceId}</td></tr>)}
+                </tbody>
+              </table>
+            </div>}
+          </section>
+        </div>
+      </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
+    </>
+  );
 }

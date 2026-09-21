@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Invoice, Product, Customer, Location, salesService } from "@/services/sales.service";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { StatusBadge } from "@/components/ShantelPrimitives";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type CartLine = { productId: string; productName: string; sku: string; quantity: number; unitPrice: number };
 const money = new Intl.NumberFormat("en-TZ", { style: "currency", currency: "TZS", maximumFractionDigits: 0 });
@@ -27,6 +29,7 @@ export default function SalesPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [permissions, setPermissions] = useState<string[]>([]);
+  const isNavigating = useNavigationLoading();
 
   async function loadWorkspace() {
     try {
@@ -150,6 +153,8 @@ export default function SalesPage() {
         </div>
       </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

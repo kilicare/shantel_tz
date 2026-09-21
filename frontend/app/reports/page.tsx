@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Download, RefreshCw } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Location = { id: string; name: string };
 type Product = { id: string; name: string; sku: string };
@@ -59,6 +61,7 @@ export default function ReportsPage() {
   const [valuation, setValuation] = useState<ValuationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function loadReports(nextLocationId = locationId) {
     try {
@@ -316,6 +319,8 @@ export default function ReportsPage() {
           )}
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

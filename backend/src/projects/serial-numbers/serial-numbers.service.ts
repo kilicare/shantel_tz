@@ -17,6 +17,22 @@ export class SerialNumbersService {
     private paginationService: PaginationService,
   ) {}
 
+  private normalizeOptionalDate(
+    value: Date | string | undefined | null,
+    fieldName: string,
+  ): Date | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid ${fieldName} value`);
+    }
+
+    return date;
+  }
+
   /**
    * Register serial number
    */
@@ -24,11 +40,13 @@ export class SerialNumbersService {
     productId: string;
     serialNumber: string;
     locationId?: string;
-    purchaseDate?: Date;
+    purchaseDate?: Date | string;
     projectId?: string;
     assetId?: string;
     userId: string;
   }) {
+    const normalizedPurchaseDate = this.normalizeOptionalDate(data.purchaseDate, 'purchaseDate');
+
     // Validate product
     const product = await this.db.product.findUnique({
       where: { id: data.productId },
@@ -94,7 +112,7 @@ export class SerialNumbersService {
         serialNumber: data.serialNumber,
         serialStatus: 'NEW' as any,
         locationId: data.locationId,
-        purchaseDate: data.purchaseDate,
+        purchaseDate: normalizedPurchaseDate,
         projectId: data.projectId,
         assetId: data.assetId,
       },

@@ -5,6 +5,8 @@ import { Plus, RefreshCw } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { AlertBanner, LoadingState } from "@/components/ShantelPrimitives";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Option = { id: string; name: string };
 type Expense = { id: string; expenseNumber?: string; status?: string; description?: string; amount?: number | string };
@@ -23,6 +25,7 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function load() {
     try {
@@ -118,6 +121,8 @@ export default function ExpensesPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

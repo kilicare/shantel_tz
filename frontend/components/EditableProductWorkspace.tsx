@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Option = { id: string; name: string; code?: string };
 type Product = {
@@ -57,6 +59,7 @@ export function EditableProductWorkspace() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const isNavigating = useNavigationLoading();
   async function load() {
     try {
       setLoading(true);
@@ -374,6 +377,8 @@ export function EditableProductWorkspace() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

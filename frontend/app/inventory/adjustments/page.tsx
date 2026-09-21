@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AlertCircle, Check, RefreshCw, Upload, X } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Adjustment = {
   id: string;
@@ -22,6 +24,7 @@ export default function AdjustmentsPage() {
   const [permissions, setPermissions] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const isNavigating = useNavigationLoading();
   async function load() {
     try {
       setError("");
@@ -183,6 +186,8 @@ export default function AdjustmentsPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

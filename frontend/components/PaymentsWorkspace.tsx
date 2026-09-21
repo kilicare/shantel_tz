@@ -6,6 +6,8 @@ import { PaymentMethodWorkspace } from "@/components/PaymentMethodWorkspace";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
 import { StatusBadge } from "@/components/ShantelPrimitives";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Customer = { id: string; name: string };
 type Method = { id: string; name: string; code: string; description?: string };
@@ -24,6 +26,7 @@ export function PaymentsWorkspace() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [refunds, setRefunds] = useState<Refund[]>([]);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const isNavigating = useNavigationLoading();
   
   const [form, setForm] = useState({ 
     customerId: "", 
@@ -549,6 +552,8 @@ export function PaymentsWorkspace() {
           <PaymentMethodWorkspace methods={methods} onChanged={() => load()} />
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

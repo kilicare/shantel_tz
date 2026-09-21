@@ -17,6 +17,8 @@ import {
 import { apiClient } from "@/lib/api-client";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { KpiCard } from "@/components/ShantelPrimitives";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type DashboardData = {
   todaySales: { count: number; totalAmount: number; totalPaid: number };
@@ -76,6 +78,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [timeGreeting, setTimeGreeting] = useState("Good day, team.");
+  const isNavigating = useNavigationLoading();
 
   async function loadDashboard() {
     try {
@@ -539,6 +542,8 @@ export default function DashboardPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AlertCircle, Check, PackagePlus, RefreshCw, Send } from "lucide-react";
 import { WorkspaceNavigation } from "@/components/WorkspaceNavigation";
 import { apiClient } from "@/lib/api-client";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
+import { useNavigationLoading } from "@/hooks/useNavigationLoading";
 
 type Invoice = { id: string; invoiceNumber?: string; customerId?: string; customer?: { name?: string } };
 type InvoiceItem = { productId: string; product?: { name?: string } };
@@ -28,6 +30,7 @@ export default function ReturnsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const isNavigating = useNavigationLoading();
 
   async function loadData() {
     try {
@@ -150,6 +153,8 @@ export default function ReturnsPage() {
           </section>
         </div>
       </main>
+      
+      <ShantelLoadingOverlay isVisible={isNavigating} message="Loading..." />
     </>
   );
 }

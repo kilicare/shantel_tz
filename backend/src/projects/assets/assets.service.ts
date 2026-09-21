@@ -17,6 +17,22 @@ export class AssetsService {
     private paginationService: PaginationService,
   ) {}
 
+  private normalizeOptionalDate(
+    value: Date | string | undefined | null,
+    fieldName: string,
+  ): Date | undefined {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid ${fieldName} value`);
+    }
+
+    return date;
+  }
+
   /**
    * Register asset
    */
@@ -27,12 +43,16 @@ export class AssetsService {
     supplierId?: string;
     locationId: string;
     projectId?: string;
-    purchaseDate?: Date;
+    purchaseDate?: Date | string;
     purchaseCost?: number;
-    warrantyStartDate?: Date;
-    warrantyEndDate?: Date;
+    warrantyStartDate?: Date | string;
+    warrantyEndDate?: Date | string;
     userId: string;
   }) {
+    const normalizedPurchaseDate = this.normalizeOptionalDate(data.purchaseDate, 'purchaseDate');
+    const normalizedWarrantyStartDate = this.normalizeOptionalDate(data.warrantyStartDate, 'warrantyStartDate');
+    const normalizedWarrantyEndDate = this.normalizeOptionalDate(data.warrantyEndDate, 'warrantyEndDate');
+
     // Validate location
     const location = await this.db.location.findUnique({
       where: { id: data.locationId },
@@ -94,12 +114,12 @@ export class AssetsService {
         locationId: data.locationId,
         assignedToUserId: data.userId,
         projectId: data.projectId,
-        purchaseDate: data.purchaseDate,
+        purchaseDate: normalizedPurchaseDate,
         purchaseCost: data.purchaseCost
           ? new Prisma.Decimal(data.purchaseCost)
           : null,
-        warrantyStartDate: data.warrantyStartDate,
-        warrantyEndDate: data.warrantyEndDate,
+        warrantyStartDate: normalizedWarrantyStartDate,
+        warrantyEndDate: normalizedWarrantyEndDate,
         status: 'NEW' as any,
       },
       include: {
