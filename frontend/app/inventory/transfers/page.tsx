@@ -114,44 +114,44 @@ export default function TransfersPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-6xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-subtle pb-7 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Inventory control</p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Stock transfers</h1>
-              <p className="mt-2 text-sm text-foreground/55">Move goods between locations with approval and posting.</p>
+              <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">Inventory control</p>
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">Stock transfers</h1>
+              <p className="mt-2 text-body text-text-muted">Move goods between locations with approval and posting.</p>
             </div>
-            <button type="button" onClick={() => void loadTransfers()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card">
-              <RefreshCw size={15} /> Refresh
+            <button type="button" onClick={() => void loadTransfers()} className="flex items-center gap-2 border border-border-subtle px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface">
+              <RefreshCw size={16} /> Refresh
             </button>
           </header>
 
           {error && (
-            <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-primary/8 px-4 py-3 text-sm text-muted-foreground">
+            <div role="alert" className="mt-6 flex items-center gap-3 rounded-md border border-danger bg-danger-soft px-4 py-3 text-body text-danger">
               <AlertCircle size={18} /> {error}
             </div>
           )}
 
           {message && (
-            <div role="status" className="mt-6 border border-border-default bg-status-success-surface px-4 py-3 text-sm text-muted-foreground">
+            <div role="status" className="mt-6 rounded-md border border-success bg-success-soft px-4 py-3 text-body text-success-text">
               {message}
             </div>
           )}
 
           {canCreate && (
-            <form onSubmit={createTransfer} className="mt-8 bg-primary p-6 text-primary-foreground sm:p-8">
+            <form onSubmit={createTransfer} className="mt-8 rounded-lg bg-brand-primary p-6 text-primary-foreground sm:p-8">
               <div className="flex items-center gap-3">
                 <ArrowRightLeft className="text-brand-amber" />
-                <h2 className="text-2xl font-semibold">Create stock transfer</h2>
+                <h2 className="text-h2 font-semibold">Create stock transfer</h2>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
+                <label className="text-label uppercase tracking-wide text-primary-foreground/60">
                   Source location
                   <select
                     aria-label="Source location"
                     value={form.sourceLocationId}
                     onChange={(event) => setForm({ ...form, sourceLocationId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-surface text-body normal-case tracking-normal outline-none focus:border-blue-primary"
                   >
                     <option value="">Select source</option>
                     {locations.map((location) => (
@@ -160,13 +160,13 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
+                <label className="text-label uppercase tracking-wide text-primary-foreground/60">
                   Destination location
                   <select
                     aria-label="Destination location"
                     value={form.destLocationId}
                     onChange={(event) => setForm({ ...form, destLocationId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-surface text-body normal-case tracking-normal outline-none focus:border-blue-primary"
                   >
                     <option value="">Select destination</option>
                     {locations.map((location) => (
@@ -175,13 +175,13 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
+                <label className="text-label uppercase tracking-wide text-primary-foreground/60">
                   Product
                   <select
                     aria-label="Transfer product"
                     value={form.productId}
                     onChange={(event) => setForm({ ...form, productId: event.target.value })}
-                    className="mt-2 h-11 w-full bg-primary text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full bg-surface text-body normal-case tracking-normal outline-none focus:border-blue-primary"
                   >
                     <option value="">Select product</option>
                     {products.map((product) => (
@@ -190,7 +190,7 @@ export default function TransfersPage() {
                   </select>
                 </label>
 
-                <label className="text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
+                <label className="text-label uppercase tracking-wide text-primary-foreground/60">
                   Quantity
                   <input
                     aria-label="Transfer quantity"
@@ -198,63 +198,63 @@ export default function TransfersPage() {
                     min="1"
                     value={form.quantity}
                     onChange={(event) => setForm({ ...form, quantity: event.target.value })}
-                    className="mt-2 h-11 w-full bg-primary px-3 text-sm normal-case tracking-normal outline-none focus:border focus:border-primary"
+                    className="mt-2 h-11 w-full bg-surface px-3 text-body normal-case tracking-normal outline-none focus:border-blue-primary"
                   />
                 </label>
               </div>
 
-              <label className="mt-4 block text-xs uppercase tracking-[0.12em] text-primary-foreground/60">
+              <label className="mt-4 block text-label uppercase tracking-wide text-primary-foreground/60">
                 Notes
                 <textarea
                   aria-label="Transfer notes"
                   value={form.notes}
                   onChange={(event) => setForm({ ...form, notes: event.target.value })}
                   rows={3}
-                  className="mt-2 w-full bg-primary px-3 py-2 text-sm normal-case tracking-normal outline-none focus:border focus:border-primary"
+                  className="mt-2 w-full bg-surface px-3 py-2 text-body normal-case tracking-normal outline-none focus:border-blue-primary"
                   placeholder="Optional notes"
                 />
               </label>
 
               <div className="mt-6 flex justify-end">
-                <button type="submit" disabled={saving} className="bg-card px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-foreground disabled:opacity-60">
+                <button type="submit" disabled={saving} className="bg-surface px-5 py-3 text-label font-semibold uppercase tracking-wide text-text-primary disabled:opacity-60">
                   {saving ? "Creating..." : "Create transfer"}
                 </button>
               </div>
             </form>
           )}
 
-          <section className="mt-8 bg-card p-6">
+          <section className="mt-8 rounded-lg bg-surface p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Directory</p>
-                <h2 className="mt-2 text-2xl font-semibold">Transfers</h2>
+                <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">Directory</p>
+                <h2 className="mt-2 text-h2 font-semibold">Transfers</h2>
               </div>
-              <span className="text-xs text-foreground/45">{transfers.length} records</span>
+              <span className="text-caption text-text-muted">{transfers.length} records</span>
             </div>
 
             {loading ? (
-              <p className="py-10 text-sm text-foreground/50">Loading transfers...</p>
+              <p className="py-10 text-body text-text-muted">Loading transfers...</p>
             ) : transfers.length === 0 ? (
-              <p className="py-10 text-sm text-foreground/50">No transfers found.</p>
+              <p className="py-10 text-body text-text-muted">No transfers found.</p>
             ) : (
               <div className="mt-6 space-y-3">
                 {transfers.map((transfer) => (
-                  <div key={transfer.id} className="flex flex-col gap-3 border border-border-default p-4 md:flex-row md:items-center md:justify-between">
+                  <div key={transfer.id} className="flex flex-col gap-3 rounded-md border border-border-subtle p-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">{transfer.transferNumber ?? "Transfer"}</p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.12em] text-foreground/50">{transfer.status ?? "DRAFT"}</p>
-                      <p className="mt-2 text-sm text-foreground/70">
+                      <p className="text-body font-semibold text-text-primary">{transfer.transferNumber ?? "Transfer"}</p>
+                      <p className="mt-1 text-caption uppercase tracking-wide text-text-muted">{transfer.status ?? "DRAFT"}</p>
+                      <p className="mt-2 text-body text-text-secondary">
                         {transfer.sourceLocation?.name ?? "Unknown source"} → {transfer.destLocation?.name ?? "Unknown destination"}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {canApprove && transfer.status === "DRAFT" && (
-                        <button type="button" onClick={() => void transition(transfer.id, "approve")} className="flex items-center gap-2 bg-primary px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                        <button type="button" onClick={() => void transition(transfer.id, "approve")} className="flex items-center gap-2 bg-brand-primary px-3 py-2 text-caption font-semibold uppercase tracking-wide text-primary-foreground">
                           <Check size={14} /> Approve
                         </button>
                       )}
                       {canApprove && (transfer.status === "DRAFT" || transfer.status === "SUBMITTED") && (
-                        <button type="button" onClick={() => void transition(transfer.id, "post")} className="flex items-center gap-2 border border-border-default px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em]">
+                        <button type="button" onClick={() => void transition(transfer.id, "post")} className="flex items-center gap-2 border border-border-subtle px-3 py-2 text-caption font-semibold uppercase tracking-wide">
                           <Check size={14} /> Post
                         </button>
                       )}

@@ -77,26 +77,26 @@ export default function ProjectsPage() {
     <WorkspaceNavigation />
     <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
-        <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Project desk</p><h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Projects</h1><p className="mt-2 text-sm text-foreground/55">Create projects, connect customers, and keep delivery costs visible.</p></div>
-          <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"><RefreshCw size={15} /> Refresh</button>
+        <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-8 sm:flex-row sm:items-end">
+          <div><p className="text-label font-semibold uppercase tracking-wider text-blue-primary">Project desk</p><h1 className="mt-2 text-h1 font-semibold tracking-tight">Projects</h1><p className="mt-2 text-body text-text-muted">Create projects, connect customers, and keep delivery costs visible.</p></div>
+          <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"><RefreshCw size={16} /> Refresh</button>
         </header>
         {error && <div className="mt-6"><AlertBanner>{error}</AlertBanner></div>}
         {success && <div className="mt-6"><AlertBanner tone="success">{success}</AlertBanner></div>}
         <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_1.4fr]">
           <ShantelCard className="p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">New project</p>
-            <h2 className="mt-2 text-2xl font-semibold">Start a project</h2>
+            <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">New project</p>
+            <h2 className="mt-2 text-h2 font-semibold">Start a project</h2>
             <form onSubmit={createProject} className="mt-6 space-y-4">
-              <label className="block text-sm font-medium">Project name<input required value={name} onChange={(event) => setName(event.target.value)} className="mt-2 h-11 w-full border border-border-default bg-card px-3 text-sm outline-none focus:border-primary" /></label>
-              <label className="block text-sm font-medium">Customer<select value={customerId} onChange={(event) => setCustomerId(event.target.value)} className="mt-2 h-11 w-full border border-border-default bg-card px-3 text-sm outline-none focus:border-primary"><option value="">No customer linked</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</select></label>
-              <label className="block text-sm font-medium">Description<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} className="mt-2 w-full border border-border-default bg-card px-3 py-2 text-sm outline-none focus:border-primary" /></label>
-              <button disabled={saving} type="submit" className="flex w-full items-center justify-center gap-2 bg-primary px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white disabled:opacity-50"><Plus size={15} />{saving ? "Creating..." : "Create project"}</button>
+              <label className="block text-body font-medium">Project name<input required value={name} onChange={(event) => setName(event.target.value)} className="mt-2 h-11 w-full border border-border-default bg-surface px-3 text-body outline-none focus:border-blue-primary" /></label>
+              <label className="block text-body font-medium">Customer<select value={customerId} onChange={(event) => setCustomerId(event.target.value)} className="mt-2 h-11 w-full border border-border-default bg-surface px-3 text-body outline-none focus:border-blue-primary"><option value="">No customer linked</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}</select></label>
+              <label className="block text-body font-medium">Description<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} className="mt-2 w-full border border-border-default bg-surface px-3 py-2 text-body outline-none focus:border-blue-primary" /></label>
+              <button disabled={saving} type="submit" className="flex w-full items-center justify-center gap-2 bg-brand-primary px-4 py-3 text-label font-semibold uppercase tracking-wide text-white disabled:opacity-50"><Plus size={16} />{saving ? "Creating..." : "Create project"}</button>
             </form>
           </ShantelCard>
           <ShantelCard className="p-6">
-            <div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Directory</p><h2 className="mt-2 text-2xl font-semibold">All projects</h2></div><span className="text-xs text-foreground/45">{projects.length} records</span></div>
-            {loading ? <LoadingState message="Loading projects..." /> : projects.length === 0 ? <div className="mt-5"><EmptyState title="No projects yet" description="Create the first project to begin Round 8." /></div> : <div className="mt-5 divide-y divide-[#172B4D]/10">{projects.map((project) => <div key={project.id} className="flex items-center justify-between gap-4 py-4"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">{project.projectNumber}</p><Link href={`/projects/${project.id}`} className="mt-1 block font-semibold hover:text-primary">{project.name}</Link><p className="mt-1 text-xs text-foreground/55">{project.customer?.name ?? "No customer linked"}</p></div><StatusBadge status={project.status} /></div>)}</div>}
+            <div className="flex items-end justify-between gap-4"><div><p className="text-label font-semibold uppercase tracking-wide text-blue-primary">Directory</p><h2 className="mt-2 text-h2 font-semibold">All projects</h2></div><span className="text-small text-foreground/45">{projects.length} records</span></div>
+            {loading ? <LoadingState message="Loading projects..." /> : projects.length === 0 ? <div className="mt-5"><EmptyState title="No projects yet" description="Create the first project to begin Round 8." /></div> : <div className="mt-5 divide-y divide-border-subtle">{projects.map((project) => <div key={project.id} className="flex items-center justify-between gap-4 py-4"><div><p className="text-caption font-semibold uppercase tracking-wide text-blue-primary">{project.projectNumber}</p><Link href={`/projects/${project.id}`} className="mt-1 block font-semibold hover:text-blue-primary">{project.name}</Link><p className="mt-1 text-small text-foreground/55">{project.customer?.name ?? "No customer linked"}</p></div><StatusBadge status={project.status} /></div>)}</div>}
           </ShantelCard>
         </section>
       </div>

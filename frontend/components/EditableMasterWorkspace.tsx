@@ -204,12 +204,12 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-8 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">
                 Master data
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">
                 {current.title}
               </h1>
             </div>
@@ -217,9 +217,9 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
               <button
                 type="button"
                 onClick={() => void load()}
-                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"
               >
-                <RefreshCw size={15} /> Refresh
+                <RefreshCw size={16} /> Refresh
               </button>
               {canCreate && (
                 <button
@@ -228,9 +228,9 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                     setEditingId("");
                     setShowForm(!showForm);
                   }}
-                  className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-white"
+                  className="flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-white"
                 >
-                  <Plus size={15} /> New {current.singular}
+                  <Plus size={16} /> New {current.singular}
                 </button>
               )}
             </div>
@@ -254,9 +254,9 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
           {showForm && (
             <form
               onSubmit={save}
-              className="mt-8 grid gap-4 bg-primary p-6 text-primary-foreground sm:grid-cols-2"
+              className="mt-8 grid gap-4 bg-brand-primary p-6 text-primary-foreground sm:grid-cols-2"
             >
-              <h2 className="text-xl font-semibold sm:col-span-2">
+              <h2 className="text-h3 font-semibold sm:col-span-2">
                 {editingId
                   ? `Edit ${current.singular}`
                   : `New ${current.singular}`}
@@ -269,7 +269,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                 onChange={(event) =>
                   setForm({ ...form, name: event.target.value })
                 }
-                className="h-11 border-b border-border-default bg-transparent text-sm outline-none"
+                className="h-11 border-b border-border-default bg-transparent text-body outline-none"
               />
               {kind === "locations" ? (
                 <>
@@ -303,7 +303,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                       onChange={(event) =>
                         setForm({ ...form, status: event.target.value })
                       }
-                      className="h-11 bg-background px-2 text-sm text-foreground"
+                      className="h-11 bg-background px-2 text-body text-foreground"
                     >
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
@@ -320,7 +320,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                     onChange={(event) =>
                       setForm({ ...form, email: event.target.value })
                     }
-                    className="h-11 border-b border-border-default bg-transparent text-sm outline-none"
+                    className="h-11 border-b border-border-default bg-transparent text-body outline-none"
                   />
                   <input
                     aria-label="Phone"
@@ -329,7 +329,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                     onChange={(event) =>
                       setForm({ ...form, phone: event.target.value })
                     }
-                    className="h-11 border-b border-border-default bg-transparent text-sm outline-none"
+                    className="h-11 border-b border-border-default bg-transparent text-body outline-none"
                   />
                 </>
               )}
@@ -340,11 +340,11 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                 onChange={(event) =>
                   setForm({ ...form, address: event.target.value })
                 }
-                className="h-11 border-b border-border-default/25 bg-transparent text-sm outline-none"
+                className="h-11 border-b border-border-default/25 bg-transparent text-body outline-none"
               />
               <button
                 type="submit"
-                className="bg-card px-4 py-2.5 text-xs font-semibold text-foreground sm:col-span-2"
+                className="bg-surface px-4 py-2.5 text-label font-semibold text-foreground sm:col-span-2"
               >
                 {editingId
                   ? "Save changes"
@@ -352,10 +352,10 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
               </button>
             </form>
           )}
-          <section className="mt-8 bg-card p-6">
+          <section className="mt-8 bg-surface p-6">
             <div className="flex items-end justify-between">
-              <h2 className="text-2xl font-semibold">{current.title}</h2>
-              <span className="text-xs text-foreground/45">
+              <h2 className="text-h2 font-semibold">{current.title}</h2>
+              <span className="text-small text-foreground/45">
                 {filtered.length} records
               </span>
             </div>
@@ -364,10 +364,10 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={`Search ${current.title.toLowerCase()}`}
-              className="mt-5 h-11 w-full border-b border-border-default bg-transparent text-sm outline-none"
+              className="mt-5 h-11 w-full border-b border-border-default bg-transparent text-body outline-none"
             />
             {loading ? (
-              <p className="py-10 text-sm text-foreground/50">Loading...</p>
+              <p className="py-10 text-body text-foreground/50">Loading...</p>
             ) : (
               <div className="mt-4 divide-y divide-border-default">
                 {filtered.map((item) => (
@@ -376,11 +376,11 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                     className="flex items-center justify-between py-4"
                   >
                     <div>
-                      <p className="text-sm font-semibold">
+                      <p className="text-body font-semibold">
                         {item.name}
                         {item.code ? ` · ${item.code}` : ""}
                       </p>
-                      <p className="text-xs text-foreground/45">
+                      <p className="text-small text-foreground/45">
                         {item.email ?? item.phone ?? item.status ?? "ACTIVE"}
                         {item.balance !== undefined
                           ? ` · Balance: TSh ${item.balance}`
@@ -395,7 +395,7 @@ export function EditableMasterWorkspace({ kind }: { kind: Kind }) {
                           onClick={() => edit(item)}
                           className="p-2"
                         >
-                          <Pencil size={15} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           type="button"

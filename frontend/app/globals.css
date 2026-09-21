@@ -9,7 +9,7 @@
 
 @theme {
   /* Font Family */
-  --font-inter: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
 
   /* Spacing Scale */
   --spacing-micro: 4px;
@@ -63,116 +63,54 @@
   --shadow-elevation-3: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-@media (max-width: 639px) {
-  main > div > section:nth-of-type(2) table {
-    min-width: 0;
-    display: block;
+@media (max-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
   }
 
-  main > div > section:nth-of-type(2) table thead {
-    display: none;
+  .responsive-gap {
+    gap: 1rem !important;
   }
 
-  main > div > section:nth-of-type(2) table tbody,
-  main > div > section:nth-of-type(2) table tr {
-    display: block;
+  .responsive-padding {
+    padding: 1rem !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-body {
+    font-size: 14px;
   }
 
-  main > div > section:nth-of-type(2) table tr {
-    border-bottom: 1px solid color-mix(in srgb, var(--brand-forest) 10%, transparent);
-    padding: 0.75rem 0;
+  .text-label {
+    font-size: 12px;
   }
 
-  main > div > section:nth-of-type(2) table td {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    min-width: 0;
-    padding: 0.3rem 0;
-    text-align: right;
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
-
-  main > div > section:nth-of-type(2) table td::before {
-    flex: 0 0 auto;
-    color: color-mix(in srgb, var(--brand-forest) 55%, transparent);
-    content: "";
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-align: left;
-    text-transform: uppercase;
-  }
-
-  main > div > section:nth-of-type(2) table td:nth-child(1)::before { content: "When"; }
-  main > div > section:nth-of-type(2) table td:nth-child(2)::before { content: "Entity"; }
-  main > div > section:nth-of-type(2) table td:nth-child(3)::before { content: "Action"; }
-  main > div > section:nth-of-type(2) table td:nth-child(4)::before { content: "Actor"; }
-  main > div > section:nth-of-type(2) table td:nth-child(5)::before { content: "Reference"; }
-
-  main > div > section:last-child table {
-    min-width: 0;
-    display: block;
-  }
-
-  main > div > section:last-child table thead {
-    display: none;
-  }
-
-  main > div > section:last-child table tbody,
-  main > div > section:last-child table tr {
-    display: block;
-  }
-
-  main > div > section:last-child table tr {
-    border-bottom: 1px solid color-mix(in srgb, white 12%, transparent);
-    padding: 0.75rem 0;
-  }
-
-  main > div > section:last-child table td {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.3rem 0;
-    text-align: right;
-    overflow-wrap: anywhere;
-  }
-
-  main > div > section:last-child table td::before {
-    flex: 0 0 auto;
-    color: color-mix(in srgb, white 55%, transparent);
-    content: "";
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-align: left;
-    text-transform: uppercase;
-  }
-
-  main > div > section:last-child table td:nth-child(1)::before { content: "Date"; }
-  main > div > section:last-child table td:nth-child(2)::before { content: "Type"; }
-  main > div > section:last-child table td:nth-child(3)::before { content: "Direction"; }
-  main > div > section:last-child table td:nth-child(4)::before { content: "Quantity"; }
-  main > div > section:last-child table td:nth-child(5)::before { content: "Balance"; }
-  main > div > section:last-child table td:nth-child(6)::before { content: "Reference"; }
-
-  main > div > section:nth-of-type(2) input,
-  main > div > section:nth-of-type(2) button,
-  main > div > section:last-child select,
-  main > div > section:last-child button {
-    max-width: 100%;
+  .text-small {
+    font-size: 12px;
   }
 }
 
 main form input[type="number"] {
-  background-color: white;
-  border: 1px solid color-mix(in srgb, var(--brand-forest) 15%, transparent);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
   color: var(--text-primary);
 }
 
 main form input[type="number"]::placeholder {
-  color: color-mix(in srgb, var(--brand-forest) 45%, transparent);
+  color: var(--text-muted);
 }
 
 main button:focus,
@@ -188,6 +126,23 @@ main button:active {
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-blue-primary: var(--blue-primary);
+  --color-blue-hover: var(--blue-hover);
+  --color-blue-soft: var(--blue-soft);
+  --color-blue-text: var(--blue-text);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-hover: var(--surface-hover);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-info: var(--info);
+  --color-info-text: var(--info-text);
   --color-brand-forest: var(--brand-forest);
   --color-brand-paper: var(--brand-paper);
   --color-brand-soft: var(--brand-soft);
@@ -244,9 +199,9 @@ main button:active {
   --color-chart-empty: var(--chart-empty);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-sans);
+  --font-heading: var(--font-family-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -289,9 +244,9 @@ main button:active {
   /* ============================================================================
      BRAND COLORS - Forest + Blue System
      ============================================================================ */
-  --brand-primary: #163A35;
-  --brand-primary-hover: #0F2F2B;
-  
+  --brand-primary: #2B5B52;
+  --brand-primary-hover: #234B44;
+
   --blue-primary: #3178B9;
   --blue-hover: #245F94;
   --blue-soft: #EAF4FC;
@@ -305,14 +260,17 @@ main button:active {
   --surface-subtle: #F1F5F3;
   --surface-muted: #E8EFEC;
   --surface-hover: #F4F7F6;
+  --dashboard-wash: #EFF6F5;
+  --dashboard-glow: rgba(49, 120, 185, 0.08);
   
   /* ============================================================================
      LIGHT THEME - Text
      ============================================================================ */
-  --text-primary: #14201D;
-  --text-secondary: #465650;
-  --text-muted: #71817B;
-  --text-disabled: #A7B2AE;
+  --text-primary: #0F2F2B;
+  --text-secondary: #1F3F3A;
+  --text-muted: #465650;
+  --text-disabled: #52645D;
+  --text-feature-muted: #D4E1DD;
   
   /* ============================================================================
      LIGHT THEME - Borders
@@ -320,15 +278,18 @@ main button:active {
   --border-subtle: #E1E8E5;
   --border-default: #D2DCD8;
   --border-strong: #B6C3BE;
+  --border-feature: #52736B;
   
   /* ============================================================================
      LIGHT THEME - Semantic Colors
      ============================================================================ */
   --success: #16835B;
+  --success-hover: #126B4D;
   --success-soft: #E8F6F0;
   --success-text: #106044;
   
   --warning: #B77912;
+  --warning-hover: #96650F;
   --warning-soft: #FFF5DC;
   --warning-text: #82550C;
   
@@ -354,14 +315,14 @@ main button:active {
   --brand-danger: var(--danger);
   --surface-canvas: var(--background);
   --surface-card: var(--surface);
-  --surface-muted: var(--surface-muted);
+  --surface-muted: #E8EFEC;
   --surface-feature: var(--brand-primary);
   --surface-overlay: var(--surface-subtle);
   --surface-input: var(--surface);
   --surface-disabled: var(--surface-muted);
   --text-inverse: #FFFFFF;
   --text-eyebrow: var(--blue-primary);
-  --border-inverse: var(--border-subtle);
+  --border-inverse: #D2DCD8;
   --border-focus: var(--blue-primary);
   --interactive-primary: var(--brand-primary);
   --interactive-primary-hover: var(--brand-primary-hover);
@@ -436,6 +397,8 @@ main button:active {
   --surface-subtle: #1A2B27;
   --surface-muted: #213630;
   --surface-hover: #263D36;
+  --dashboard-wash: var(--background);
+  --dashboard-glow: rgba(99, 167, 229, 0.04);
   
   /* ============================================================================
      DARK THEME - Text
@@ -443,7 +406,8 @@ main button:active {
   --text-primary: #F3F7F5;
   --text-secondary: #C5D1CC;
   --text-muted: #91A39C;
-  --text-disabled: #63746E;
+  --text-disabled: #81938C;
+  --text-feature-muted: #D4E1DD;
   
   /* ============================================================================
      DARK THEME - Borders
@@ -451,15 +415,18 @@ main button:active {
   --border-subtle: #243630;
   --border-default: #30453F;
   --border-strong: #466058;
+  --border-feature: #52736B;
   
   /* ============================================================================
      DARK THEME - Semantic Colors
      ============================================================================ */
   --success: #45C995;
+  --success-hover: #38B987;
   --success-soft: #103D30;
   --success-text: #8BE0BC;
   
   --warning: #E5B94A;
+  --warning-hover: #D4A53D;
   --warning-soft: #44330F;
   --warning-text: #F5D77E;
   
@@ -493,14 +460,14 @@ main button:active {
   --brand-danger: var(--danger);
   --surface-canvas: var(--background);
   --surface-card: var(--surface);
-  --surface-muted: var(--surface-muted);
+  --surface-muted: #213630;
   --surface-feature: var(--brand-primary);
   --surface-overlay: var(--surface-subtle);
   --surface-input: var(--surface-muted);
   --surface-disabled: var(--surface-muted);
   --text-inverse: #FFFFFF;
   --text-eyebrow: var(--blue-primary);
-  --border-inverse: var(--border-subtle);
+  --border-inverse: #30453F;
   --border-focus: var(--brand-amber);
   --interactive-primary: var(--brand-primary);
   --interactive-primary-hover: var(--brand-primary-hover);
@@ -577,10 +544,10 @@ main button:active {
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground;
   }
   html {
-    @apply font-inter;
+    @apply font-sans;
   }
 }
 
@@ -591,6 +558,72 @@ main button:active {
     border-radius: var(--radius-md);
     color: var(--status-danger-text) !important;
   }
+
+  [role="status"].bg-green-50,
+  [role="status"].bg-status-success-surface {
+    border-color: var(--status-success-border) !important;
+    background-color: var(--status-success-surface) !important;
+    color: var(--status-success-text) !important;
+  }
+
+  [role="status"].bg-yellow-50,
+  [role="status"].bg-status-warning-surface {
+    border-color: var(--status-warning-border) !important;
+    background-color: var(--status-warning-surface) !important;
+    color: var(--status-warning-text) !important;
+  }
+}
+
+.dashboard-canvas {
+  background:
+    radial-gradient(circle at 92% 4%, var(--dashboard-glow), transparent 28rem),
+    var(--dashboard-wash);
+}
+
+/* Shared workspace finish for every authenticated route. */
+.workspace-navigation-shell ~ main.bg-background {
+  background:
+    radial-gradient(circle at 92% 0%, var(--dashboard-glow), transparent 30rem),
+    var(--dashboard-wash);
+}
+
+.workspace-navigation-shell ~ div.mx-auto.w-full.min-w-0.max-w-7xl {
+  min-height: 100vh;
+  padding-top: 7rem;
+  background:
+    radial-gradient(circle at 92% 0%, var(--dashboard-glow), transparent 30rem),
+    var(--dashboard-wash);
+}
+
+@media (min-width: 768px) {
+  .workspace-navigation-shell ~ main {
+    padding-top: 7rem;
+  }
+}
+
+.workspace-navigation-shell ~ main.bg-background .bg-card {
+  border: 1px solid color-mix(in srgb, var(--border-default) 78%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elevation-1);
+}
+
+.workspace-navigation-shell ~ main.bg-background input.bg-card,
+.workspace-navigation-shell ~ main.bg-background select.bg-card,
+.workspace-navigation-shell ~ main.bg-background textarea.bg-card {
+  background-color: var(--surface-input);
+  color: var(--text-primary);
+}
+
+.workspace-navigation-shell ~ main.bg-background button.bg-primary,
+.workspace-navigation-shell ~ main.bg-background button.bg-brand-primary {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevation-1);
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.workspace-navigation-shell ~ main.bg-background button.bg-primary:hover,
+.workspace-navigation-shell ~ main.bg-background button.bg-brand-primary:hover {
+  box-shadow: var(--shadow-elevation-2);
 }
 
 /* ============================================================================
@@ -602,16 +635,34 @@ main button:active {
   line-height: 1.10;
 }
 
+@media (max-width: 640px) {
+  .text-display {
+    font-size: 28px;
+  }
+}
+
 .text-h1 {
   font-size: 30px;
   font-weight: 700;
   line-height: 1.20;
 }
 
+@media (max-width: 640px) {
+  .text-h1 {
+    font-size: 24px;
+  }
+}
+
 .text-h2 {
   font-size: 24px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  .text-h2 {
+    font-size: 20px;
+  }
 }
 
 .text-h3 {
@@ -620,10 +671,22 @@ main button:active {
   line-height: 1.30;
 }
 
+@media (max-width: 640px) {
+  .text-h3 {
+    font-size: 18px;
+  }
+}
+
 .text-h4 {
   font-size: 18px;
   font-weight: 600;
   line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .text-h4 {
+    font-size: 16px;
+  }
 }
 
 .text-body {
@@ -654,6 +717,53 @@ main button:active {
   font-size: 12px;
   font-weight: 500;
   line-height: 1.35;
+}
+
+.text-feature-muted {
+  color: var(--text-feature-muted);
+}
+
+.border-feature-subtle {
+  border-color: color-mix(in srgb, var(--border-feature) 55%, transparent);
+}
+
+.money-positive {
+  color: var(--success-text);
+}
+
+.workspace-navigation-shell ~ main .text-right > p.font-semibold,
+.workspace-navigation-shell ~ main article > p.font-semibold:last-child {
+  color: var(--success-text);
+}
+
+main h1.text-4xl,
+main h1.text-3xl,
+main h1.text-2xl {
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+main h2.text-4xl,
+main h2.text-3xl,
+main h2.text-2xl {
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+@media (max-width: 640px) {
+  main h1.text-4xl,
+  main h1.text-3xl,
+  main h1.text-2xl {
+    font-size: 24px;
+  }
+
+  main h2.text-4xl,
+  main h2.text-3xl,
+  main h2.text-2xl {
+    font-size: 20px;
+  }
 }
 
 /* ============================================================================

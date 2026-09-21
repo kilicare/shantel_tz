@@ -160,24 +160,24 @@ export default function ReportsPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-8 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">
                 Reporting hub
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">
                 Business reports
               </h1>
-              <p className="mt-2 text-sm text-foreground/55">
+              <p className="mt-2 text-body text-text-muted">
                 Sales, inventory, purchasing, payments, expenses, customers, suppliers, and audit coverage.
               </p>
             </div>
             <button
               type="button"
               onClick={() => void loadReports()}
-              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em]"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"
             >
-              <RefreshCw size={15} /> Refresh
+              <RefreshCw size={16} /> Refresh
             </button>
           </header>
 
@@ -196,11 +196,11 @@ export default function ReportsPage() {
               <a
                 key={href}
                 href={href}
-                className="rounded-2xl border border-border-default bg-card p-5 transition-colors hover:border-border-default hover:bg-card"
+                className="rounded-lg border border-border-default bg-surface p-5 transition-colors hover:border-border-default hover:bg-surface-hover"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Report</p>
-                <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em]">{title}</h2>
-                <p className="mt-2 text-sm text-foreground/55">{desc}</p>
+                <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">Report</p>
+                <h2 className="mt-3 text-h3 font-semibold tracking-tight">{title}</h2>
+                <p className="mt-2 text-body text-text-muted">{desc}</p>
               </a>
             ))}
           </div>

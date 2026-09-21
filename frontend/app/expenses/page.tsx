@@ -68,18 +68,18 @@ export default function ExpensesPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border-default pb-6">
+          <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border-default pb-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">Finance desk</p>
-              <h1 className="mt-2 text-4xl font-semibold">Expenses</h1>
-              <p className="mt-2 text-sm text-foreground/55">Track operational expenses through controlled submission and approval.</p>
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">Finance desk</p>
+              <h1 className="mt-2 text-h1 font-semibold">Expenses</h1>
+              <p className="mt-2 text-body text-text-muted">Track operational expenses through controlled submission and approval.</p>
             </div>
             <div className="flex gap-2">
-              <button type="button" onClick={() => void load()} className="flex items-center gap-2 border px-4 py-2 text-xs font-semibold uppercase">
-                <RefreshCw size={15} /> Refresh
+              <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover">
+                <RefreshCw size={16} /> Refresh
               </button>
-              <button type="button" onClick={() => setShowForm((visible) => !visible)} className="flex items-center gap-2 bg-primary px-4 py-2 text-xs font-semibold uppercase text-white">
-                <Plus size={15} /> New expense
+              <button type="button" onClick={() => setShowForm((visible) => !visible)} className="flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-white">
+                <Plus size={16} /> New expense
               </button>
             </div>
           </header>
@@ -88,15 +88,15 @@ export default function ExpensesPage() {
           {message && <div className="mt-5"><AlertBanner tone="success">{message}</AlertBanner></div>}
 
           {showForm && (
-            <form onSubmit={createExpense} className="mt-7 grid gap-4 bg-primary p-5 text-white sm:grid-cols-2">
-              <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-white/75">
+            <form onSubmit={createExpense} className="mt-7 grid gap-4 bg-brand-primary p-5 text-white sm:grid-cols-2">
+              <label className="block text-label font-semibold uppercase tracking-wide text-white/75">
                 Category
-                <select required aria-label="Expense category" value={form.categoryId} onChange={(event) => setForm({ ...form, categoryId: event.target.value })} className="mt-2 h-11 w-full bg-card px-3 text-sm font-normal normal-case tracking-normal text-foreground">
+                <select required aria-label="Expense category" value={form.categoryId} onChange={(event) => setForm({ ...form, categoryId: event.target.value })} className="mt-2 h-11 w-full bg-surface px-3 text-body font-normal normal-case tracking-normal text-foreground">
                   <option value="">Select category</option>
                   {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
                 </select>
               </label>
-              <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-white/75">
+              <label className="block text-label font-semibold uppercase tracking-wide text-white/75">
                 Payment method
                 <select required aria-label="Expense payment method" value={form.paymentMethodId} onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })} className="mt-2 h-11 w-full bg-card px-3 text-sm font-normal normal-case tracking-normal text-foreground">
                   <option value="">Select payment method</option>

@@ -244,25 +244,25 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={() => setShowReceiveForm(true)}
-                  className="flex items-center gap-2 bg-card px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                  className="flex items-center gap-2 border border-border-default bg-surface px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-text-primary hover:bg-surface-hover"
                 >
-                  <PackagePlus size={15} /> Receive stock
+                  <PackagePlus size={16} /> Receive stock
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => void loadInventory()}
-                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
+                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"
               >
-                <RefreshCw size={15} /> Refresh
+                <RefreshCw size={16} /> Refresh
               </button>
               {canAdjust && (
                 <button
                   type="button"
                   onClick={() => setShowForm(true)}
-                  className="flex items-center gap-2 bg-primary px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white"
+                  className="flex items-center gap-2 bg-brand-primary px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-white"
                 >
-                  <SlidersHorizontal size={15} /> New adjustment
+                  <SlidersHorizontal size={16} /> New adjustment
                 </button>
               )}
             </div>
@@ -286,14 +286,14 @@ export default function InventoryPage() {
           {showReceiveForm && (
             <form
               onSubmit={receiveStock}
-              className="mt-8 bg-card p-6 text-white sm:p-8"
+              className="mt-8 bg-primary p-6 text-primary-foreground sm:p-8"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+                  <p className="text-label font-semibold uppercase tracking-wide text-primary-foreground/80">
                     Stock in
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold">Receive stock</h2>
+                  <h2 className="mt-2 text-h2 font-semibold">Receive stock</h2>
                 </div>
                 <button
                   type="button"
@@ -304,7 +304,7 @@ export default function InventoryPage() {
                 </button>
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <label className="text-xs uppercase tracking-[0.12em]">
+                <label className="text-small uppercase tracking-wide">
                   Location
                   <select
                     aria-label="Receive location"
@@ -315,7 +315,7 @@ export default function InventoryPage() {
                         locationId: event.target.value,
                       })
                     }
-                    className="mt-2 h-11 w-full bg-card text-sm normal-case tracking-normal"
+                    className="mt-2 h-11 w-full rounded-md border border-border-default bg-surface px-3 text-body text-text-primary normal-case tracking-normal outline-none focus:border-blue-primary focus:ring-2 focus:ring-blue-primary/25"
                   >
                     <option value="">Select location</option>
                     {locations.map((location) => (

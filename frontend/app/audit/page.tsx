@@ -62,13 +62,13 @@ export default function AuditPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
+          <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Control centre</p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">Audit & integrity</h1>
-              <p className="mt-2 text-sm text-foreground/55">Evidence from system activity, consistency checks, and stock movement history.</p>
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">Control centre</p>
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">Audit & integrity</h1>
+              <p className="mt-2 text-body text-text-muted">Evidence from system activity, consistency checks, and stock movement history.</p>
             </div>
-            <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default bg-card px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"><RefreshCw size={15} /> Refresh</button>
+            <button type="button" onClick={() => void load()} className="flex items-center gap-2 border border-border-default bg-surface px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"><RefreshCw size={16} /> Refresh</button>
           </header>
           {error && <div role="alert" className="mt-6 flex items-center gap-3 border border-border-default bg-card px-4 py-3 text-sm text-muted-foreground"><AlertCircle size={18} /> {error}</div>}
           <section className="mt-8 grid gap-4 md:grid-cols-3">
@@ -76,22 +76,22 @@ export default function AuditPage() {
               const result = checks[card.key];
               const healthy = result && (result.status === "OK" || result.isHealthy === true);
               return (
-                <article key={card.key} className="border border-border-default bg-card p-5">
+                <article key={card.key} className="border border-border-default bg-surface p-5">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/55">{card.label}</p>
-                    {healthy ? <CheckCircle2 className="text-muted-foreground" size={20} /> : result ? <XCircle className="text-muted-foreground" size={20} /> : <ShieldCheck className="text-brand-amber" size={20} />}
+                    <p className="text-label font-semibold uppercase tracking-wide text-foreground/55">{card.label}</p>
+                    {healthy ? <CheckCircle2 className="text-text-muted" size={20} /> : result ? <XCircle className="text-text-muted" size={20} /> : <ShieldCheck className="text-brand-amber" size={20} />}
                   </div>
-                  <p className="mt-4 text-2xl font-semibold">{!result ? "Checking" : healthy ? "Healthy" : `${result.issueCount ?? (result.issues?.length ?? result.invalidSequences?.length ?? result.usersWithoutRole?.length ?? 0)} issue(s)`}</p>
-                  <p className="mt-1 text-xs text-foreground/50">{result?.checkedAt ? new Date(result.checkedAt).toLocaleString() : "Live check"}</p>
+                  <p className="mt-4 text-h2 font-semibold">{!result ? "Checking" : healthy ? "Healthy" : `${result.issueCount ?? (result.issues?.length ?? result.invalidSequences?.length ?? result.usersWithoutRole?.length ?? 0)} issue(s)`}</p>
+                  <p className="mt-1 text-small text-foreground/50">{result?.checkedAt ? new Date(result.checkedAt).toLocaleString() : "Live check"}</p>
                 </article>
               );
             })}
           </section>
-          <section className="mt-8 border border-border-default bg-card p-5 sm:p-6">
-            <div className="flex items-center gap-3"><Search size={19} className="text-primary" /><h2 className="text-xl font-semibold">Audit log evidence</h2></div>
+          <section className="mt-8 border border-border-default bg-surface p-5 sm:p-6">
+            <div className="flex items-center gap-3"><Search size={19} className="text-blue-primary" /><h2 className="text-h3 font-semibold">Audit log evidence</h2></div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <input aria-label="Entity type filter" placeholder="Entity type" value={filters.entityType} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
-              <input aria-label="Action filter" placeholder="Action" value={filters.action} onChange={(event) => setFilters({ ...filters, action: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
+              <input aria-label="Entity type filter" placeholder="Entity type" value={filters.entityType} onChange={(event) => setFilters({ ...filters, entityType: event.target.value })} className="h-11 border border-border-default px-3 text-body" />
+              <input aria-label="Action filter" placeholder="Action" value={filters.action} onChange={(event) => setFilters({ ...filters, action: event.target.value })} className="h-11 border border-border-default px-3 text-body" />
               <input aria-label="Start date filter" type="date" value={filters.startDate} onChange={(event) => setFilters({ ...filters, startDate: event.target.value })} className="h-11 border border-border-default px-3 text-sm" />
               <div className="flex gap-2">
                 <input aria-label="End date filter" type="date" value={filters.endDate} onChange={(event) => setFilters({ ...filters, endDate: event.target.value })} className="h-11 min-w-0 flex-1 border border-border-default px-3 text-sm" />

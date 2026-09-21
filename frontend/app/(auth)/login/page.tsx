@@ -118,11 +118,13 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <label className="block">
                 <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-blue-primary">Work email</span>
-                <span className="flex items-center rounded-md border border-border-subtle bg-surface px-3 transition-colors focus-within:border-blue-primary">
+                <span className={`flex items-center rounded-md border bg-surface px-3 transition-colors focus-within:border-brand-amber ${error ? "border-status-danger-border focus-within:border-status-danger-border" : "border-brand-amber"}`}>
                   <Mail size={18} className="mr-3 text-blue-primary" />
                   <input
                     type="email"
                     autoComplete="email"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? "login-error" : undefined}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     className="h-11 w-full bg-transparent text-body outline-none placeholder:text-text-muted"
@@ -133,11 +135,13 @@ export default function LoginPage() {
 
               <label className="block">
                 <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-text-muted">Password</span>
-                <span className="flex items-center rounded-md border border-border-subtle bg-surface px-3 transition-colors focus-within:border-blue-primary">
+                <span className={`flex items-center rounded-md border bg-surface px-3 transition-colors focus-within:border-brand-amber ${error ? "border-status-danger-border focus-within:border-status-danger-border" : "border-brand-amber"}`}>
                   <LockKeyhole size={18} className="mr-3 text-brand-amber" />
                   <input
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? "login-error" : undefined}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="h-11 w-full bg-transparent text-body outline-none placeholder:text-text-muted"
@@ -150,13 +154,13 @@ export default function LoginPage() {
               </label>
 
               {error && (
-                <div className="flex items-start gap-3 rounded-md border border-danger bg-danger-soft px-4 py-3 text-body text-danger" role="alert">
+                <div id="login-error" className="flex items-start gap-3 rounded-md border border-status-danger-border bg-status-danger-surface px-4 py-3 text-body text-status-danger-text" role="alert">
                   <AlertCircle size={18} className="mt-0.5 shrink-0" />
                   <p>{error}</p>
                 </div>
               )}
 
-              <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover disabled:cursor-wait disabled:opacity-60">
+              <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60">
                 <span>{isSubmitting ? "Signing you in..." : "Enter workspace"}</span>
                 <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
               </button>

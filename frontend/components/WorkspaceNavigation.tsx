@@ -128,6 +128,8 @@ export function WorkspaceNavigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const profileDialogRef = useRef<HTMLDivElement>(null);
+  const profileReturnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     try {
@@ -155,6 +157,20 @@ export function WorkspaceNavigation() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    profileReturnFocusRef.current = document.activeElement as HTMLElement | null;
+    profileDialogRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      profileReturnFocusRef.current?.focus();
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     const autoExpand = (items: NavigationItem[]) => {
@@ -247,7 +263,7 @@ export function WorkspaceNavigation() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               title={desktopCollapsed ? item.label : undefined}
-              className={`flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-small font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
+              className={`flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-body font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
             >
               <item.icon size={18} />
               {!desktopCollapsed && <span className="flex-1 text-left">{item.label}</span>}
@@ -279,7 +295,7 @@ export function WorkspaceNavigation() {
         href={item.href}
         aria-current={active ? "page" : undefined}
         title={desktopCollapsed ? item.label : undefined}
-        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-small font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
+        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-body font-semibold transition-colors ${desktopCollapsed ? "justify-center" : ""} ${active ? "bg-brand-primary text-primary-foreground shadow-elevation-1" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`}
       >
         <item.icon size={18} />
         {!desktopCollapsed && <span>{item.label}</span>}
@@ -299,7 +315,7 @@ export function WorkspaceNavigation() {
             <Link
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-1 items-center gap-3 rounded-md px-3 py-2.5 text-label font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
+              className={`flex flex-1 items-center gap-3 rounded-md px-3 py-2.5 text-body font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
             >
               <item.icon size={16} />
               <span className="flex-1 text-left">{item.label}</span>
@@ -311,7 +327,7 @@ export function WorkspaceNavigation() {
               aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
               className={`flex items-center justify-center rounded-md p-2 text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground`}
             >
-              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
           </div>
           {isExpanded && (
@@ -328,7 +344,7 @@ export function WorkspaceNavigation() {
         key={item.href}
         href={item.href}
         aria-current={active ? "page" : undefined}
-        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-label font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
+        className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-body font-semibold uppercase tracking-wide ${active ? "bg-blue-primary text-white" : "text-primary-foreground/70 hover:bg-brand-primary-hover hover:text-primary-foreground"}`}
       >
         <item.icon size={16} />
         <span>{item.label}</span>
@@ -340,11 +356,11 @@ export function WorkspaceNavigation() {
     <div className={`workspace-navigation-shell ${desktopCollapsed ? "workspace-collapsed" : "workspace-expanded"}`}>
       <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border-subtle bg-surface text-text-primary shadow-elevation-1 transition-[width] duration-200 md:flex ${desktopCollapsed ? "w-[76px]" : "w-64"}`}>
         <div className={`flex h-20 items-center border-b border-border-subtle ${desktopCollapsed ? "justify-center px-3" : "justify-between px-5"}`}>
-          <Link href="/dashboard" className={`flex items-center gap-3 text-body font-semibold tracking-wider text-brand-primary ${desktopCollapsed ? "justify-center" : ""}`} title="SHANTEL dashboard">
+          <Link href="/dashboard" className={`flex items-center gap-3 text-body font-semibold tracking-wide text-brand-primary ${desktopCollapsed ? "justify-center" : ""}`} title="SHANTEL dashboard">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-primary text-body text-brand-amber">S</span>
             {!desktopCollapsed && <span>SHANTEL</span>}
           </Link>
-          {!desktopCollapsed && <div className="flex items-center gap-2"><ThemeToggle /><button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftClose size={18} /></button></div>}
+          {!desktopCollapsed && <button type="button" onClick={() => setDesktopCollapsed(true)} aria-label="Collapse navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftClose size={18} /></button>}
         </div>
 
         <nav aria-label="Workspace navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-5">
@@ -352,36 +368,46 @@ export function WorkspaceNavigation() {
         </nav>
 
         <div className={`border-t border-border-subtle p-3 ${desktopCollapsed ? "flex flex-col items-center gap-2" : ""}`}>
-          {!desktopCollapsed && <button type="button" onClick={() => setProfileOpen(true)} className="mb-3 flex w-full items-center gap-3 rounded-lg px-2 py-1 text-left hover:bg-surface-hover" title="Open profile"><span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</span><span className="min-w-0"><span className="block truncate text-caption font-semibold uppercase tracking-wide text-text-muted">{userLabel}</span><span className="block text-caption text-text-muted/70">Profile & picture</span></span></button>}
-          {desktopCollapsed && <><button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button><button type="button" onClick={() => setDesktopCollapsed(false)} aria-label="Expand navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftOpen size={18} /></button></>}
+          {desktopCollapsed && <button type="button" onClick={() => setDesktopCollapsed(false)} aria-label="Expand navigation" className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary"><PanelLeftOpen size={18} /></button>}
           <button type="button" onClick={logout} aria-label="Log out" title="Log out" className={`flex w-full items-center gap-2 rounded-lg border border-border-subtle px-3 py-2.5 text-label font-semibold text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary ${desktopCollapsed ? "justify-center" : ""}`}><LogOut size={16} />{!desktopCollapsed && "Logout"}</button>
         </div>
       </aside>
 
       <div aria-hidden="true" className={`hidden shrink-0 md:block transition-[width] duration-200 ${desktopCollapsed ? "w-[76px]" : "w-64"}`} />
 
+      <header className={`workspace-desktop-header fixed top-0 right-0 z-30 hidden h-20 items-center justify-end border-b border-border-subtle bg-background/95 px-6 backdrop-blur transition-[left] duration-200 lg:px-8 md:flex ${desktopCollapsed ? "left-[76px]" : "left-64"}`}>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <button type="button" onClick={() => setProfileOpen(true)} className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface px-2.5 py-2 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-primary/25" title="Open profile" aria-label="Open profile">
+            <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-brand-amber ring-2 ring-brand-amber/40">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</span>
+            <span className="hidden min-w-0 sm:block"><span className="block max-w-48 truncate text-label font-semibold text-text-primary">{userLabel}</span><span className="block text-caption text-text-muted">Profile & picture</span></span>
+            <ChevronDown size={16} className="text-text-muted" aria-hidden="true" />
+          </button>
+        </div>
+      </header>
+
       <div className="border-b border-border-subtle bg-brand-primary text-primary-foreground md:hidden">
         <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
-          <Link href="/dashboard" className="shrink-0 text-body font-semibold tracking-wider text-brand-amber">SHANTEL</Link>
+          <Link href="/dashboard" className="shrink-0 text-body font-semibold tracking-wide text-brand-amber">SHANTEL</Link>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-surface text-brand-primary ring-2 ring-brand-amber/60">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button>
-            <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-subtle px-3 py-2 text-caption font-semibold uppercase tracking-wide text-primary-foreground hover:bg-brand-primary-hover">{mobileMenuOpen ? <X size={16} /> : <Menu size={16} />} Menu</button>
+            <button type="button" onClick={() => setProfileOpen(true)} aria-label="Open profile" title="Open profile" className="flex size-11 items-center justify-center overflow-hidden rounded-full bg-surface text-brand-primary ring-2 ring-brand-amber/60">{avatarUploading ? <LoaderCircle size={16} className="animate-spin" /> : avatar}</button>
+            <button type="button" onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} className="inline-flex items-center gap-2 rounded-md border border-border-subtle px-3 py-2 text-label font-semibold uppercase tracking-wide text-primary-foreground hover:bg-brand-primary-hover">{mobileMenuOpen ? <X size={16} /> : <Menu size={16} />} Menu</button>
           </div>
         </div>
-        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 sm:px-6">{visibleNavigation.map((item) => renderMobileNavigationItem(item))}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-subtle pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-caption text-brand-primary">{avatar}</span><span className="truncate text-caption uppercase tracking-wide text-primary-foreground/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-subtle px-3 py-2 text-caption font-semibold uppercase tracking-wide hover:bg-brand-primary-hover"><LogOut size={16} /> Logout</button></div></nav>}
+        {mobileMenuOpen && <nav aria-label="Mobile workspace navigation" className="flex flex-col gap-1 border-t border-border-subtle px-4 py-3 sm:px-6">{visibleNavigation.map((item) => renderMobileNavigationItem(item))}<div className="mt-2 flex items-center justify-between gap-3 border-t border-border-subtle pt-3"><button type="button" onClick={() => setProfileOpen(true)} className="flex min-w-0 items-center gap-2 text-left"><span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-label text-brand-primary">{avatar}</span><span className="truncate text-label uppercase tracking-wide text-primary-foreground/70">{userLabel}</span></button><button type="button" onClick={logout} className="flex shrink-0 items-center gap-2 border border-border-subtle px-3 py-2 text-label font-semibold uppercase tracking-wide hover:bg-brand-primary-hover"><LogOut size={16} /> Logout</button></div></nav>}
       </div>
       <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(event) => { void updateAvatar(event.target.files?.[0]); event.currentTarget.value = ""; }} />
-      {profileOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-primary/55 px-4" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
-        <div className="w-full max-w-sm bg-surface p-6 text-text-primary shadow-elevation-3">
+      {profileOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setProfileOpen(false); }}>
+        <div ref={profileDialogRef} tabIndex={-1} className="max-h-[calc(100vh-2rem)] w-full max-w-sm overflow-y-auto rounded-2xl border border-border-default bg-surface p-6 text-text-primary shadow-elevation-3 outline-none sm:p-7" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
           <div className="flex items-start justify-between gap-4">
             <div><p className="text-caption font-semibold uppercase tracking-wide text-blue-primary">Your account</p><h2 id="profile-dialog-title" className="mt-2 text-h3 font-semibold">Profile picture</h2><p className="mt-1 text-body text-text-muted">This picture appears in your workspace navigation.</p></div>
             <button type="button" onClick={() => setProfileOpen(false)} aria-label="Close profile" className="rounded-md p-2 text-text-muted hover:bg-surface-hover hover:text-text-primary"><X size={18} /></button>
           </div>
           <div className="mt-6 flex flex-col items-center">
-            <span className="flex size-24 items-center justify-center overflow-hidden rounded-full bg-brand-primary text-h2 text-brand-amber ring-4 ring-brand-amber/30">{avatarUploading ? <LoaderCircle size={28} className="animate-spin" /> : avatar}</span>
+            <span className="flex size-28 items-center justify-center overflow-hidden rounded-full border-4 border-brand-amber/60 bg-brand-primary text-h2 text-brand-amber shadow-elevation-2">{avatarUploading ? <LoaderCircle size={28} className="animate-spin" /> : avatar}</span>
             <p className="mt-4 text-body font-semibold">{userLabel}</p>
-            <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading} className="mt-5 w-full bg-brand-primary px-4 py-3 text-label font-semibold uppercase tracking-wide text-primary-foreground hover:bg-brand-primary-hover disabled:opacity-60">{avatarUploading ? "Uploading..." : "Choose profile picture"}</button>
+            <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading} className="mt-5 w-full rounded-md border border-brand-amber bg-brand-primary px-4 py-3 text-label font-semibold uppercase tracking-wide text-primary-foreground shadow-elevation-1 hover:bg-brand-primary-hover disabled:opacity-60">{avatarUploading ? "Uploading..." : "Choose profile picture"}</button>
             <p className="mt-3 text-center text-caption text-text-muted">JPG, PNG, or WebP. Maximum 2 MB.</p>
             {avatarError && <p role="alert" className="mt-3 text-center text-caption text-danger">{avatarError}</p>}
           </div>

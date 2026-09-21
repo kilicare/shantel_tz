@@ -143,15 +143,15 @@ export default function PurchasingPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-7 sm:flex-row sm:items-end">
+          <header className="flex flex-col justify-between gap-5 border-b border-border-default pb-8 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">
                 Procurement desk
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">
                 Move purchases into stock.
               </h1>
-              <p className="mt-2 text-sm text-foreground/55">
+              <p className="mt-2 text-body text-text-muted">
                 Requisitions, purchase orders, and receiving in one controlled
                 flow.
               </p>
@@ -159,9 +159,9 @@ export default function PurchasingPage() {
             <button
               type="button"
               onClick={() => void loadPurchasing()}
-              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"
             >
-              <RefreshCw size={15} /> Refresh data
+              <RefreshCw size={16} /> Refresh data
             </button>
           </header>
           {error && (

@@ -12,15 +12,15 @@ export function ShantelCard({ className, surface = "card", ...props }: HTMLAttri
     feature: "bg-brand-primary text-primary-foreground border-brand-primary rounded-lg",
   };
 
-  return <div className={cn("border", surfaces[surface], className)} {...props} />;
+  return <div className={cn("border shadow-elevation-1", surfaces[surface], className)} {...props} />;
 }
 
 const statusStyles = {
-  success: "border-success bg-success-soft text-success-text",
-  warning: "border-warning bg-warning-soft text-warning-text",
-  danger: "border-danger bg-danger-soft text-danger-text",
-  info: "border-info bg-info-soft text-info-text",
-  pending: "border-warning bg-warning-soft text-warning-text",
+  success: "border-status-success-border bg-status-success-surface text-status-success-text",
+  warning: "border-status-warning-border bg-status-warning-surface text-status-warning-text",
+  danger: "border-status-danger-border bg-status-danger-surface text-status-danger-text",
+  info: "border-status-info-border bg-status-info-surface text-status-info-text",
+  pending: "border-status-pending-border bg-status-pending-surface text-status-pending-text",
   neutral: "border-border-default bg-surface-muted text-text-secondary",
 } as const;
 
@@ -37,7 +37,7 @@ function inferStatusTone(status: string): StatusTone {
 }
 
 export function StatusBadge({ status, tone, className }: StatusBadgeProps) {
-  return <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-label font-semibold uppercase tracking-wide", statusStyles[tone ?? inferStatusTone(status)], className)}><StatusDot tone={tone ?? inferStatusTone(status)} />{status.replaceAll("_", " ")}</span>;
+  return <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-caption font-semibold uppercase tracking-wide", statusStyles[tone ?? inferStatusTone(status)], className)}><StatusDot tone={tone ?? inferStatusTone(status)} />{status.replaceAll("_", " ")}</span>;
 }
 
 export function StatusDot({ tone = "neutral", className }: { tone?: StatusTone; className?: string }) {
@@ -51,7 +51,9 @@ export function AlertBanner({ tone = "danger", children, className }: { tone?: E
 
 export function KpiCard({ label, value, note, accent = "amber", icon: Icon }: { label: string; value: ReactNode; note?: ReactNode; accent?: "amber" | "teal" | "gold" | "terracotta"; icon?: React.ComponentType<{ size?: number; className?: string }> }) {
   const accents = { amber: "bg-brand-amber", teal: "bg-success", gold: "bg-warning", terracotta: "bg-blue-primary" };
-  return <ShantelCard className="relative overflow-hidden p-6"><div className={cn("absolute inset-x-0 top-0 h-1", accents[accent])} /><div className="flex items-start justify-between gap-3"><p className="text-label font-semibold uppercase tracking-wide text-text-secondary">{label}</p>{Icon ? <Icon size={20} className="text-text-muted" /> : null}</div><p className="mt-8 text-h2 font-semibold tracking-tight">{value}</p>{note ? <p className="mt-2 text-caption text-text-muted">{note}</p> : null}</ShantelCard>;
+  const surfaces = { amber: "bg-status-warning-surface", teal: "bg-status-success-surface", gold: "bg-status-warning-surface", terracotta: "bg-status-info-surface" };
+  const valueColors = { amber: "text-warning-text", teal: "text-success-text", gold: "text-warning-text", terracotta: "text-info-text" };
+  return <ShantelCard className={cn("relative overflow-hidden p-6", surfaces[accent])}><div className={cn("absolute inset-x-0 top-0 h-1", accents[accent])} /><div className="flex items-start justify-between gap-3"><p className="text-label font-semibold uppercase tracking-wide text-text-secondary">{label}</p>{Icon ? <Icon size={20} className="text-text-muted" /> : null}</div><p className={cn("mt-8 text-h2 font-semibold tracking-tight", valueColors[accent])}>{value}</p>{note ? <p className="mt-2 text-caption text-text-muted">{note}</p> : null}</ShantelCard>;
 }
 
 export function ChartFrame({ title, description, children, className }: { title: string; description?: string; children: ReactNode; className?: string }) {

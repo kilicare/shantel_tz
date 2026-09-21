@@ -25,8 +25,9 @@ export function DataTable<T extends { id?: string }>({ columns, data, searchFiel
   return <section className="min-w-0 space-y-3">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <label className="relative flex-1 sm:max-w-sm">
+        <span className="sr-only">Search records</span>
         <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-text-muted" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" className="h-10 w-full rounded-md border border-border-subtle bg-surface pl-9 pr-3 text-body text-text-primary outline-none ring-0 transition-colors placeholder:text-text-muted focus:border-blue-primary focus:ring-2 focus:ring-blue-primary/25" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" className="h-11 w-full rounded-md border border-border-subtle bg-surface pl-9 pr-3 text-body text-text-primary outline-none ring-0 transition-colors placeholder:text-text-muted focus:border-blue-primary focus:ring-2 focus:ring-blue-primary/25" />
       </label>
       {exportable && onExport ? (
         <Button variant="secondary" onClick={onExport} className="w-full sm:w-auto">
@@ -36,13 +37,13 @@ export function DataTable<T extends { id?: string }>({ columns, data, searchFiel
     </div>
 
     <div className="min-w-0 max-w-full overflow-x-auto rounded-lg border border-border-subtle bg-surface shadow-elevation-1">
-      <table className="w-full min-w-[700px] text-body">
+      <table className="w-full min-w-[700px] text-body" aria-label="Records">
         <thead className="border-b border-border-subtle bg-surface-muted text-left">
           <tr>
             {visibleColumns.map((column) => (
-              <th key={String(column.key)} className={`px-3 py-3 font-semibold text-text-secondary sm:px-4 ${column.width ?? ""}`}>
+              <th key={String(column.key)} aria-sort={sort.column === column.key ? (sort.direction === "asc" ? "ascending" : "descending") : column.sortable ? "none" : undefined} className={`px-3 py-3 font-semibold text-text-secondary sm:px-4 ${column.width ?? ""}`}>
                 {column.sortable ? (
-                  <button className="inline-flex items-center gap-1 tracking-tight" onClick={() => handleSort(String(column.key))}>
+                  <button type="button" className="inline-flex items-center gap-1 tracking-tight" onClick={() => handleSort(String(column.key))}>
                     {column.label}
                     {sort.column === column.key && (sort.direction === "asc" ? <ArrowUp className="size-3.5" /> : <ArrowDown className="size-3.5" />)}
                   </button>
@@ -55,9 +56,9 @@ export function DataTable<T extends { id?: string }>({ columns, data, searchFiel
         </thead>
         <tbody>
           {rows.length ? rows.map((row, index) => (
-            <tr key={row.id ?? index} onClick={() => onRowClick?.(row)} className={`border-b border-border-subtle last:border-0 ${onRowClick ? "cursor-pointer hover:bg-surface-hover" : ""}`}>
+            <tr key={row.id ?? index} onClick={() => onRowClick?.(row)} onKeyDown={(event) => { if (onRowClick && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onRowClick(row); } }} tabIndex={onRowClick ? 0 : undefined} aria-label={onRowClick ? `Open record ${row.id ?? index + 1}` : undefined} className={`border-b border-border-subtle last:border-0 ${onRowClick ? "cursor-pointer hover:bg-surface-hover focus-visible:bg-surface-hover" : ""}`}>
               {visibleColumns.map((column) => (
-                <td key={String(column.key)} className="px-3 py-3 align-middle text-text-secondary sm:px-4">
+                <td key={String(column.key)} className={`px-3 py-3 align-middle text-text-secondary sm:px-4 ${/amount|total|balance|price|cost|paid|revenue|outstanding/i.test(column.label) ? "money-positive" : ""}`}>
                   {column.render ? column.render(row[column.key], row) : String(row[column.key] ?? "-")}
                 </td>
               ))}
@@ -71,10 +72,10 @@ export function DataTable<T extends { id?: string }>({ columns, data, searchFiel
       </table>
     </div>
 
-    <div className="flex flex-col gap-2 text-caption text-text-muted sm:flex-row sm:items-center sm:justify-between sm:text-body">
+    <div className="flex flex-col gap-2 text-small text-text-muted sm:flex-row sm:items-center sm:justify-between sm:text-body">
       <span>{filtered.length ? `${pagination.skip + 1}-${Math.min(pagination.skip + pagination.limit, filtered.length)}` : "0"} of {filtered.length}</span>
       <div className="flex flex-wrap items-center gap-2">
-        <select value={pagination.limit} onChange={(event) => pagination.setLimit(Number(event.target.value))} className="h-8 rounded-md border border-border-subtle bg-surface px-2 text-caption text-text-primary sm:text-body focus:border-blue-primary focus:outline-none focus:ring-2 focus:ring-blue-primary/25">
+        <select value={pagination.limit} onChange={(event) => pagination.setLimit(Number(event.target.value))} className="h-11 rounded-md border border-border-subtle bg-surface px-3 text-small text-text-primary sm:text-body focus:border-blue-primary focus:outline-none focus:ring-2 focus:ring-blue-primary/25">
           <option value="10">10 / page</option>
           <option value="25">25 / page</option>
           <option value="50">50 / page</option>

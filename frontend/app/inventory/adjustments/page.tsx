@@ -84,15 +84,15 @@ export default function AdjustmentsPage() {
       <WorkspaceNavigation />
       <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-5xl">
-          <header className="flex items-end justify-between border-b border-border-default pb-7">
+          <header className="flex items-end justify-between border-b border-border-default pb-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">
                 Inventory control
               </p>
-              <h1 className="mt-2 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-2 text-h1 font-semibold tracking-tight">
                 Stock adjustments
               </h1>
-              <p className="mt-2 text-sm text-foreground/55">
+              <p className="mt-2 text-body text-text-muted">
                 Approve and post physical-count corrections with an accountable
                 trail.
               </p>
@@ -100,9 +100,9 @@ export default function AdjustmentsPage() {
             <button
               type="button"
               onClick={() => void load()}
-              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] hover:bg-card"
+              className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-label font-semibold uppercase tracking-wide hover:bg-surface-hover"
             >
-              <RefreshCw size={15} /> Refresh
+              <RefreshCw size={16} /> Refresh
             </button>
           </header>
           {error && (
@@ -138,7 +138,7 @@ export default function AdjustmentsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                      <span className="text-caption font-semibold uppercase tracking-wide text-blue-primary">
                         {adjustment.status}
                       </span>
                       {canApprove && adjustment.status === "DRAFT" && (
@@ -148,7 +148,7 @@ export default function AdjustmentsPage() {
                             onClick={() =>
                               void changeStatus(adjustment.id, "reject")
                             }
-                            className="flex items-center gap-2 border border-red-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-red-700"
+                            className="flex items-center gap-2 border border-danger px-3 py-2 text-caption font-semibold uppercase tracking-wide text-danger-text"
                           >
                             <X size={14} /> Reject
                           </button>
@@ -157,7 +157,7 @@ export default function AdjustmentsPage() {
                             onClick={() =>
                               void changeStatus(adjustment.id, "approve")
                             }
-                            className="flex items-center gap-2 bg-primary px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-white"
+                            className="flex items-center gap-2 bg-brand-primary px-3 py-2 text-caption font-semibold uppercase tracking-wide text-white"
                           >
                             <Check size={14} /> Approve
                           </button>
@@ -169,7 +169,7 @@ export default function AdjustmentsPage() {
                           onClick={() =>
                             void changeStatus(adjustment.id, "post")
                           }
-                          className="flex items-center gap-2 border border-border-default px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em]"
+                          className="flex items-center gap-2 border border-border-default px-3 py-2 text-caption font-semibold uppercase tracking-wide"
                         >
                           <Upload size={14} /> Post
                         </button>

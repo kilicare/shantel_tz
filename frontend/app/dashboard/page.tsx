@@ -207,26 +207,26 @@ export default function DashboardPage() {
   return (
     <>
       <WorkspaceNavigation />
-      <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
+      <main className="dashboard-canvas min-h-screen px-4 py-5 text-foreground sm:px-6 sm:py-8 lg:px-8">
         <div className="mx-auto max-w-[1440px]">
           <header className="flex flex-col justify-between gap-6 border-b border-border-default pb-8 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+              <p className="text-label font-semibold uppercase tracking-wider text-blue-primary">
                 Operations overview
               </p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">
+              <h1 className="mt-3 text-h1 font-semibold tracking-tight">
                 {timeGreeting}
               </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-body text-text-muted">
                 Here is what is moving across Shantel today.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 self-start sm:self-auto">
               <button
                 onClick={() => void loadDashboard()}
-                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-card"
+                className="flex items-center gap-2 border border-info/30 bg-info-soft px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-info-text transition-colors hover:bg-info-soft/70 dark:border-border-default dark:bg-transparent dark:text-text-primary dark:hover:bg-surface-hover"
               >
-                <RefreshCw size={15} /> Refresh data
+                <RefreshCw size={16} /> Refresh data
               </button>
               <button
                 onClick={() => {
@@ -235,10 +235,10 @@ export default function DashboardPage() {
                   sessionStorage.removeItem("shantel_user");
                   router.push("/login");
                 }}
-                className="flex items-center gap-2 border border-border-default px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] transition-colors hover:bg-card"
+                className="flex items-center gap-2 border border-danger/30 bg-danger-soft px-4 py-2.5 text-label font-semibold uppercase tracking-wide text-danger-text transition-colors hover:bg-danger-soft/70 dark:border-border-default dark:bg-transparent dark:text-text-primary dark:hover:bg-surface-hover"
                 aria-label="Log out"
               >
-                <LogOut size={15} /> Log out
+                <LogOut size={16} /> Log out
               </button>
             </div>
           </header>
@@ -275,9 +275,9 @@ export default function DashboardPage() {
                   <TrendingUp className="text-brand-amber" size={20} />
                 </div>
               </div>
-              <div className="mt-7 grid grid-cols-3 gap-3 border-y border-primary-foreground/10 py-4">
+              <div className="mt-7 grid grid-cols-3 gap-3 border-y border-feature-subtle py-4">
                 <div>
-                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-feature-muted">
                     30-day sales
                   </p>
                   <p className="mt-1 text-body font-semibold">
@@ -285,18 +285,18 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-feature-muted">
                     Active days
                   </p>
                   <p className="mt-1 text-body font-semibold">
                     {activeDays}
-                    <span className="ml-1 text-small font-normal text-primary-foreground/40">
+                    <span className="ml-1 text-small font-normal text-feature-muted">
                       / 30
                     </span>
                   </p>
                 </div>
                 <div>
-                  <p className="text-caption font-semibold uppercase tracking-wide text-primary-foreground/40">
+                  <p className="text-caption font-semibold uppercase tracking-wide text-feature-muted">
                     Best day
                   </p>
                   <p className="mt-1 text-body font-semibold">
@@ -309,9 +309,9 @@ export default function DashboardPage() {
                 aria-label="Sales trend for the last 30 days"
                 role="img"
               >
-                <div className="absolute inset-x-0 top-0 border-t border-primary-foreground/10" />
-                <div className="absolute inset-x-0 top-1/2 border-t border-primary-foreground/10" />
-                <div className="absolute inset-x-0 bottom-0 border-t border-primary-foreground/15" />
+                <div className="absolute inset-x-0 top-0 border-t border-feature-subtle" />
+                <div className="absolute inset-x-0 top-1/2 border-t border-feature-subtle" />
+                <div className="absolute inset-x-0 bottom-0 border-t border-feature-subtle" />
                 <svg
                   viewBox="0 0 500 180"
                   preserveAspectRatio="none"
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                   )}
                 </svg>
               </div>
-              <div className="mt-3 flex justify-between text-caption uppercase tracking-wide text-primary-foreground/35">
+              <div className="mt-3 flex justify-between text-caption uppercase tracking-wide text-feature-muted">
                 <span>{trend[0]?.date}</span>
                 <span>{trend.at(-1)?.date}</span>
               </div>
@@ -372,7 +372,7 @@ export default function DashboardPage() {
                         }}
                       />
                     </div>
-                    <p className="mt-2 truncate text-caption text-primary-foreground/45">
+                    <p className="mt-2 truncate text-caption text-feature-muted">
                       Week {week.label}
                     </p>
                     <p className="mt-1 truncate text-small font-semibold">
@@ -382,13 +382,13 @@ export default function DashboardPage() {
                 ))}
               </div>
             </article>
-            <article className="rounded-2xl bg-card p-6 text-foreground shadow-[0_12px_35px_rgba(23,43,77,0.12)] sm:p-7">
+            <article className="rounded-lg border border-status-info-border/30 bg-status-info-surface p-6 text-foreground shadow-elevation-2 sm:p-7">
               <div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">
                     Signal
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold">
+                  <h2 className="mt-2 text-h3 font-semibold">
                     What the pulse says
                   </h2>
                 </div>
@@ -396,58 +396,58 @@ export default function DashboardPage() {
               <div className="mt-8 space-y-5">
                 <div className="flex gap-3">
                   <CalendarDays
-                    className="mt-0.5 shrink-0 text-primary"
+                    className="mt-0.5 shrink-0 text-blue-primary"
                     size={18}
                   />
                   <div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-body font-semibold">
                       {activeDays
                         ? `Sales moved on ${activeDays} ${activeDays === 1 ? "day" : "days"}`
                         : "No sales recorded yet"}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    <p className="mt-1 text-small text-text-muted">
                       Consistency is easier to improve when the team can see it.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-3">
                   <TrendingUp
-                    className="mt-0.5 shrink-0 text-primary"
+                    className="mt-0.5 shrink-0 text-blue-primary"
                     size={18}
                   />
                   <div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-body font-semibold">
                       Peak: {peakDay.date}
                     </p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    <p className="mt-1 text-small text-text-muted">
                       That day contributed {currency.format(peakDay.sales)} to
                       the period.
                     </p>
                   </div>
                 </div>
                 <div className="border-t border-border-default pt-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  <p className="text-label font-semibold uppercase tracking-wide text-text-muted">
                     Momentum
                   </p>
-                  <p className="mt-2 text-2xl font-semibold">
+                  <p className="mt-2 text-h2 font-semibold">
                     {pulseChange > 0 ? "+" : ""}
                     {pulseChange.toFixed(0)}%
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  <p className="mt-1 text-small text-text-muted">
                     Second half compared with the first half of this period.
                   </p>
                 </div>
               </div>
             </article>
-            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)] sm:p-7">
+            <article className="rounded-lg border border-status-warning-border/30 bg-status-warning-surface p-6 shadow-elevation-1 sm:p-7">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+                  <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">
                     Attention
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold">Low stock</h2>
+                  <h2 className="mt-2 text-h3 font-semibold">Low stock</h2>
                 </div>
-                <Package size={20} className="text-primary" />
+                <Package size={20} className="text-blue-primary" />
               </div>
               <div className="mt-6 space-y-4">
                 {data.lowStockItems.length ? (
@@ -457,18 +457,18 @@ export default function DashboardPage() {
                       className="flex items-center justify-between border-b border-border-default pb-3"
                     >
                       <div>
-                        <p className="text-sm font-semibold">{item.product}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
+                        <p className="text-body font-semibold">{item.product}</p>
+                        <p className="mt-1 text-small text-text-muted">
                           {item.sku} · {item.location}
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-primary">
+                      <span className={item.quantity <= 0 ? "text-body font-semibold text-danger-text" : "text-body font-semibold text-warning-text"}>
                         {item.quantity} left
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body text-text-muted">
                     Stock levels are healthy.
                   </p>
                 )}
@@ -477,17 +477,17 @@ export default function DashboardPage() {
           </section>
 
           <section className="mt-5 grid gap-5 lg:grid-cols-2">
-            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
+            <article className="rounded-lg border border-status-success-border/25 bg-status-success-surface p-6 shadow-elevation-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">
                     Sales activity
                   </p>
-                  <h2 className="mt-2 text-lg font-semibold">
+                  <h2 className="mt-2 text-h3 font-semibold">
                     Recent invoices
                   </h2>
                 </div>
-                <ArrowUpRight size={18} className="text-muted-foreground" />
+                <ArrowUpRight size={18} className="text-text-muted" />
               </div>
               <div className="mt-5 divide-y divide-border-default">
                 {data.recentTransactions.invoices.map((invoice) => (
@@ -496,43 +496,43 @@ export default function DashboardPage() {
                     className="flex items-center justify-between py-3"
                   >
                     <div>
-                      <p className="text-sm font-semibold">{invoice.number}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="text-body font-semibold">{invoice.number}</p>
+                      <p className="mt-1 text-small text-text-muted">
                         {invoice.customer}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-body font-semibold text-success-text">
                       {currency.format(invoice.amount)}
                     </p>
                   </div>
                 ))}
               </div>
             </article>
-            <article className="rounded-2xl bg-card p-6 shadow-[0_12px_35px_rgba(23,43,77,0.09)]">
+            <article className="rounded-lg border border-status-info-border/25 bg-surface p-6 shadow-elevation-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  <p className="text-label font-semibold uppercase tracking-wide text-blue-primary">
                     Procurement activity
                   </p>
-                  <h2 className="mt-2 text-lg font-semibold">
+                  <h2 className="mt-2 text-h3 font-semibold">
                     Recent purchase orders
                   </h2>
                 </div>
-                <ArrowUpRight size={18} className="text-foreground/35" />
+                <ArrowUpRight size={18} className="text-text-muted" />
               </div>
-              <div className="mt-5 divide-y divide-[#172B4D]/10">
+              <div className="mt-5 divide-y divide-border-subtle">
                 {data.recentTransactions.purchaseOrders.map((order) => (
                   <div
                     key={order.number}
                     className="flex items-center justify-between py-3"
                   >
                     <div>
-                      <p className="text-sm font-semibold">{order.number}</p>
-                      <p className="mt-1 text-xs text-foreground/45">
+                      <p className="text-body font-semibold">{order.number}</p>
+                      <p className="mt-1 text-small text-text-muted">
                         {order.supplier}
                       </p>
                     </div>
-                    <p className="text-sm font-semibold">
+                    <p className="text-body font-semibold text-info-text">
                       {currency.format(order.amount)}
                     </p>
                   </div>
