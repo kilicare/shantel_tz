@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, ShieldCheck, LoaderCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { ShantelLogo } from "@/components/ShantelLogo";
 import { AnimatedOTP, AnimatedOTPRef } from "@/components/auth/AnimatedOTP";
@@ -165,7 +165,7 @@ export default function VerifyOTPPage() {
               <button 
                 type="submit" 
                 disabled={isSubmitting || otp.length !== 6} 
-                className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60"
+                className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60 relative overflow-hidden"
                 onClick={(e) => {
                   e.preventDefault();
                   if (otp.length === 6 && !isSubmitting) {
@@ -173,8 +173,17 @@ export default function VerifyOTPPage() {
                   }
                 }}
               >
-                <span>{isSubmitting ? "Verifying..." : "Verify OTP"}</span>
-                <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
+                {isSubmitting ? (
+                  <>
+                    <LoaderCircle className="animate-spin text-brand-amber" size={20} />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify OTP</span>
+                    <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
               </button>
 
               <div className="text-center">

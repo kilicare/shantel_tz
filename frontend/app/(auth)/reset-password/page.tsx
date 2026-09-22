@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole, LoaderCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { ShantelLogo } from "@/components/ShantelLogo";
 
@@ -159,9 +159,18 @@ export default function ResetPasswordPage() {
                 </div>
               )}
 
-              <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60">
-                <span>{isSubmitting ? "Resetting..." : "Reset password"}</span>
-                <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
+              <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60 relative overflow-hidden">
+                {isSubmitting ? (
+                  <>
+                    <LoaderCircle className="animate-spin text-brand-amber" size={20} />
+                    <span>Resetting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Reset password</span>
+                    <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
+                  </>
+                )}
               </button>
 
               <div className="text-center">
