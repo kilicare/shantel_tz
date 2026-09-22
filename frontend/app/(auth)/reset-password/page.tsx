@@ -2,54 +2,55 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AlertCircle,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-  ShieldCheck,
-} from "lucide-react";
-import { authService } from "@/services/auth.service";
+import { AlertCircle, ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
 import { ShantelLogo } from "@/components/ShantelLogo";
-import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
-import { InitialSplashScreen } from "@/components/InitialSplashScreen";
 
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@shantel.local");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
-    if (!sessionStorage.getItem("shantel_access_token")) localStorage.removeItem("shantel_user");
-  }, []);
+    const storedEmail = sessionStorage.getItem("reset_email");
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      router.push("/forgot-password");
+    }
+  }, [router]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    if (!email.trim() || !password) {
-      setError("Enter your work email and password to continue.");
+    if (!password || !confirmPassword) {
+      setError("Please enter both password fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long.");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setShowLoadingOverlay(true);
-      await authService.login({ email: email.trim(), password });
-      // Keep overlay visible while navigating
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 500);
+      await apiClient.post("/auth/reset-password", { email, password });
+      sessionStorage.removeItem("reset_email");
+      router.push("/login");
     } catch (requestError: any) {
       const message = requestError?.response?.data?.message;
-      setError(Array.isArray(message) ? message[0] : message || "We could not sign you in. Check your details and try again.");
-      setShowLoadingOverlay(false);
+      setError(Array.isArray(message) ? message[0] : message || "Failed to reset password. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -77,27 +78,26 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10 max-w-lg">
-            <p className="mb-6 text-label font-semibold uppercase tracking-wider text-brand-amber">One clear view of the business</p>
+            <p className="mb-6 text-label font-semibold uppercase tracking-wider text-brand-amber">Password Reset</p>
             <h1 className="max-w-xl text-display font-semibold tracking-tight xl:text-display">
-              Move stock.<br />
-              Close sales.<br />
-              Stay in control.
+              Set your new<br />
+              secure password
             </h1>
             <p className="mt-7 max-w-md text-body leading-relaxed text-primary-foreground/70">
-              Your operating desk for sales, inventory, purchasing, projects, and the decisions that keep the day moving.
+              Create a strong password to secure your account. Make it unique and memorable.
             </p>
           </div>
 
           <div className="relative z-10 grid grid-cols-2 gap-4 border-t border-border-subtle pt-6 text-caption text-primary-foreground/70">
             <div>
-              <ShieldCheck size={18} className="mb-3 text-brand-amber" />
-              <p>Role-aware access</p>
-              <p>Built for accountable teams</p>
+              <LockKeyhole size={18} className="mb-3 text-brand-amber" />
+              <p>Strong encryption</p>
+              <p>Secure storage</p>
             </div>
             <div>
               <ShantelLogo variant="icon-full" size={34} className="mb-3 h-[34px] w-[34px] text-brand-amber" />
-              <p>Live operational signals</p>
-              <p>Decisions without guesswork</p>
+              <p>Secure reset</p>
+              <p>Verified recovery</p>
             </div>
           </div>
         </section>
@@ -110,42 +110,25 @@ export default function LoginPage() {
             </div>
 
             <div className="mb-10">
-              <p className="mb-3 text-label font-semibold uppercase tracking-wider text-blue-primary">Welcome back</p>
-              <h2 className="text-h1 font-semibold tracking-tight text-foreground">Sign in to your desk.</h2>
-              <p className="mt-3 text-body leading-relaxed text-text-muted">Use your Shantel account to pick up where the business is moving.</p>
+              <p className="mb-3 text-label font-semibold uppercase tracking-wider text-blue-primary">Password Reset</p>
+              <h2 className="text-h1 font-semibold tracking-tight text-foreground">New password</h2>
+              <p className="mt-3 text-body leading-relaxed text-text-muted">Create a strong password for <strong>{email}</strong></p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <label className="block">
-                <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-blue-primary">Work email</span>
-                <span className={`flex items-center rounded-md border bg-surface px-3 transition-colors focus-within:border-brand-amber ${error ? "border-status-danger-border focus-within:border-status-danger-border" : "border-brand-amber"}`}>
-                  <Mail size={18} className="mr-3 text-blue-primary" />
-                  <input
-                    type="email"
-                    autoComplete="email"
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? "login-error" : undefined}
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className="h-11 w-full bg-transparent text-body outline-none placeholder:text-text-muted"
-                    placeholder="you@company.com"
-                  />
-                </span>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-text-muted">Password</span>
+                <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-blue-primary">New password</span>
                 <span className={`flex items-center rounded-md border bg-surface px-3 transition-colors focus-within:border-brand-amber ${error ? "border-status-danger-border focus-within:border-status-danger-border" : "border-brand-amber"}`}>
                   <LockKeyhole size={18} className="mr-3 text-brand-amber" />
                   <input
                     type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     aria-invalid={Boolean(error)}
-                    aria-describedby={error ? "login-error" : undefined}
+                    aria-describedby={error ? "error" : undefined}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="h-11 w-full bg-transparent text-body outline-none placeholder:text-text-muted"
-                    placeholder="Enter your password"
+                    placeholder="At least 8 characters"
                   />
                   <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="p-2 text-text-muted transition-colors hover:text-text-primary" aria-label={showPassword ? "Hide password" : "Show password"}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -153,32 +136,43 @@ export default function LoginPage() {
                 </span>
               </label>
 
+              <label className="block">
+                <span className="mb-2 block text-label font-semibold uppercase tracking-wide text-text-muted">Confirm password</span>
+                <span className={`flex items-center rounded-md border bg-surface px-3 transition-colors focus-within:border-brand-amber ${error ? "border-status-danger-border focus-within:border-status-danger-border" : "border-brand-amber"}`}>
+                  <LockKeyhole size={18} className="mr-3 text-brand-amber" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    aria-invalid={Boolean(error)}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    className="h-11 w-full bg-transparent text-body outline-none placeholder:text-text-muted"
+                    placeholder="Re-enter password"
+                  />
+                </span>
+              </label>
+
               {error && (
-                <div id="login-error" className="flex items-start gap-3 rounded-md border border-status-danger-border bg-status-danger-surface px-4 py-3 text-body text-status-danger-text" role="alert">
+                <div id="error" className="flex items-start gap-3 rounded-md border border-status-danger-border bg-status-danger-surface px-4 py-3 text-body text-status-danger-text" role="alert">
                   <AlertCircle size={18} className="mt-0.5 shrink-0" />
                   <p>{error}</p>
                 </div>
               )}
 
               <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60">
-                <span>{isSubmitting ? "Signing you in..." : "Enter workspace"}</span>
+                <span>{isSubmitting ? "Resetting..." : "Reset password"}</span>
                 <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
               </button>
 
               <div className="text-center">
-                <a href="/forgot-password" className="text-body text-blue-primary hover:underline">
-                  Forgot password?
+                <a href="/login" className="text-body text-blue-primary hover:underline">
+                  Back to login
                 </a>
               </div>
             </form>
-
-            <p className="mt-10 text-center text-caption text-text-muted">Protected workspace for Shantel teams</p>
           </div>
         </section>
       </div>
-      
-      <InitialSplashScreen />
-      <ShantelLoadingOverlay isVisible={showLoadingOverlay} message="Signing you in..." />
     </main>
   );
 }

@@ -39,4 +39,15 @@ export default () => ({
     enableAuditLogging: true,
     enableApprovals: true,
   },
+
+  email: {
+    smtp: {
+      host: process.env.EMAIL_SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_SMTP_PORT || '587', 10),
+      secure: process.env.EMAIL_SMTP_SECURE === 'true',
+      user: process.env.EMAIL_SMTP_USER,
+      password: process.env.EMAIL_SMTP_PASSWORD,
+    },
+    from: process.env.EMAIL_FROM || 'Shantel <noreply@shantel.local>',
+  },
 });

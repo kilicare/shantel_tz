@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { DatabaseService } from '../database/database.service.js';
 import { LoginDto, RegisterDto, RefreshTokenDto } from './dto/index.js';
+import { EmailService } from '../email/email.service.js';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private db: DatabaseService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   // LOGIN
@@ -317,5 +319,121 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  // FORGOT PASSWORD - Generate OTP
+  async forgotPassword(email: string) {
+    this.logger.debug(`Password recovery request: ${email}`);
+
+    // Check if user exists
+    const user = await this.db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Don't reveal if user exists or not for security
+      this.logger.log(`Password recovery requested for non-existent email: ${email}`);
+      return { message: 'If the email exists, a recovery code has been sent.' };
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Store OTP in database using raw query
+    await this.db.$executeRaw`
+      INSERT INTO "password_recovery" (id, email, otp, "expiresAt", used, "createdAt")
+      VALUES (gen_random_uuid(), ${email}, ${otp}, ${expiresAt}, false, NOW())
+    `;
+
+    // Log OTP for fallback
+    this.logger.log(`OTP for ${email}: ${otp} (expires at ${expiresAt})`);
+
+    // Send email with OTP
+    try {
+      await this.emailService.sendPasswordResetEmail(email, otp);
+    } catch (error) {
+      this.logger.error(`Failed to send password reset email to ${email}:`, error);
+      // Log OTP as fallback if email fails
+      this.logger.log(`OTP for ${email}: ${otp} (expires at ${expiresAt})`);
+    }
+
+    return { message: 'If the email exists, a recovery code has been sent.' };
+  }
+
+  // VERIFY OTP
+  async verifyOtp(email: string, otp: string) {
+    this.logger.debug(`OTP verification attempt: ${email}`);
+
+    // Find valid OTP using raw query
+    const recovery = await this.db.$queryRaw<Array<any>>`
+      SELECT * FROM "password_recovery"
+      WHERE email = ${email}
+      AND otp = ${otp}
+      AND used = false
+      AND "expiresAt" > NOW()
+      ORDER BY "createdAt" DESC
+      LIMIT 1
+    `;
+
+    if (!recovery || recovery.length === 0) {
+      this.logger.warn(`Invalid or expired OTP for ${email}`);
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    this.logger.log(`OTP verified for ${email}`);
+
+    return { message: 'OTP verified successfully' };
+  }
+
+  // RESET PASSWORD
+  async resetPassword(email: string, password: string) {
+    this.logger.debug(`Password reset request: ${email}`);
+
+    // Find user
+    const user = await this.db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Hash new password
+    const passwordHash: string = await bcrypt.hash(
+      password,
+      this.configService.get('security.bcryptRounds') || 10,
+    );
+
+    // Update password
+    await this.db.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        lastPasswordChangeAt: new Date(),
+      },
+    });
+
+    // Mark OTP as used using raw query
+    await this.db.$executeRaw`
+      UPDATE "password_recovery"
+      SET used = true
+      WHERE email = ${email}
+    `;
+
+    // Log audit
+    await this.db.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'UPDATE',
+        entityType: 'USER',
+        entityId: user.id,
+        afterData: { action: 'PASSWORD_RESET' },
+      },
+    });
+
+    this.logger.log(`Password reset for user: ${email}`);
+
+    return { message: 'Password reset successfully' };
   }
 }

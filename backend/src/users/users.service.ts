@@ -12,6 +12,13 @@ export class UsersService {
     private paginationService: PaginationService,
   ) {}
 
+  // Normalize phone number (remove spaces, dashes, etc., keep +)
+  private normalizePhone(phone?: string): string | undefined {
+    if (!phone) return undefined;
+    // Keep only digits and + sign, remove all other characters
+    return phone.replace(/[^0-9+]/g, '');
+  }
+
   // GET ALL USERS
   async findAll(paginationParams: PaginationParams) {
     const { skip, take } = paginationParams;
@@ -96,31 +103,47 @@ export class UsersService {
     roleId?: string;
   }) {
     const passwordHash = await bcrypt.hash(data.password, 10);
+    const normalizedPhone = this.normalizePhone(data.phone);
 
-    const user = await this.db.user.create({
-      data: {
-        email: data.email,
-        username: data.username,
-        name: data.name,
-        phone: data.phone,
-        passwordHash,
-        status: 'ACTIVE',
-      },
-    });
-
-    // Assign role if provided
-    if (data.roleId) {
-      await this.db.userRole.create({
+    try {
+      const user = await this.db.user.create({
         data: {
-          userId: user.id,
-          roleId: data.roleId,
+          email: data.email,
+          username: data.username,
+          name: data.name,
+          phone: normalizedPhone,
+          passwordHash,
+          status: 'ACTIVE',
         },
       });
+
+      // Assign role if provided
+      if (data.roleId) {
+        await this.db.userRole.create({
+          data: {
+            userId: user.id,
+            roleId: data.roleId,
+          },
+        });
+      }
+
+      this.logger.log(`User created: ${data.email}`);
+
+      return this.findById(user.id);
+    } catch (error: any) {
+      // Handle unique constraint violations
+      if (error.code === 'P2002') {
+        const field = error.meta?.target?.[0];
+        if (field === 'email') {
+          throw new BadRequestException('A user with this email already exists. Please use a different email address.');
+        }
+        if (field === 'username') {
+          throw new BadRequestException('A user with this username already exists. Please use a different username.');
+        }
+        throw new BadRequestException('A user with these details already exists.');
+      }
+      throw error;
     }
-
-    this.logger.log(`User created: ${data.email}`);
-
-    return this.findById(user.id);
   }
 
   // UPDATE USER
@@ -130,6 +153,7 @@ export class UsersService {
       name?: string;
       phone?: string;
       status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+      password?: string;
     },
   ) {
     const user = await this.db.user.findUnique({ where: { id } });
@@ -138,25 +162,65 @@ export class UsersService {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    const updated = await this.db.user.update({
-      where: { id },
-      data,
-    });
+    try {
+      // If password is provided, hash it and use passwordHash field
+      if (data.password) {
+        data.password = await bcrypt.hash(data.password, 10);
+      }
 
-    // Audit log
-    await this.db.auditLog.create({
-      data: {
-        userId: id,
-        action: 'UPDATE',
-        entityType: 'USER',
-        entityId: id,
-        afterData: data,
-      },
-    });
+      // Normalize phone if provided
+      if (data.phone) {
+        data.phone = this.normalizePhone(data.phone);
+      }
 
-    this.logger.log(`User updated: ${id}`);
+      // Map password to passwordHash for database
+      const updateData: any = {
+        name: data.name,
+        phone: data.phone,
+        status: data.status,
+      };
+      if (data.password) {
+        updateData.passwordHash = data.password;
+      }
 
-    return this.findById(updated.id);
+      const updated = await this.db.user.update({
+        where: { id },
+        data: updateData,
+      });
+
+      // Audit log
+      await this.db.auditLog.create({
+        data: {
+          userId: id,
+          action: 'UPDATE',
+          entityType: 'USER',
+          entityId: id,
+          afterData: data,
+        },
+      });
+
+      this.logger.log(`User updated: ${id}`);
+
+      return this.findById(updated.id);
+    } catch (error: any) {
+      // Handle unique constraint violations
+      if (error.code === 'P2002') {
+        const field = error.meta?.target?.[0];
+        // Ignore unique constraint if the value hasn't changed
+        if (field === 'phone' && this.normalizePhone(data.phone) === this.normalizePhone(user.phone || undefined)) {
+          // Phone unchanged, ignore error
+          return this.findById(id);
+        }
+        if (field === 'email') {
+          throw new BadRequestException('A user with this email already exists. Please use a different email address.');
+        }
+        if (field === 'phone') {
+          throw new BadRequestException('A user with this phone number already exists. Please use a different phone number.');
+        }
+        throw new BadRequestException('A user with these details already exists.');
+      }
+      throw error;
+    }
   }
 
   async updateMyAvatar(userId: string, file: { mimetype: string; buffer: Buffer; size: number }) {

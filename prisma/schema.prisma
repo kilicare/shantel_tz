@@ -300,6 +300,7 @@ model User {
 
   @@index([email])
   @@index([username])
+  @@index([phone])
   @@index([status])
   @@map("users")
 }
@@ -353,6 +354,21 @@ model UserRole {
   @@index([userId])
   @@index([roleId])
   @@map("user_roles")
+}
+
+/// Password recovery OTP table
+model PasswordRecovery {
+  id        String   @id @default(cuid()) @db.Uuid
+  email     String
+  otp       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([otp])
+  @@index([expiresAt])
+  @@map("password_recovery")
 }
 
 /// RolePermission junction table — many-to-many relationship

@@ -23,10 +23,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const responseMessage = error.response?.data?.message;
+    const isPasswordRecoveryEndpoint = error.config?.url?.includes('/auth/forgot-password') ||
+                                       error.config?.url?.includes('/auth/verify-otp') ||
+                                       error.config?.url?.includes('/auth/reset-password');
+
     const authenticationFailure =
-      error.response?.status === 401 ||
-      (error.response?.status === 403 &&
-        ["User not authenticated", "No authentication token provided", "Invalid or expired token"].includes(responseMessage));
+      (error.response?.status === 401 ||
+        (error.response?.status === 403 &&
+          ["User not authenticated", "No authentication token provided", "Invalid or expired token"].includes(responseMessage))) &&
+      !isPasswordRecoveryEndpoint;
 
     if (typeof window !== "undefined" && authenticationFailure) {
       sessionStorage.removeItem("shantel_access_token");

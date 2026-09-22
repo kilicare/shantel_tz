@@ -291,7 +291,7 @@ async function main() {
     const existingAdmin = await prisma.user.findFirst({ where: { email: 'admin@shantel.local' } });
     if (!existingAdmin) {
       const superAdminRole = await prisma.role.findFirst({ where: { name: 'Super Administrator' } });
-      
+
       const adminUser = await prisma.user.create({
         data: {
           id: uuidv4(),
@@ -323,6 +323,50 @@ async function main() {
     }
   } catch (error) {
     console.error('❌ Error creating admin user:', error);
+  }
+
+  // ========================================
+  // CREATE REAL EMAIL USER FOR PASSWORD RESET TESTING
+  // ========================================
+
+  console.log('👤 Creating real email user for password reset testing...');
+
+  try {
+    const existingRealUser = await prisma.user.findFirst({ where: { email: 'kilicareplus@gmail.com' } });
+    if (!existingRealUser) {
+      const superAdminRole = await prisma.role.findFirst({ where: { name: 'Super Administrator' } });
+
+      const realUser = await prisma.user.create({
+        data: {
+          id: uuidv4(),
+          email: 'kilicareplus@gmail.com',
+          username: 'kilicareplus',
+          name: 'Kilicare Plus',
+          passwordHash: await bcrypt.hash('Kilicare@123456', 10),
+          status: 'ACTIVE',
+          phone: '+255712345678',
+        },
+      });
+
+      // Assign Super Admin role
+      if (superAdminRole) {
+        await prisma.userRole.create({
+          data: {
+            id: uuidv4(),
+            userId: realUser.id,
+            roleId: superAdminRole.id,
+          },
+        });
+      }
+
+      console.log('✅ Real email user created');
+      console.log(`   Email: kilicareplus@gmail.com`);
+      console.log(`   Password: Kilicare@123456`);
+    } else {
+      console.log('ℹ️  Real email user already exists, skipping');
+    }
+  } catch (error) {
+    console.error('❌ Error creating real email user:', error);
   }
 
   // ========================================

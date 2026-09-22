@@ -22,6 +22,7 @@ import { ApprovalsModule } from './approvals/approvals.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { DocumentsModule } from './documents/documents.module.js';
 import { AuditModule } from './audit/audit.module.js';
+import { EmailModule } from './email/email.module.js';
 import { HealthController } from './health.controller.js';
 
 import { AllExceptionsFilter } from './common/filters/http-exception.filter.js';
@@ -45,6 +46,7 @@ import { RbacGuard } from './common/guards/rbac.guard.js';
     UsersModule,
     RolesModule,
     PermissionsModule,
+    EmailModule,
 
     // Master Data
     ProductsModule,
