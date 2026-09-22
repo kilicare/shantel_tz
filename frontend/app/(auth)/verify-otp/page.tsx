@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, ShieldCheck, LoaderCircle } from "lucide-react";
+import { AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { ShantelLogo } from "@/components/ShantelLogo";
 import { AnimatedOTP, AnimatedOTPRef } from "@/components/auth/AnimatedOTP";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
 
 export default function VerifyOTPPage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function VerifyOTPPage() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const otpRef = useRef<AnimatedOTPRef>(null);
 
   useEffect(() => {
@@ -33,15 +35,12 @@ export default function VerifyOTPPage() {
     try {
       setIsSubmitting(true);
       setError("");
-      
-      // Start loading animation
-      if (otpRef.current) {
-        otpRef.current.startLoading();
-      }
+      setShowLoadingOverlay(true);
 
       await apiClient.post("/auth/verify-otp", { email: email.trim(), otp: otp.trim() });
       
-      // Start success animation
+      // Hide overlay and start success animation
+      setShowLoadingOverlay(false);
       if (otpRef.current) {
         otpRef.current.startSuccessAnimation();
       }
@@ -55,6 +54,7 @@ export default function VerifyOTPPage() {
     } catch (requestError: any) {
       const message = requestError?.response?.data?.message;
       setError(Array.isArray(message) ? message[0] : message || "Invalid OTP. Please try again.");
+      setShowLoadingOverlay(false);
       
       // Start error animation
       if (otpRef.current) {
@@ -165,7 +165,7 @@ export default function VerifyOTPPage() {
               <button 
                 type="submit" 
                 disabled={isSubmitting || otp.length !== 6} 
-                className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60 relative overflow-hidden"
+                className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60"
                 onClick={(e) => {
                   e.preventDefault();
                   if (otp.length === 6 && !isSubmitting) {
@@ -173,17 +173,8 @@ export default function VerifyOTPPage() {
                   }
                 }}
               >
-                {isSubmitting ? (
-                  <>
-                    <LoaderCircle className="animate-spin text-brand-amber" size={20} />
-                    <span>Verifying...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Verify OTP</span>
-                    <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
-                  </>
-                )}
+                <span>{isSubmitting ? "Verifying..." : "Verify OTP"}</span>
+                <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
               </button>
 
               <div className="text-center">
@@ -195,6 +186,8 @@ export default function VerifyOTPPage() {
           </div>
         </section>
       </div>
+      
+      <ShantelLoadingOverlay isVisible={showLoadingOverlay} message="Verifying OTP..." />
     </main>
   );
 }

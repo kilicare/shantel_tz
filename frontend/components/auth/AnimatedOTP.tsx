@@ -105,7 +105,7 @@ export const AnimatedOTP = forwardRef<AnimatedOTPRef, AnimatedOTPProps>(({
   // PUBLIC METHODS FOR PARENT COMPONENT
   // ============================================================================
   const startLoading = () => {
-    setStatus("loading");
+    // Loading handled by parent component's overlay
   };
 
   const startSuccessAnimation = () => {

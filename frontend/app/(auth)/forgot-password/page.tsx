@@ -2,9 +2,10 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, Mail, LoaderCircle } from "lucide-react";
+import { AlertCircle, ArrowRight, Mail } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { ShantelLogo } from "@/components/ShantelLogo";
+import { ShantelLoadingOverlay } from "@/components/ShantelLoadingOverlay";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,10 +26,12 @@ export default function ForgotPasswordPage() {
 
     try {
       setIsSubmitting(true);
+      setShowLoadingOverlay(true);
       await apiClient.post("/auth/forgot-password", { email: email.trim() });
       // Store email for verify-otp page
       sessionStorage.setItem("reset_email", email.trim());
       setSuccess(true);
+      setShowLoadingOverlay(false);
     } catch (requestError: any) {
       const message = requestError?.response?.data?.message;
       // Handle specific error messages clearly
@@ -38,6 +42,7 @@ export default function ForgotPasswordPage() {
       } else {
         setError(Array.isArray(message) ? message[0] : message || "Failed to send password reset email. Please try again.");
       }
+      setShowLoadingOverlay(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -143,18 +148,9 @@ export default function ForgotPasswordPage() {
                   </div>
                 )}
 
-                <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60 relative overflow-hidden">
-                  {isSubmitting ? (
-                    <>
-                      <LoaderCircle className="animate-spin text-brand-amber" size={20} />
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Send OTP</span>
-                      <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
-                    </>
-                  )}
+                <button type="submit" disabled={isSubmitting} className="group flex h-11 w-full items-center justify-between rounded-md border border-brand-amber bg-brand-primary px-5 text-label font-semibold text-primary-foreground transition-colors hover:bg-brand-primary-hover hover:border-brand-amber disabled:cursor-wait disabled:opacity-60">
+                  <span>{isSubmitting ? "Sending..." : "Send OTP"}</span>
+                  <ArrowRight size={19} className="transition-transform group-hover:translate-x-1" />
                 </button>
 
                 <div className="text-center">
@@ -167,6 +163,8 @@ export default function ForgotPasswordPage() {
           </div>
         </section>
       </div>
+      
+      <ShantelLoadingOverlay isVisible={showLoadingOverlay} message="Sending OTP..." />
     </main>
   );
 }
