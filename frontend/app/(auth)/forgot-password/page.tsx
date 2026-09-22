@@ -30,7 +30,14 @@ export default function ForgotPasswordPage() {
       setSuccess(true);
     } catch (requestError: any) {
       const message = requestError?.response?.data?.message;
-      setError(Array.isArray(message) ? message[0] : message || "Failed to send password reset email. Please try again.");
+      // Handle specific error messages clearly
+      if (message?.includes("No account found")) {
+        setError("No account found with this email address. Please check your email or sign up.");
+      } else if (message?.includes("Too many password reset attempts")) {
+        setError("Too many password reset attempts. Please try again later.");
+      } else {
+        setError(Array.isArray(message) ? message[0] : message || "Failed to send password reset email. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
